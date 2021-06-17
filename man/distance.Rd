@@ -2,8 +2,7 @@
 % Please edit documentation in R/interface.R
 \name{distance}
 \alias{distance}
-\title{Calculate the Euclidian or great circle distance between a pair of spatial
-boundaries}
+\title{Calculate the distance between a pair of spatial boundaries}
 \usage{
 distance(x, y, measure, time = NULL)
 }
@@ -20,6 +19,5 @@ projected units (i.e. meters) is returned. Otherwise the function returns a
 normal Euclidian distance.
 }
 \description{
-Calculate the Euclidian or great circle distance between a pair of spatial
-boundaries
+Calculate the distance between a pair of spatial boundaries
 }

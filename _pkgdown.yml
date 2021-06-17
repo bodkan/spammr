@@ -35,3 +35,6 @@ reference:
     - read
     - script
     - slim
+
+news:
+  one_page: true
