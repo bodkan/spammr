@@ -9,6 +9,8 @@ reference:
     - overlap
     - subtract
     - convert
+    - distance
+    - dimension
 
   - title: Spatial population dynamics
     contents:

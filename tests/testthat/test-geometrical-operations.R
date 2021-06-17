@@ -100,3 +100,73 @@ test_that("custom landscapes can be specified", {
 test_that("boundaries are either circles or polygons", {
   expect_error(region(), "Either a circular range or a polygon range must be specified")
 })
+
+
+
+# distances between nonoverlapping ranges ---------------------------------
+
+map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+x1 <- 0; x2 <- 100; radius <- 10
+p1 <- population("p1", map = map, time = 1, center = c(x1, 50), radius = radius, N = 1)
+p2 <- population("p2", map = map, time = 1, center = c(x2, 50), radius = radius, N = 1)
+
+test_that("distance calculation method must be provided", {
+  expect_error(distance(p1, p2, measure = "blah"),
+               "Unknown distance measure method")
+  expect_silent(distance(p1, p2, measure = "center", 0))
+})
+
+test_that("time must be given when calculating population distances", {
+  expect_error(distance(p1, p2, measure = "border"),
+               "Time of the nearest spatial snapshot must be be given")
+})
+
+test_that("distance between borders of geographic regions is correctly calculated", {
+  expect_true(distance(p1, p2, measure = "border", time = 0) == (x2 - x1) - 2*radius)
+})
+
+test_that("distance between centers of geographic regions is correctly calculated", {
+  expect_true(all.equal(distance(p1, p2, measure = "center", time = 0), 100))
+})
+
+
+# distances between overlapping ranges ------------------------------------
+
+radius <- 60
+p1 <- population("p1", map = map, time = 1, center = c(0, 50), radius = radius, N = 1)
+p2 <- population("p2", map = map, time = 1, center = c(100, 50), radius = radius, N = 1)
+
+test_that("distance between population borders is zero", {
+  expect_true(distance(p1, p2, measure = "border", time = 0) == 0)
+})
+
+test_that("distance between population centers is still the same", {
+  expect_true(all.equal(distance(p1, p2, measure = "center", time = 0), 100))
+})
+
+# distances can be calculated even for generic regions --------------------
+r1 <- region(map = map, center = c(0, 50), radius = 60)
+r2 <- region(map = map, center = c(100, 50), radius = 60)
+
+test_that("distance between borders of regions is zero", {
+  expect_true(distance(r1, r2, measure = "border") == 0)
+})
+
+test_that("distance between centers of regions is the same", {
+  expect_true(distance(r1, r2, measure = "center") == 100)
+})
+
+test_that("it is possible to calculate distances betwewen populations and regions", {
+  expect_true(distance(p1, r2, measure = "border", time = 0) == 0)
+  expect_true(distance(r1, p2, measure = "border", time = 0) == 0)
+  expect_true(distance(p1, r2, measure = "center", time = 0) == 100)
+  expect_true(distance(r1, p2, measure = "center", time = 0) == 100)
+})
+
+
+test_that("world dimensions are correctly calculated", {
+  map1 <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+  map2 <- readRDS("map.rds"); bbox <- sf::st_bbox(map2)
+  expect_equal(dimension(map1), c(100, 100))
+  expect_equal(dimension(map2), as.vector(c(bbox[3] - bbox[1], bbox[4] - bbox[2])))
+})

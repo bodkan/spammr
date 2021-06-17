@@ -855,3 +855,52 @@ subtract <- function(x, y, name = NULL) {
   sf::st_agr(result) <- "constant"
   result
 }
+
+#' Calculate the distance between a pair of spatial boundaries
+#'
+#' @param x,y Objects of the class \code{slendr}
+#' @param time Time closest to the spatial maps of \code{x} and \code{y} if they
+#'   represent \code{slendr_pop} population boundaries (ignored for general
+#'   \code{slendr_region} objects)
+#'
+#' @return If the coordinate reference system was specified, a distance in
+#'   projected units (i.e. meters) is returned. Otherwise the function returns a
+#'   normal Euclidian distance.
+#'
+#' @export
+distance <- function(x, y, measure, time = NULL) {
+  if (!measure %in% c("center", "border"))
+    stop("Unknown distance measure method provided (must be either 'center' or 'border')", call. = FALSE)
+
+  if ((inherits(x, "slendr_pop") | inherits(y, "slendr_pop")) & is.null(time))
+    stop("Time of the nearest spatial snapshot must be be given when calculating
+distance between population boundaries", call. = FALSE)
+
+  if (inherits(x, "slendr_pop")) x <- x[which.min(abs(x$time - time)), ]
+  if (inherits(y, "slendr_pop")) y <- y[which.min(abs(y$time - time)), ]
+
+  if (measure == "center") {
+    x <- sf::st_centroid(x)
+    y <- sf::st_centroid(y)
+  }
+
+  as.vector(sf::st_distance(x, y))
+}
+
+
+#' Return the dimensions of the world map
+#'
+#' @param map Object of the type \code{slendr_map}
+#'
+#' @return If the coordinate reference system was specified, the function
+#'   returns a two-dimensional vector of the world dimensions in the projected
+#'   units. Otherwise the dimensions of the two-dimensional abstract plane are
+#'   returned.
+#'
+#' @export
+dimension <- function(map) {
+  if (!inherits(map, "slendr_map"))
+    stop("Incorrect input type. Object of the type 'slendr_map' expected", call. = FALSE)
+  c(as.vector(diff(sf::st_bbox(map)[c("xmin", "xmax")])),
+    as.vector(diff(sf::st_bbox(map)[c("ymin", "ymax")])))
+}
