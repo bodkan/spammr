@@ -134,12 +134,12 @@
       <small>Source: <a href='https://github.com/bodkan/slendr/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div id="slendr-01-first-public-release" class="section level2">
+    <div id="slendr-01-first-public-release" class="section level1">
+<h1 class="page-header" data-toc-text="0.1">
+<a href="#slendr-01-first-public-release" class="anchor"></a><em>slendr</em> 0.1 (first public release)</h1>
+<div id="new-functionality" class="section level2">
 <h2 class="hasAnchor">
-<a href="#slendr-01-first-public-release" class="anchor"></a><em>slendr</em> 0.1 (first public release)</h2>
-<div id="new-functionality" class="section level3">
-<h3 class="hasAnchor">
-<a href="#new-functionality" class="anchor"></a>New functionality</h3>
+<a href="#new-functionality" class="anchor"></a>New functionality</h2>
 <ul>
 <li><p>Geographic landscapes and coordinate systems are no longer tied to a geographic location on Earth and can be fully abstract (including completely arbitrary shapes of the “continents”, geographic barriers etc.).</p></li>
 <li><p>New set operations for manipulating spatial regions: <code><a href="../reference/join.html">join()</a></code>, <code><a href="../reference/overlap.html">overlap()</a></code>, <code><a href="../reference/subtract.html">subtract()</a></code>. Users can use these do define more complex larger population boundaries and geographic regions from smaller ones.</p></li>
@@ -150,18 +150,18 @@
 <li><p>Any simulation can now have multiple “ancestral” populations (i.e. populations without an immediate ancestor created by <code>sim.addSubpop()</code>). Until now, all populations had to trace their ancestry to a single ancestor (a leftover of a hard-coded requirement from the very first version of my code).</p></li>
 </ul>
 </div>
-<div id="changes-to-the-r-interface" class="section level3">
-<h3 class="hasAnchor">
-<a href="#changes-to-the-r-interface" class="anchor"></a>Changes to the R interface</h3>
+<div id="changes-to-the-r-interface" class="section level2">
+<h2 class="hasAnchor">
+<a href="#changes-to-the-r-interface" class="anchor"></a>Changes to the R interface</h2>
 <ul>
 <li><p>Renamed <code>admixture()</code> to <code><a href="../reference/geneflow.html">geneflow()</a></code>. No ugly historical baggage and a more general name for this concept.</p></li>
 <li><p>The number of intermediate spatial snapshots used in <code><a href="../reference/move.html">move()</a></code> and <code><a href="../reference/expand.html">expand()</a></code> is now determined iteratively instead of forcing the user to specify this by themselves (which is something they would have to do manually anyway and was very annoying to deal with). If the user specifies <code>snapshots</code>, the search is not performed and the specified value is used to generate intermediate spatial maps.</p></li>
 <li><p>Spatial interaction distances (translated to <code>maxDistance</code> on the SLiM side) as well as offspring distances from parents (i.e. the standard deviations of their normal distributions) can now be specified for each population individually. The users can still provide default values for all populations (or just those which did not have their own dedicated parameter values) in the main <code><a href="../reference/compile.html">compile()</a></code> call.</p></li>
 </ul>
 </div>
-<div id="other-changes" class="section level3">
-<h3 class="hasAnchor">
-<a href="#other-changes" class="anchor"></a>Other changes</h3>
+<div id="other-changes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#other-changes" class="anchor"></a>Other changes</h2>
 <ul>
 <li>Many new unit tests. All new features have been developed along with their unit tests. More tests are coming.</li>
 </ul>

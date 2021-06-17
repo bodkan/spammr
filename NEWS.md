@@ -1,6 +1,6 @@
-## _slendr_ 0.1 (first public release)
+# _slendr_ 0.1 (first public release)
 
-### New functionality
+## New functionality
 
 - Geographic landscapes and coordinate systems are no longer tied to a geographic location on Earth and can be fully abstract (including completely arbitrary shapes of the "continents", geographic barriers etc.).
 
@@ -16,7 +16,7 @@
 
 - Any simulation can now have multiple "ancestral" populations (i.e. populations without an immediate ancestor created by `sim.addSubpop()`). Until now, all populations had to trace their ancestry to a single ancestor (a leftover of a hard-coded requirement from the very first version of my code).
 
-### Changes to the R interface
+## Changes to the R interface
 
 - Renamed `admixture()` to `geneflow()`. No ugly historical baggage and a more general name for this concept.
 
@@ -24,6 +24,6 @@
 
 - Spatial interaction distances (translated to `maxDistance` on the SLiM side) as well as offspring distances from parents (i.e. the standard deviations of their normal distributions) can now be specified for each population individually. The users can still provide default values for all populations (or just those which did not have their own dedicated parameter values) in the main `compile()` call.
 
-### Other changes
+## Other changes
 
 - Many new unit tests. All new features have been developed along with their unit tests. More tests are coming.
