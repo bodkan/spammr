@@ -155,7 +155,7 @@ ooa <- population( # population of the first migrants out of Africa
 ) %>%
   move(
     trajectory = list(c(40, 30), c(50, 30), c(60, 40)),
-    start = 50000, end = 40000, snapshots = 30
+    start = 50000, end = 40000
   )
 
 ehg <- population( # Eastern hunter-gatherers
@@ -175,7 +175,7 @@ ana <- population( # Anatolian farmers
   center = c(34, 38), radius = 500e3, polygon = anatolia
 ) %>%
   expand( # expand the range by 2.500 km
-    by = 2500e3, start = 10000, end = 7000, snapshots = 10,
+    by = 2500e3, start = 10000, end = 7000,
     polygon = join(europe, anatolia)
   )
 
@@ -184,10 +184,7 @@ yam <- population( # Yamnaya steppe population
   polygon = list(c(26, 50), c(38, 49), c(48, 50),
                  c(48, 56), c(38, 59), c(26, 56))
 ) %>%
-  move(
-    trajectory = c(15, 50),
-    start = 5000, end = 3000, snapshots = 8
-  )
+  move(trajectory = list(c(15, 50)), start = 5000, end = 3000)
 ```
 
 We can use the function `plot` again, but we get a warning informing us that
@@ -252,7 +249,7 @@ model
 #> geneflow events: [no geneflow]
 #> generation time: 30 
 #> time direction: backward 
-#> number of spatial maps: 58 
+#> number of spatial maps: 56 
 #> resolution: 10000 distance unit per pixel
 #> 
 #> configuration files in: /private/tmp/example-model 
@@ -277,11 +274,11 @@ explore(model)
 
 The function has two modes:
 
-1. Plotting spatial map dynamics:
+a) Plotting spatial map dynamics:
 
 ![](man/figures/shiny_maps.png)
 
-2. Displaying the demographic history graph (splits and geneflow events) embedded in the specified model:
+b) Displaying the demographic history graph (splits and geneflow events) embedded in the specified model:
 
 ![](man/figures/shiny_graph.png)
 

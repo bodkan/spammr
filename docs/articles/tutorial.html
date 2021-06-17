@@ -166,7 +166,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpizthAd", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpreAUXO", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -279,11 +279,11 @@
 <div id="population-movement-across-a-landscape" class="section level2">
 <h2 class="hasAnchor">
 <a href="#population-movement-across-a-landscape" class="anchor"></a>Population movement across a landscape</h2>
-<p>To describe a a directional population movement, we can use the function <code><a href="../reference/move.html">move()</a></code>. This accepts the coordinates of the destination points along the way (<code>trajectory</code>), the <code>duration</code> of the migration, and the number of individual spatial maps to save during export (<code>snapshots</code> - more in detail below).</p>
+<p>To describe a a directional population movement, we can use the function <code><a href="../reference/move.html">move()</a></code>. This accepts the coordinates of the destination points along the way (<code>trajectory</code>) and the <code>duration</code> of the migration and automatically generates intermediate spatial maps along the trajectory of movement to satisfy a sufficient degree of spatial continuity (this number can be also specified manually).</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ooa</span> <span class="op">&lt;-</span> <span class="va">ooa</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/move.html">move</a></span><span class="op">(</span>
   trajectory <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">40</span><span class="op">)</span><span class="op">)</span>,
-  start <span class="op">=</span> <span class="fl">50000</span>, end <span class="op">=</span> <span class="fl">40000</span>, snapshots <span class="op">=</span> <span class="fl">30</span>
+  start <span class="op">=</span> <span class="fl">50000</span>, end <span class="op">=</span> <span class="fl">40000</span>
 <span class="op">)</span></code></pre></div>
 <p>We can inspect the object returned by the <code><a href="../reference/move.html">move()</a></code> function and see that it now contains not just the first YAM population range at 7000 years ago, but also the ranges of the intermediate locations:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
@@ -296,41 +296,35 @@
 <span class="co">#&gt; removed at: 25000 </span>
 <span class="co">#&gt; habitat: terrestrial</span>
 <span class="co">#&gt; snapshots:</span>
-<span class="co">#&gt;   #    time   N</span>
-<span class="co">#&gt;   1 51000.0 500</span>
-<span class="co">#&gt;   2 50000.0 500</span>
-<span class="co">#&gt;   3 49687.5 500</span>
-<span class="co">#&gt;   4 49375.0 500</span>
-<span class="co">#&gt;   5 49062.5 500</span>
-<span class="co">#&gt;   6 48750.0 500</span>
-<span class="co">#&gt;   7 48437.5 500</span>
-<span class="co">#&gt;   8 48125.0 500</span>
-<span class="co">#&gt;   9 47812.5 500</span>
-<span class="co">#&gt;  10 47500.0 500</span>
-<span class="co">#&gt;  11 47187.5 500</span>
-<span class="co">#&gt;  12 46875.0 500</span>
-<span class="co">#&gt;  13 46562.5 500</span>
-<span class="co">#&gt;  14 46250.0 500</span>
-<span class="co">#&gt;  15 45937.5 500</span>
-<span class="co">#&gt;  16 45625.0 500</span>
-<span class="co">#&gt;  17 45312.5 500</span>
-<span class="co">#&gt;  18 45000.0 500</span>
-<span class="co">#&gt;  19 44687.5 500</span>
-<span class="co">#&gt;  20 44375.0 500</span>
-<span class="co">#&gt;  21 44062.5 500</span>
-<span class="co">#&gt;  22 43750.0 500</span>
-<span class="co">#&gt;  23 43437.5 500</span>
-<span class="co">#&gt;  24 43125.0 500</span>
-<span class="co">#&gt;  25 42812.5 500</span>
-<span class="co">#&gt;  26 42500.0 500</span>
-<span class="co">#&gt;  27 42187.5 500</span>
-<span class="co">#&gt;  28 41875.0 500</span>
-<span class="co">#&gt;  29 41562.5 500</span>
-<span class="co">#&gt;  30 41250.0 500</span>
-<span class="co">#&gt;  31 40937.5 500</span>
-<span class="co">#&gt;  32 40625.0 500</span>
-<span class="co">#&gt;  33 40312.5 500</span>
-<span class="co">#&gt;  34 40000.0 500</span>
+<span class="co">#&gt;   #     time   N</span>
+<span class="co">#&gt;   1 51000.00 500</span>
+<span class="co">#&gt;   2 50000.00 500</span>
+<span class="co">#&gt;   3 49615.38 500</span>
+<span class="co">#&gt;   4 49230.77 500</span>
+<span class="co">#&gt;   5 48846.15 500</span>
+<span class="co">#&gt;   6 48461.54 500</span>
+<span class="co">#&gt;   7 48076.92 500</span>
+<span class="co">#&gt;   8 47692.31 500</span>
+<span class="co">#&gt;   9 47307.69 500</span>
+<span class="co">#&gt;  10 46923.08 500</span>
+<span class="co">#&gt;  11 46538.46 500</span>
+<span class="co">#&gt;  12 46153.85 500</span>
+<span class="co">#&gt;  13 45769.23 500</span>
+<span class="co">#&gt;  14 45384.62 500</span>
+<span class="co">#&gt;  15 45000.00 500</span>
+<span class="co">#&gt;  16 44615.38 500</span>
+<span class="co">#&gt;  17 44230.77 500</span>
+<span class="co">#&gt;  18 43846.15 500</span>
+<span class="co">#&gt;  19 43461.54 500</span>
+<span class="co">#&gt;  20 43076.92 500</span>
+<span class="co">#&gt;  21 42692.31 500</span>
+<span class="co">#&gt;  22 42307.69 500</span>
+<span class="co">#&gt;  23 41923.08 500</span>
+<span class="co">#&gt;  24 41538.46 500</span>
+<span class="co">#&gt;  25 41153.85 500</span>
+<span class="co">#&gt;  26 40769.23 500</span>
+<span class="co">#&gt;  27 40384.62 500</span>
+<span class="co">#&gt;  28 40000.00 500</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; map: internal coordinate reference system: EPSG 3035</span></code></pre></div>
 <p>Checking the result visually again, we see:</p>
@@ -373,7 +367,7 @@
   center <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">34</span>, <span class="fl">38</span><span class="op">)</span>, radius <span class="op">=</span> <span class="fl">500e3</span>, polygon <span class="op">=</span> <span class="va">anatolia</span>
 <span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/expand.html">expand</a></span><span class="op">(</span> <span class="co"># expand the range by 2.500 km</span>
-    by <span class="op">=</span> <span class="fl">2500e3</span>, start <span class="op">=</span> <span class="fl">10000</span>, end <span class="op">=</span> <span class="fl">7000</span>, snapshots <span class="op">=</span> <span class="fl">10</span>,
+    by <span class="op">=</span> <span class="fl">2500e3</span>, start <span class="op">=</span> <span class="fl">10000</span>, end <span class="op">=</span> <span class="fl">7000</span>,
     polygon <span class="op">=</span> <span class="fu"><a href="../reference/join.html">join</a></span><span class="op">(</span><span class="va">europe</span>, <span class="va">anatolia</span><span class="op">)</span>
   <span class="op">)</span></code></pre></div>
 <p>Note that in principle, you could specify the entire spatio-temporal history of a population in a single pipeline using the pipe operator <code><a href="../reference/%&gt;%.html">%&gt;%</a></code>.</p>
@@ -383,23 +377,28 @@
 <span class="co">#&gt; slendr 'population' object </span>
 <span class="co">#&gt; -------------------------- </span>
 <span class="co">#&gt; name: ANA </span>
-<span class="co">#&gt; split from: OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA </span>
+<span class="co">#&gt; split from: OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA </span>
 <span class="co">#&gt; split time: 28000 </span>
 <span class="co">#&gt; removed at: 4000 </span>
 <span class="co">#&gt; habitat: terrestrial</span>
 <span class="co">#&gt; snapshots:</span>
 <span class="co">#&gt;   #  time    N</span>
 <span class="co">#&gt;   1 28000 3000</span>
-<span class="co">#&gt;   2  9700 3000</span>
-<span class="co">#&gt;   3  9400 3000</span>
-<span class="co">#&gt;   4  9100 3000</span>
-<span class="co">#&gt;   5  8800 3000</span>
-<span class="co">#&gt;   6  8500 3000</span>
-<span class="co">#&gt;   7  8200 3000</span>
-<span class="co">#&gt;   8  7900 3000</span>
-<span class="co">#&gt;   9  7600 3000</span>
-<span class="co">#&gt;  10  7300 3000</span>
-<span class="co">#&gt;  11  7000 3000</span>
+<span class="co">#&gt;   2  9800 3000</span>
+<span class="co">#&gt;   3  9600 3000</span>
+<span class="co">#&gt;   4  9400 3000</span>
+<span class="co">#&gt;   5  9200 3000</span>
+<span class="co">#&gt;   6  9000 3000</span>
+<span class="co">#&gt;   7  8800 3000</span>
+<span class="co">#&gt;   8  8600 3000</span>
+<span class="co">#&gt;   9  8400 3000</span>
+<span class="co">#&gt;  10  8200 3000</span>
+<span class="co">#&gt;  11  8000 3000</span>
+<span class="co">#&gt;  12  7800 3000</span>
+<span class="co">#&gt;  13  7600 3000</span>
+<span class="co">#&gt;  14  7400 3000</span>
+<span class="co">#&gt;  15  7200 3000</span>
+<span class="co">#&gt;  16  7000 3000</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; map: internal coordinate reference system: EPSG 3035</span></code></pre></div>
 <p>We can (and should) check the results visually:</p>
@@ -420,7 +419,7 @@
 <p><img src="tutorial_files/figure-html/plot_ana_raw-1.png" width="480"></p>
 <p>We can see that the population of Anatolian farmers at some point invades the spatial boundary of the EUR population. On its own, this doesn’t imply geneflow. In the section on geneflow below, we will see how <em>slendr</em> implements geneflow of overlapping (but also non-overlapping) populations.</p>
 <p>Let’s add a couple of more populations and migrations before we move on to implementing geneflow between them,</p>
-<p>Yamnaya steppe people:</p>
+<p>Yamnaya steppe herders:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">yam</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/population.html">population</a></span><span class="op">(</span> <span class="co"># Yamnaya steppe population</span>
   name <span class="op">=</span> <span class="st">"YAM"</span>, time <span class="op">=</span> <span class="fl">7000</span>, N <span class="op">=</span> <span class="fl">500</span>, parent <span class="op">=</span> <span class="va">ehg</span>, remove <span class="op">=</span> <span class="fl">2500</span>,
@@ -530,8 +529,8 @@ between populations.</code></pre>
 <span class="co">#&gt; [25] "31.png" "32.png" "33.png" "34.png" "35.png" "36.png" "37.png" "38.png"</span>
 <span class="co">#&gt; [33] "39.png" "4.png"  "40.png" "41.png" "42.png" "43.png" "44.png" "45.png"</span>
 <span class="co">#&gt; [41] "46.png" "47.png" "48.png" "49.png" "5.png"  "50.png" "51.png" "52.png"</span>
-<span class="co">#&gt; [49] "53.png" "54.png" "55.png" "56.png" "57.png" "58.png" "6.png"  "7.png" </span>
-<span class="co">#&gt; [57] "8.png"  "9.png"</span></code></pre></div>
+<span class="co">#&gt; [49] "53.png" "54.png" "55.png" "56.png" "57.png" "6.png"  "7.png"  "8.png" </span>
+<span class="co">#&gt; [57] "9.png"</span></code></pre></div>
 <p>It also contains a series of tab-separated configuration tables. These tables contain summaries of the model parameters which we defined graphically above, namely:</p>
 <ul>
 <li>the table of population splits:</li>
@@ -570,13 +569,13 @@ between populations.</code></pre>
 </ul>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"/tmp/test-model/maps.tsv"</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt;   pop_id time time_gen map_number orig_time</span>
-<span class="co">#&gt; 1      0   30  1.00000          1        30</span>
-<span class="co">#&gt; 2      1 1030 34.33333          2      1030</span>
-<span class="co">#&gt; 3      1 2030 67.66667          3      2030</span>
-<span class="co">#&gt; 4      1 2342 78.06667          4      2342</span>
-<span class="co">#&gt; 5      1 2655 88.50000          5      2655</span>
-<span class="co">#&gt; 6      1 2968 98.93333          6      2968</span></code></pre></div>
+<span class="co">#&gt;   pop_id time  time_gen map_number orig_time</span>
+<span class="co">#&gt; 1      0   30   1.00000          1        30</span>
+<span class="co">#&gt; 2      1 1030  34.33333          2      1030</span>
+<span class="co">#&gt; 3      1 2030  67.66667          3      2030</span>
+<span class="co">#&gt; 4      1 2415  80.50000          4      2415</span>
+<span class="co">#&gt; 5      1 2799  93.30000          5      2799</span>
+<span class="co">#&gt; 6      1 3184 106.13333          6      3184</span></code></pre></div>
 <p>The object returned by the <code><a href="../reference/compile.html">compile()</a></code> function (called <code>model</code> here) binds all of this information together. In fact, for easier debugging and sanity checks, it carries the locations of these tables (as well as other important information) in it as elements of a list <code>model$splits</code>, <code>model$geneflows</code>, etc.</p>
 <p>In case you’d want to separate model specification and running into different scripts, <em>slendr</em> includes a function <code><a href="../reference/read.html">read()</a></code> just for this purpose:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
@@ -589,7 +588,7 @@ between populations.</code></pre>
 <p>For this purpose, the package includes a function <code><a href="../reference/graph.html">graph()</a></code> which takes in all the information about the relationships between populations (i.e., the population and geneflow objects we defined above) and plots it all in the form of a so-called <em>admixture graph</em> (see <a href="https://academic.oup.com/genetics/article/192/3/1065/5935193">here</a> for a discussion of the admixture graph concept).</p>
 <p>One important thing to note here is that unlike traditional admixture graphs where each node/population is present only once, in the full <em>slendr</em> graph, a single population can participate in many geneflow events over the course of history. This is visualized by assigning a color to each population, and different nodes of the same color representing snapshots in time when a demographic event affecting that population happens.</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span>, show_cleanups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
 <p><img src="tutorial_files/figure-html/plot_graph-1.png" width="960"></p>
 </div>
 <div id="interactive-exploration-of-spatio-temporal-models" class="section level2">
@@ -598,6 +597,7 @@ between populations.</code></pre>
 <p>A slightly fancier way to visualize models is implemented in a function <code><a href="../reference/explore.html">explore()</a></code>. This function accepts a compiled model as its only parameter and spawns an <a href="https://shiny.rstudio.com">R shiny</a>-based browser app which makes it possible to click through the time snapshots interactively and visualize the spatial maps in each time point.</p>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/explore.html">explore</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></code></pre></div>
+<p><img src="figures/shiny_graph.png"><img src="figures/shiny_maps.png"></p>
 </div>
 <div id="running-the-simulation" class="section level2">
 <h2 class="hasAnchor">

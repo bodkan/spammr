@@ -372,7 +372,7 @@ EPSG 3035 we're using here specifies distances in meters:
 Here we define the location of the population of non-Africans right
 after their split from the African ancestors:
 
-```{r}
+```{r, message = FALSE}
 ooa <- population(
   "OOA", parent = afr, time = 51000, N = 500, remove = 25000,
   center = c(33, 30), radius = 400e3
@@ -404,14 +404,12 @@ plot(ooa, title = "'Intersected' population range")
 
 To describe a a directional population movement, we can use the
 function `move()`. This accepts the coordinates of the destination
-points along the way (`trajectory`), the `duration` of the migration,
-and the number of individual spatial maps to save during export
-(`snapshots` - more in detail below).
+points along the way (`trajectory`) and the `duration` of the migration and automatically generates intermediate spatial maps along the trajectory of movement to satisfy a sufficient degree of spatial continuity (this number can be also specified manually).
 
-```{r}
+```{r, message = FALSE}
 ooa <- ooa %>% move(
   trajectory = list(c(40, 30), c(50, 30), c(60, 40)),
-  start = 50000, end = 40000, snapshots = 30
+  start = 50000, end = 40000
 )
 ```
 
@@ -478,13 +476,13 @@ the split of the EHG population. Note that we use use an optional
 parameter `polygon` which restricts the expansion only to Europe,
 instead of all around Anatolia:
 
-```{r}
+```{r, message = FALSE}
 ana <- population( # Anatolian farmers
   name = "ANA", time = 28000, N = 3000, parent = ooa, remove = 4000,
   center = c(34, 38), radius = 500e3, polygon = anatolia
 ) %>%
   expand( # expand the range by 2.500 km
-    by = 2500e3, start = 10000, end = 7000, snapshots = 10,
+    by = 2500e3, start = 10000, end = 7000,
     polygon = join(europe, anatolia)
   )
 ```
@@ -527,7 +525,7 @@ Let's add a couple of more populations and migrations before we move
 on to implementing geneflow between them,
 
 
-Yamnaya steppe people:
+Yamnaya steppe herders:
 
 ```{r plot_yam}
 yam <- population( # Yamnaya steppe population
@@ -542,7 +540,7 @@ plot(yam)
 Yamnaya invading Europe:
 
 
-```{r plot_yam_migr}
+```{r plot_yam_migr, message = FALSE}
 yam <- yam %>%
   move(
     trajectory = c(15, 50),
@@ -742,7 +740,7 @@ representing snapshots in time when a demographic event affecting that
 population happens.
 
 ```{r plot_graph, fig.width = 12, fig.height = 12}
-graph(model)
+graph(model, show_cleanups = FALSE)
 ```
 
 
@@ -755,6 +753,8 @@ A slightly fancier way to visualize models is implemented in a function `explore
 explore(model)
 ```
 
+![](figures/shiny_graph.png)
+![](figures/shiny_maps.png)
 
 
 ## Running the simulation

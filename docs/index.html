@@ -176,7 +176,7 @@
 <span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="reference/move.html">move</a></span><span class="op">(</span>
     trajectory <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">40</span><span class="op">)</span><span class="op">)</span>,
-    start <span class="op">=</span> <span class="fl">50000</span>, end <span class="op">=</span> <span class="fl">40000</span>, snapshots <span class="op">=</span> <span class="fl">30</span>
+    start <span class="op">=</span> <span class="fl">50000</span>, end <span class="op">=</span> <span class="fl">40000</span>
   <span class="op">)</span>
 
 <span class="va">ehg</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/population.html">population</a></span><span class="op">(</span> <span class="co"># Eastern hunter-gatherers</span>
@@ -196,7 +196,7 @@
   center <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">34</span>, <span class="fl">38</span><span class="op">)</span>, radius <span class="op">=</span> <span class="fl">500e3</span>, polygon <span class="op">=</span> <span class="va">anatolia</span>
 <span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="reference/expand.html">expand</a></span><span class="op">(</span> <span class="co"># expand the range by 2.500 km</span>
-    by <span class="op">=</span> <span class="fl">2500e3</span>, start <span class="op">=</span> <span class="fl">10000</span>, end <span class="op">=</span> <span class="fl">7000</span>, snapshots <span class="op">=</span> <span class="fl">10</span>,
+    by <span class="op">=</span> <span class="fl">2500e3</span>, start <span class="op">=</span> <span class="fl">10000</span>, end <span class="op">=</span> <span class="fl">7000</span>,
     polygon <span class="op">=</span> <span class="fu"><a href="reference/join.html">join</a></span><span class="op">(</span><span class="va">europe</span>, <span class="va">anatolia</span><span class="op">)</span>
   <span class="op">)</span>
 
@@ -205,10 +205,7 @@
   polygon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">26</span>, <span class="fl">50</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">38</span>, <span class="fl">49</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">48</span>, <span class="fl">50</span><span class="op">)</span>,
                  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">48</span>, <span class="fl">56</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">38</span>, <span class="fl">59</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">26</span>, <span class="fl">56</span><span class="op">)</span><span class="op">)</span>
 <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="reference/move.html">move</a></span><span class="op">(</span>
-    trajectory <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">50</span><span class="op">)</span>,
-    start <span class="op">=</span> <span class="fl">5000</span>, end <span class="op">=</span> <span class="fl">3000</span>, snapshots <span class="op">=</span> <span class="fl">8</span>
-  <span class="op">)</span></code></pre></div>
+  <span class="fu"><a href="reference/move.html">move</a></span><span class="op">(</span>trajectory <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>, start <span class="op">=</span> <span class="fl">5000</span>, end <span class="op">=</span> <span class="fl">3000</span><span class="op">)</span></code></pre></div>
 <p>We can use the function <code>plot</code> again, but we get a warning informing us that plotting complex model dynamics over time on a single map is not a good idea. Below, we show a better way to do this using a built-in interactive R shiny app.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">afr</span>, <span class="va">ooa</span>, <span class="va">ehg</span>, <span class="va">eur</span>, <span class="va">ana</span>, <span class="va">yam</span><span class="op">)</span>
@@ -251,7 +248,7 @@
 <span class="co">#&gt; geneflow events: [no geneflow]</span>
 <span class="co">#&gt; generation time: 30 </span>
 <span class="co">#&gt; time direction: backward </span>
-<span class="co">#&gt; number of spatial maps: 58 </span>
+<span class="co">#&gt; number of spatial maps: 56 </span>
 <span class="co">#&gt; resolution: 10000 distance unit per pixel</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; configuration files in: /private/tmp/example-model </span>
@@ -268,13 +265,9 @@
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="reference/explore.html">explore</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></code></pre></div>
 <p>The function has two modes:</p>
-<ol>
-<li>Plotting spatial map dynamics:</li>
-</ol>
+<p>a) Plotting spatial map dynamics:</p>
 <p><img src="reference/figures/shiny_maps.png"></p>
-<ol>
-<li>Displaying the demographic history graph (splits and geneflow events) embedded in the specified model:</li>
-</ol>
+<p>b) Displaying the demographic history graph (splits and geneflow events) embedded in the specified model:</p>
 <p><img src="reference/figures/shiny_graph.png"></p>
 </div>
 <div id="7-run-the-model-in-slim" class="section level4">
