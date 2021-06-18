@@ -9,6 +9,10 @@ distance(x, y, measure, time = NULL)
 \arguments{
 \item{x, y}{Objects of the class \code{slendr}}
 
+\item{measure}{How to measure distance? This can be either \code{'border'}
+(distance between the borders of \code{x} and \code{y}) or \code{'center'}
+(distance between their centroids).}
+
 \item{time}{Time closest to the spatial maps of \code{x} and \code{y} if they
 represent \code{slendr_pop} population boundaries (ignored for general
 \code{slendr_region} objects)}

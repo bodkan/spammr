@@ -859,6 +859,9 @@ subtract <- function(x, y, name = NULL) {
 #' Calculate the distance between a pair of spatial boundaries
 #'
 #' @param x,y Objects of the class \code{slendr}
+#' @param measure How to measure distance? This can be either \code{'border'}
+#'   (distance between the borders of \code{x} and \code{y}) or \code{'center'}
+#'   (distance between their centroids).
 #' @param time Time closest to the spatial maps of \code{x} and \code{y} if they
 #'   represent \code{slendr_pop} population boundaries (ignored for general
 #'   \code{slendr_region} objects)
