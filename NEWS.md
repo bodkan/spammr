@@ -1,4 +1,4 @@
-# _slendr_ 0.1 (first public release)
+# _slendr_ 0.1 (upcoming first public release)
 
 ## New functionality
 
