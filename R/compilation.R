@@ -176,8 +176,7 @@ value of this parameter was not provided to the compile() function", call. = FAL
 
   map_table$orig_time <- map_table$time
   map_table$time_gen <- map_table$time
-  map_table$time_gen[map_table$time_gen != -1] <-
-    map_table$time_gen[map_table$time_gen != -1] / generation_time
+  map_table$time_gen <- map_table$time_gen / generation_time
   split_table$parent_id <- ifelse(is.na(split_table$parent_id), -1, split_table$parent_id)
 
   # convert times into generations (only in the table of splits which will be

@@ -65,7 +65,9 @@ initialize() {
   }
 
   // times of spatial map changes
-  defineConstant("T_MAPS", T_BURNIN + map_param("time_gen"));
+  ancestral_maps = map_param("time_gen")[map_param("time_gen") == 1];
+  later_maps = map_param("time_gen")[map_param("time_gen") > 1];
+  defineConstant("T_MAPS", c(ancestral_maps, T_BURNIN + later_maps));
   catn("T_MAPS: " + paste(T_MAPS));
 
   // mutation types of neutral ancestry-informative markers for each population
@@ -102,18 +104,16 @@ initialize() {
   // are scheduled at once)
 
   // creating ancestral populations
-  pop_ids = drop(POP_TABLE[drop(POP_TABLE[, 2] == -1), 0])[sim.generation == T_ANC];
+  pop_ids = drop(POP_TABLE[drop(POP_TABLE[, 2] == -1), 0]);
   for (i in pop_ids) {
     sim.addSubpop(i, pop_param("N", i));
     set_map(i, sim.generation);
     set_coordinates(get_pop(i).individuals, i);
     add_markers(i);
   }
+  evaluate_interactions();
 
-  if (any(T_ANC > 1))
-    sim.rescheduleScriptBlock(s0, generations = unique(T_ANC)[unique(T_ANC) > 1]);
-  else
-    sim.deregisterScriptBlock(s0);
+  sim.rescheduleScriptBlock(s0, generations = SIM_START);
 
   // population splits
   if (exists("T_SPLITS"))
@@ -164,19 +164,8 @@ initialize() {
 // Demography script blocks
 //////////////////////////////////////////////////////////////////////
 
-// Creating ancestral populations
-s0 early() {
-  // setup ancestral populations (i.e. those which don't have a parent)
-  if (sim.generation > 1) {
-    pop_ids = drop(POP_TABLE[drop(POP_TABLE[, 2] == -1), 0])[sim.generation == T_ANC];
-    for (i in pop_ids) {
-      sim.addSubpop(i, pop_param("N", i));
-      set_map(i, sim.generation);
-      set_coordinates(get_pop(i).individuals, i);
-      add_markers(i);
-    }
-    evaluate_interactions();
-  }
+s0 late() {
+  log_output("burnin ends");
 }
 
 // Population splits
