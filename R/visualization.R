@@ -146,8 +146,10 @@ graph <- function(model, show_cleanups = TRUE) {
   nodes <- get_nodes(edges)
 
   g <- tidygraph::tbl_graph(nodes = nodes, edges = edges, directed = TRUE)
+  layout <- create_layout(g, layout = "sugiyama")
+  layout$pop <- factor(layout$pop, levels = split_table$pop)
 
-  ggraph(g, layout = "sugiyama") +
+  ggraph(layout) +
 
   # geneflow edges along with geneflow rates
   geom_edge_link(
@@ -177,23 +179,7 @@ graph <- function(model, show_cleanups = TRUE) {
   # population removal time stamp
   geom_edge_link(aes(filter = type == "terminal"), alpha = 0.25) +
 
-  geom_node_label(aes(filter = type == "split", fill = pop,
-                      label = sprintf("%s split at %s", pop, time))) +
-
-  geom_node_label(aes(filter = type == "ancestral", fill = pop,
-                      label = paste(pop, "(ancestor)")),
-                  label.size = 1) +
-
-  geom_node_label(aes(filter = type == "geneflow", fill = pop,
-                      label = sprintf("geneflow at %s", time))) +
-
-  geom_node_label(aes(filter = type == "intermediate", fill = pop,
-                      label = sprintf("from %s", pop))) +
-
-  geom_node_label(aes(filter = type == "terminal",
-                      label = sprintf("removed\nat %s",
-                                        ifelse(time == 0, "the end", time))),
-                  fill = "white") +
+  geom_node_label(aes(fill = pop, label = label)) +
 
   scale_edge_linetype_manual(values = c("split" = "solid",
                                         "continuation" = "solid",
@@ -318,7 +304,8 @@ get_terminal_edges <- function(split_edges, geneflow_edges, split_table) {
 }
 
 
-# Get table of node labels in the graph
+#' Get table of node labels in the graph
+#' @import data.table
 get_nodes <- function(edges) {
   nodes <- unique(c(edges$x, edges$y))
 
@@ -347,6 +334,16 @@ get_nodes <- function(edges) {
       return("intermediate")
   })
   nodes$type[!nodes$name %in% edges$y] <- "ancestral"
+
+  nodes <- as.data.table(nodes)
+  nodes[, label := fcase(
+    type == "split", sprintf("%s split at %s", pop, time),
+    type == "ancestral", paste(pop, "(ancestor)"),
+    type == "geneflow", sprintf("geneflow at %s", time),
+    type == "intermediate", sprintf("from %s", pop),
+    type == "terminal", sprintf("removed\nat %s",
+                                ifelse(time == 0, "the end", time))
+  )]
   nodes
 }
 
