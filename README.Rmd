@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 **This software is still under development!** <a href='https://bodkan.net/slendr'>
 <img src="man/figures/logo.png" align="right" height="139"/></a>
 I have been making a good progress towards the first beta version, but
-the package still has some way to go before being production ready.
+the package still has some way to go before being production ready. If you are interested, you can see the list of changes between versions [here](https://bodkan.net/slendr/news/index.html).
 
 That said, if you would like to learn more, or if you're feeling brave
 and would like to test the package yourself, take a look at the
@@ -248,7 +248,7 @@ model
 
 #### 6. Visualize the model
 
-The package provides an [R shiny]-based browser app `explore()` for
+The package provides an [R shiny](https://shiny.rstudio.com)-based browser app `explore()` for
 checking the model dynamics interactively and visually. For more complex models,
 this is much better than static spatial plots such as the one we showed in step
 2 above:
