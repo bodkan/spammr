@@ -71,14 +71,14 @@ p <- ggplot() +
   guides(color = "none", fill = "none") +
   theme_void() +
   theme_transparent() +
-  geom_rect(aes(xmin = -30, xmax = 80, ymin = -22, ymax = -7),
+  geom_rect(aes(xmin = -30, xmax = 80, ymin = -20, ymax = -7),
             fill = "lightblue", alpha = 0.8)
 
 sticker(
   p, package = "slendr",
-  p_size = 7, p_y = 0.43, p_color = "black",
+  p_size = 7, p_y = 0.37, p_color = "black",
   h_color = "black", h_fill = "#0077be",
-  s_y = 0.9, s_x = 0.99, s_width = 2.5, s_height = 2.3,
+  s_y = 0.9, s_x = 0.99, s_width = 2.7, s_height = 2.7,
   white_around_sticker = TRUE,
   filename = file.path(".", "logo.png")
 ) %>% print()
