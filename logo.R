@@ -1,19 +1,22 @@
 library(sf)
+library(stars)
 library(tidyverse)
 library(rnaturalearth)
 library(hexSticker)
 library(here)
 
-map <- ne_load(
-  scale = 110, type = "land", category = "physical",
-  destdir = "~/Google/postdoc/data/ne_data",
-  returnclass = "sf"
-)
-map <- st_crop(
-  map,
-  st_bbox(c(xmin = -28, xmax = 80, ymin = -49, ymax = 70),
-          crs = 4326)
-)
+## old vector map
+# map <- ne_load(
+#   scale = 110, type = "land", category = "physical",
+#   destdir = "~/Google/postdoc/data/ne_data",
+#   returnclass = "sf"
+# )
+
+map <- ne_download(scale = 50, type = "NE1_50M_SR_W", category = "raster") %>%
+  st_as_stars() %>%
+  st_crop(st_bbox(c(xmin = -28, xmax = 80, ymin = -49, ymax = 70),
+          crs = 4326)) %>%
+  st_rgb()
 
 points_df <- tribble(
   ~lon, ~lat, ~id,
@@ -63,23 +66,24 @@ edges_df <- tribble(
 )
 
 p <- ggplot() +
-  geom_sf(data = map, color = NA) +
+  geom_stars(data = map) +
+  scale_fill_identity() +
 #  geom_label(data = points_df, aes(lon, lat, label = id)) +
-  geom_segment(data = edges_df, aes(x = x, y = y, xend = xend, yend = yend, color = from)) +
+  geom_segment(data = edges_df, aes(x = x, y = y, xend = xend, yend = yend,
+                                    color = from)) +
   geom_point(data = points_df, aes(lon, lat, color = id), size = 1.5) +
-  guides(color = FALSE, fill = FALSE) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
+  guides(color = "none") +
   theme_void() +
   theme_transparent() +
-  geom_rect(aes(xmin = -28, xmax = 80, ymin = -22, ymax = -7),
+  geom_rect(aes(xmin = -30, xmax = 80, ymin = -22, ymax = -7),
             fill = "lightblue", alpha = 0.8)
+p
 
 sticker(
   p, package = "slendr",
-  p_size = 8, p_y = 0.42, p_color = "black",
+  p_size = 7, p_y = 0.46, p_color = "black",
   h_color = "black", h_fill = "#0077be",
-  s_y = 0.9, s_x = 1.05, s_width = 2.5, s_height = 2.3,
+  s_y = 0.9, s_x = 1.02, s_width = 2.5, s_height = 2.3,
   white_around_sticker = TRUE,
   filename = file.path(".", "logo.png")
 )
