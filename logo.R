@@ -81,7 +81,7 @@ sticker(
   s_y = 0.9, s_x = 0.99, s_width = 2.7, s_height = 2.7,
   white_around_sticker = TRUE,
   filename = file.path(".", "logo.png")
-) %>% print()
+)
 
 unlink("man/figures/logo.png", force = TRUE)
 usethis::use_logo("logo.png")
