@@ -52,17 +52,3 @@ test_that("read() restores a complex model object", {
   expect_true(all(unlist(model1$config) == unlist(model2$config)))
   expect_true(all(sapply(seq_along(model1$populations), function(i) all(model1$populations[[i]] == model2$populations[[i]]))))
 })
-
-test_that("blank spatial maps throw an error", {
-  xrange <- c(-15, 60)
-  yrange <- c(20, 65)
-  l <- slendr:::create_polygon(list(c(-10, 30), c(50, 30), c(40, 50), c(0, 40)))
-  map <- world(xrange = xrange, yrange = yrange, landscape = l)
-  pop <- population("pop", parent = "ancestor", N = 10, time = 100, center = c(0, 60), radius = 20, map = map)
-  model_dir <- file.path(tempdir(), "tmp-blank-map-error")
-  expect_error(
-    compile(pop, model_dir, generation_time = 1, resolution = 5, overwrite = TRUE,
-            competition_dist = 1, mate_dist = 1, offspring_dist = 1),
-    "The generated raster map of pop at time \\d+ is blank."
-  )
-})
