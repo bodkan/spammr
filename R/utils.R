@@ -1,3 +1,23 @@
+# Get path to an appropriate SLiM binary
+get_binary <- function(method) {
+  if (method == "gui") {
+    if (Sys.info()["sysname"] == "Darwin")
+      return("open -a SLiMgui")
+    else
+      binary <- "SLiMgui"
+  } else
+    binary <- "slim"
+
+  binary_path <- Sys.which(binary)
+  if (all(binary_path == ""))
+    stop(sprintf("%s binary not found. Please modify your $PATH accordingly or
+specify the path manually by setting the 'binary_path' argument.", binary),
+call. = FALSE)
+  else
+    return(as.character(binary_path))
+}
+
+
 # Check whether given population region has not yet been intersected
 check_not_intersected <- function(pop) {
   if (!is.null(attr(pop, "intersected")))
@@ -16,6 +36,7 @@ check_resolution <- function(map, val) {
                  deparse(substitute(val)), val),
          call. = FALSE)
 }
+
 
 # Set a bounding box of a given object, and return that object again
 # (for some reason there's no builtin way to set a bounding box in

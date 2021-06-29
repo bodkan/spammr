@@ -178,7 +178,7 @@ expand <- function(pop, by, end, start, overlap = 0.8, snapshots = NULL,
     n <- 1
     message("Iterative search for the minimum sufficient number of intermediate
 spatial snapshots, starting at ", n, ". This should only take a couple of
-seconds...")
+seconds but if you don't want to wait, you can set `snapshots = N` manually.")
   } else
     n <- snapshots
 
@@ -310,7 +310,7 @@ between 0 and 1", call. = FALSE)
     n <- 1
     message("Iterative search for the minimum sufficient number of intermediate
 spatial snapshots, starting at ", n, ". This should only take a couple of
-seconds...")
+seconds but if you don't want to wait, you can set `snapshots = N` manually.")
   } else
     n <- snapshots
 

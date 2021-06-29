@@ -348,6 +348,7 @@ configuration (%s)", dir, map_table$map), call. = FALSE)
 #'   on the command-line, "script" - simply return the script)
 #' @param include Vector of paths to custom SLiM scripts which should be
 #'   combined with the backend SLiM code
+#' @param slim_path Optional way to specify path to an appropriate SLiM binary
 #' @param burnin Length of the burnin (in model's time units, i.e. years)
 #' @param seed Random seed (if missing, SLiM's own seed will be used)
 #' @param verbose Write the SLiM output log to the console? (default
@@ -358,7 +359,7 @@ slim <- function(model, seq_length, recomb_rate,
                  save_locations = FALSE, track_ancestry = FALSE,
                  keep_pedigrees = FALSE, ts_recording = FALSE,
                  method = "gui", verbose = FALSE, include = NULL, burnin = 0,
-                 seed = NULL) {
+                 seed = NULL, slim_path = NULL) {
   dir <- model$config$directory
   if (!dir.exists(dir))
     stop(sprintf("Model directory '%s' does not exist", dir), call. = FALSE)
@@ -370,6 +371,13 @@ slim <- function(model, seq_length, recomb_rate,
   if (!length(list.files(dir, pattern = "*.png") == 0))
     stop(sprintf("Directory '%s' does not contain any slendr spatial raster maps", dir),
     call. = FALSE)
+
+  if (!method %in% c("gui", "batch", "script"))
+    stop("Only 'gui', 'batch', and 'script' are recognized as values of
+the 'method' argument", call. = FALSE)
+
+  if (is.character(slim_path) && !all(file.exists(slim_path)))
+    stop("SLiM binary not found at ", slim_path, call. = FALSE)
 
   if (!is.logical(track_ancestry) & !is.numeric(track_ancestry)) {
     stop("'track_ancestry' must be either FALSE or 0 (no tracking), or
@@ -402,15 +410,16 @@ a non-zero integer number (number of neutral ancestry markers)", call. = FALSE)
   script_components <- unlist(lapply(c(base_script, include), readLines))
   writeLines(script_components, script_path)
 
-  if (method == "gui")
-    system(sprintf("open -a SLiMgui %s", script_path))
-  else if (method == "batch")
-    system(sprintf("slim %s", script_path), ignore.stdout = !verbose)
-  else if (method == "script")
+  if (method == "script")
     message("Final compiled SLiM script is in ", script_path)
-  else
-    stop("Only 'gui', 'batch', and 'script' are recognized as values of
-the 'method' argument", call. = FALSE)
+  else {
+    if (!is.null(slim_path)) {
+      cmd <- slim_path
+    } else {
+      cmd <- get_binary(method)
+    }
+    system(sprintf("%s %s", cmd, script_path), ignore.stdout = !verbose)
+  }
 }
 
 

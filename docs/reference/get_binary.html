@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Run a slendr model as a SLiM script — slim • slendr</title>
+<title>Get path to an appropriate SLiM binary — get_binary • slendr</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -46,11 +46,8 @@
 
 
 
-<meta property="og:title" content="Run a slendr model as a SLiM script — slim" />
-<meta property="og:description" content="Generates a SLiM script from a built-in slendr template, substituting all
-required parameters by values specified by the user. The user has an option
-to either run the script in batch mode, open it in SLiMgui, or simply save
-the generated SLiM script to a given location for later use." />
+<meta property="og:title" content="Get path to an appropriate SLiM binary — get_binary" />
+<meta property="og:description" content="Get path to an appropriate SLiM binary" />
 <meta property="og:image" content="https://bodkan.net/slendr/logo.png" />
 
 
@@ -125,100 +122,17 @@ the generated SLiM script to a given location for later use." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Run a slendr model as a SLiM script</h1>
-    <small class="dont-index">Source: <a href='https://github.com/bodkan/slendr/blob/master/R/compilation.R'><code>R/compilation.R</code></a></small>
-    <div class="hidden name"><code>slim.Rd</code></div>
+    <h1>Get path to an appropriate SLiM binary</h1>
+    <small class="dont-index">Source: <a href='https://github.com/bodkan/slendr/blob/master/R/utils.R'><code>R/utils.R</code></a></small>
+    <div class="hidden name"><code>get_binary.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Generates a SLiM script from a built-in slendr template, substituting all
-required parameters by values specified by the user. The user has an option
-to either run the script in batch mode, open it in SLiMgui, or simply save
-the generated SLiM script to a given location for later use.</p>
+    <p>Get path to an appropriate SLiM binary</p>
     </div>
 
-    <pre class="usage"><span class='fu'>slim</span><span class='op'>(</span>
-  <span class='va'>model</span>,
-  <span class='va'>seq_length</span>,
-  <span class='va'>recomb_rate</span>,
-  save_locations <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  track_ancestry <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  keep_pedigrees <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  ts_recording <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  method <span class='op'>=</span> <span class='st'>"gui"</span>,
-  verbose <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  include <span class='op'>=</span> <span class='cn'>NULL</span>,
-  burnin <span class='op'>=</span> <span class='fl'>0</span>,
-  seed <span class='op'>=</span> <span class='cn'>NULL</span>,
-  slim_path <span class='op'>=</span> <span class='cn'>NULL</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>get_binary</span><span class='op'>(</span><span class='va'>method</span><span class='op'>)</span></pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>model</th>
-      <td><p>Model object created by the <code>compile</code> function</p></td>
-    </tr>
-    <tr>
-      <th>seq_length</th>
-      <td><p>Total length of the simulated sequence (in base-pairs)</p></td>
-    </tr>
-    <tr>
-      <th>recomb_rate</th>
-      <td><p>Recombination rate of the simulated sequence (in
-recombinations per basepair per generation)</p></td>
-    </tr>
-    <tr>
-      <th>save_locations</th>
-      <td><p>Save location of each individual throughout the
-simulation?</p></td>
-    </tr>
-    <tr>
-      <th>track_ancestry</th>
-      <td><p>Track ancestry proportion dynamics in all populations
-throughout the simulations (default FALSE)? If a non-zero integer is
-provided, ancestry will be tracked using the number number of neutral
-ancestry markers equal to this number.</p></td>
-    </tr>
-    <tr>
-      <th>keep_pedigrees</th>
-      <td><p>Turn on <code>keepPedigrees</code> during SLiM
-initialization?</p></td>
-    </tr>
-    <tr>
-      <th>ts_recording</th>
-      <td><p>Turn on tree sequence recording during SLiM
-initialization?</p></td>
-    </tr>
-    <tr>
-      <th>method</th>
-      <td><p>How to run the script? ("gui" - open in SLiMgui, "batch" - run
-on the command-line, "script" - simply return the script)</p></td>
-    </tr>
-    <tr>
-      <th>verbose</th>
-      <td><p>Write the SLiM output log to the console? (default
-<code>FALSE</code>)</p></td>
-    </tr>
-    <tr>
-      <th>include</th>
-      <td><p>Vector of paths to custom SLiM scripts which should be
-combined with the backend SLiM code</p></td>
-    </tr>
-    <tr>
-      <th>burnin</th>
-      <td><p>Length of the burnin (in model's time units, i.e. years)</p></td>
-    </tr>
-    <tr>
-      <th>seed</th>
-      <td><p>Random seed (if missing, SLiM's own seed will be used)</p></td>
-    </tr>
-    <tr>
-      <th>slim_path</th>
-      <td><p>Optional way to specify path to an appropriate SLiM binary</p></td>
-    </tr>
-    </table>
 
 
   </div>

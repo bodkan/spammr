@@ -16,7 +16,8 @@ slim(
   verbose = FALSE,
   include = NULL,
   burnin = 0,
-  seed = NULL
+  seed = NULL,
+  slim_path = NULL
 )
 }
 \arguments{
@@ -53,6 +54,8 @@ combined with the backend SLiM code}
 \item{burnin}{Length of the burnin (in model's time units, i.e. years)}
 
 \item{seed}{Random seed (if missing, SLiM's own seed will be used)}
+
+\item{slim_path}{Optional way to specify path to an appropriate SLiM binary}
 }
 \description{
 Generates a SLiM script from a built-in slendr template, substituting all
