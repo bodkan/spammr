@@ -52,6 +52,7 @@ compile <- function(populations, dir, generation_time, resolution,
   else
     max_time <- sim_length
 
+  # make sure all populations share the same direction of time
   direction <- setdiff(unique(sapply(populations, get_time_direction)), "unknown")
   if (length(direction) > 1)
     stop("Inconsistent direction of time among the specified populations",
@@ -75,27 +76,7 @@ compile <- function(populations, dir, generation_time, resolution,
   # save split and geneflow tables which will be returned in the model object
   # in separate objects (tables serialized for SLiM will have to be stripped
   # first)
-  split_table <- compile_splits(populations)
-
-  split_table <- convert_time(
-    split_table,
-    direction = direction,
-    columns = c("tsplit", "tremove"),
-    max_time = max_time,
-    generation_time = generation_time
-  )
-
-  # order populations by split time and assign a numeric identifier to each
-  split_table <- split_table[
-    order(split_table$tsplit, decreasing = FALSE, na.last = FALSE), ]
-  split_table$pop_id <- seq_len(nrow(split_table)) - 1
-  split_table$parent_id <- lapply(
-    split_table$parent,
-    function(i) {
-      if (i == "ancestor") -1
-      else split_table[split_table$pop == i, ]$pop_id
-    }
-  ) %>% unlist()
+  split_table <- compile_splits(populations, generation_time, direction, max_time)
 
   # take care of missing interactions and offspring distances
   if (any(is.na(split_table$competition_dist))) {
@@ -125,54 +106,12 @@ value of this parameter was not provided to the compile() function", call. = FAL
   split_table[, c("competition_dist", "mate_dist", "offspring_dist")] <-
     split_table[, c("competition_dist", "mate_dist", "offspring_dist")] / resolution
 
-  if (length(geneflow) > 0) {
-    admix_table <- do.call(rbind, geneflow)
-    admix_table[, c("orig_tstart", "orig_tend")] <-
-      admix_table[, c("tstart", "tend")]
-    admix_table <- convert_time(
-      admix_table,
-      direction = direction,
-      columns = c("tstart", "tend"),
-      max_time = max_time,
-      generation_time = generation_time
-    )
-    names(admix_table)[1:2] <- c("from", "to")
-    admix_table$tstart_gen <- admix_table$tstart / generation_time
-    admix_table$tend_gen <- admix_table$tend / generation_time
-    # convert population names and their parents' names to SLiM numbers
-    admix_table$from_id <- unlist(lapply(
-      admix_table$from,
-      function(i) split_table[split_table$pop == i, ]$pop_id
-    ))
-    admix_table$to_id <- unlist(lapply(
-      admix_table$to,
-      function(i) split_table[split_table$pop == i, ]$pop_id
-    ))
-  } else
-    admix_table <- NULL
+  admix_table <- compile_geneflows(geneflow, split_table, generation_time,
+                                   direction, max_time)
 
   # compile the spatial maps
-  map_table <- compile_maps(populations, split_table, resolution) %>%
-    convert_time(
-      direction = direction,
-      columns = "time",
-      max_time = max_time,
-      generation_time = generation_time
-    )
-
-  map_table$time <- round(map_table$time)
-  # number maps sequentially in the order SLiM will be swapping them
-  # later (each map number X corresponds to X.png)
-  map_table <- map_table[order(map_table$time, na.last = FALSE), ]
-  # in some situations, multiple maps are scheduled for a single generation
-  # for one population - this removes the duplicates, but ideally this kind
-  # of problem should be caught somewhere upstream
-  map_table <- map_table[!duplicated(map_table[, c("pop", "time")]), ]
-  map_table$map_number <- seq_len(nrow(map_table))
-  map_table$path <- map_table$map_number %>%
-    paste0(., ".png") %>%
-    file.path(dir, .) %>%
-    sub("//", "/", .)
+  map_table <- compile_maps(populations, split_table, resolution,
+                            generation_time, direction, max_time, dir)
 
   map_table$orig_time <- map_table$time
   map_table$time_gen <- map_table$time
@@ -185,15 +124,6 @@ value of this parameter was not provided to the compile() function", call. = FAL
   split_table$tremove_gen <- split_table$tremove
   split_table$tremove_gen[split_table$tremove_gen != -1] <-
     split_table$tremove[split_table$tremove_gen != -1] / generation_time
-
-  if (is.null(admix_table)) {
-    return_geneflow <- NULL
-  } else {
-    return_geneflow <-
-      admix_table[, c("from", "from_id", "to", "to_id", "tstart", "tstart_gen",
-                      "tend", "tend_gen", "rate", "overlap",
-                      "orig_tstart", "orig_tend")]
-  }
 
   # compile the result
   result <- list(
@@ -209,7 +139,7 @@ value of this parameter was not provided to the compile() function", call. = FAL
                              "tsplit", "tsplit_gen", "tremove", "tremove_gen",
                              "competition_dist", "mate_dist", "offspring_dist",
                              "orig_tsplit", "orig_tremove")],
-    geneflow = return_geneflow,
+    geneflow = admix_table,
     maps = map_table[, c("pop", "pop_id", "time", "time_gen", "path", "orig_time")],
     generation_time = generation_time,
     resolution = resolution,
@@ -520,8 +450,8 @@ write_model <- function(dir, populations, admix_table, map_table,
 
 # Iterate over population objects and convert he information about
 # population split hierarchy and split times into a data frame
-compile_splits <- function(populations) {
-  splits_table <- lapply(populations, function(p) {
+compile_splits <- function(populations, generation_time, direction, max_time) {
+  split_table <- lapply(populations, function(p) {
     parent <- attr(p, "parent")
     if (is.character(parent) && parent == "ancestor") {
       parent_name <- parent
@@ -531,49 +461,125 @@ compile_splits <- function(populations) {
 
     tremove <- attr(p, "remove")
 
-    competition_dist <- attr(p, "competition_dist")
-    mate_dist <- attr(p, "mate_dist")
-    offspring_dist <- attr(p, "offspring_dist")
+    split_df <- attr(p, "history")[[1]]
 
     data.frame(
       pop = unique(p$pop),
       parent = parent_name,
-      tsplit = p$time[1],
-      N = unique(p$N),
+      tsplit = split_df$time,
+      N = split_df$N,
       tremove = ifelse(!is.null(tremove), tremove, -1),
-      competition_dist = ifelse(is.null(competition_dist), NA, competition_dist),
-      mate_dist = ifelse(is.null(mate_dist), NA, mate_dist),
-      offspring_dist = ifelse(is.null(offspring_dist), NA, offspring_dist),
+      competition_dist = split_df$competition_dist,
+      mate_dist = split_df$mate_dist,
+      offspring_dist = split_df$offspring_dist,
       stringsAsFactors = FALSE
     )
   }) %>% do.call(rbind, .)
 
-  splits_table[, c("orig_tsplit", "orig_tremove")] <-
-    splits_table[, c("tsplit", "tremove")]
+  split_table[, c("orig_tsplit", "orig_tremove")] <-
+    split_table[, c("tsplit", "tremove")]
 
-  splits_table
+  # convert times into a forward direction
+  split_table <- convert_time(
+    split_table,
+    direction = direction,
+    columns = c("tsplit", "tremove"),
+    max_time = max_time,
+    generation_time = generation_time
+  )
+
+  # order populations by split time and assign a numeric identifier to each
+  split_table <- split_table[
+    order(split_table$tsplit, decreasing = FALSE, na.last = FALSE), ]
+  split_table$pop_id <- seq_len(nrow(split_table)) - 1
+  split_table$parent_id <- lapply(
+    split_table$parent,
+    function(i) {
+      if (i == "ancestor") -1
+      else split_table[split_table$pop == i, ]$pop_id
+    }
+  ) %>% unlist()
+
+  split_table
 }
 
 # Process vectorized population boundaries into a table with
 # rasterized map objects
-compile_maps <- function(populations, splits_table, resolution) {
+compile_maps <- function(populations, split_table, resolution, generation_time,
+                         direction, max_time, dir) {
   # generate rasterized maps
   maps <- render(populations, resolution)
 
   # convert list of rasters into data frame, adding the spatial
   # maps themselves as a list column
-  maps_table <- lapply(maps, function(m) {
+  map_table <- lapply(maps, function(m) {
     as.data.frame(m[c("pop", "time")], stringsAsFactors = FALSE)
   }) %>%
     do.call(rbind, .)
   # add column with a numeric population identifier (used later by SLiM)
-  maps_table$pop_id <- unlist(lapply(
-    maps_table$pop,
-    function(i) splits_table[splits_table$pop == i, ]$pop_id
+  map_table$pop_id <- unlist(lapply(
+    map_table$pop,
+    function(i) split_table[split_table$pop == i, ]$pop_id
   ))
-  maps_table$map <- I(lapply(maps, function(m) m$map))
+  map_table$map <- I(lapply(maps, function(m) m$map))
 
-  maps_table
+  map_table <- convert_time(
+    map_table,
+    direction = direction,
+    columns = "time",
+    max_time = max_time,
+    generation_time = generation_time
+  )
+
+  map_table$time <- round(map_table$time)
+  # number maps sequentially in the order SLiM will be swapping them
+  # later (each map number X corresponds to X.png)
+  map_table <- map_table[order(map_table$time, na.last = FALSE), ]
+  # in some situations, multiple maps are scheduled for a single generation
+  # for one population - this removes the duplicates, but ideally this kind
+  # of problem should be caught somewhere upstream
+  map_table <- map_table[!duplicated(map_table[, c("pop", "time")]), ]
+  map_table$map_number <- seq_len(nrow(map_table))
+  map_table$path <- map_table$map_number %>%
+    paste0(., ".png") %>%
+    file.path(dir, .) %>%
+    sub("//", "/", .)
+
+  map_table
+}
+
+
+compile_geneflows <- function(geneflow, split_table, generation_time,
+                              direction, max_time) {
+  if (length(geneflow) == 0)
+    return(NULL)
+
+  admix_table <- do.call(rbind, geneflow)
+  admix_table[, c("orig_tstart", "orig_tend")] <-
+    admix_table[, c("tstart", "tend")]
+  admix_table <- convert_time(
+    admix_table,
+    direction = direction,
+    columns = c("tstart", "tend"),
+    max_time = max_time,
+    generation_time = generation_time
+  )
+  names(admix_table)[1:2] <- c("from", "to")
+  admix_table$tstart_gen <- admix_table$tstart / generation_time
+  admix_table$tend_gen <- admix_table$tend / generation_time
+  # convert population names and their parents' names to SLiM numbers
+  admix_table$from_id <- unlist(lapply(
+    admix_table$from,
+    function(i) split_table[split_table$pop == i, ]$pop_id
+  ))
+  admix_table$to_id <- unlist(lapply(
+    admix_table$to,
+    function(i) split_table[split_table$pop == i, ]$pop_id
+  ))
+
+  admix_table[, c("from", "from_id", "to", "to_id", "tstart", "tstart_gen",
+                  "tend", "tend_gen", "rate", "overlap",
+                  "orig_tstart", "orig_tend")]
 }
 
 

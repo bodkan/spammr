@@ -164,16 +164,43 @@ test_that("overlaps in time result in an error (backward time)", {
   # repeating the same move
   expect_error(
     move(p2, trajectory = c(100, 100), start = 30, end = 10, snapshots = 5),
-    "The model implies forward time direction but the specified event time"
+    "The model implies backward time direction but the specified event time"
   )
   # overlapping time window of the second move
   expect_error(
     move(p2, trajectory = c(100, 100), start = 25, end = 5, snapshots = 5),
-    "The model implies forward time direction but the specified event time"
+    "The model implies backward time direction but the specified event time"
   )
   # overlapping time window of the following range expansion
   expect_error(
     expand(p2, by = 20, start = 25, end = 5, snapshots = 5),
-    "The model implies forward time direction but the specified event time"
+    "The model implies backward time direction but the specified event time"
   )
+})
+
+test_that("times are correctly specified for different population size change methods", {
+  map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+  p <- population(name = "pop", map = map, time = 30000, N = 500, center = c(10, 25), radius = 300000)
+  expect_error(resize(p, N = 10, how = "step"), "Timing of the population change needs to be specified")
+  expect_silent(resize(p, N = 10, how = "step", time = 123))
+  expect_error(resize(p, N = 10, how = "linear"), "Timing of the population change needs to be specified")
+  expect_silent(resize(p, N = 10, how = "linear", start = 123, end = 10))
+  expect_error(resize(p, N = 10, how = "exponential"), "Timing of the population change needs to be specified")
+  expect_silent(resize(p, N = 10, how = "exponential", start = 123, end = 10))
+})
+
+test_that("resizing of populations is consistent with established population dynamics (forward time)", {
+  map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+  p1 <- population(name = "pop1", map = map, time = 1, N = 500, center = c(10, 25), radius = 300000)
+  p2 <- population(name = "pop2", parent = p1, time = 10, N = 500, center = c(10, 25), radius = 300000)
+  expect_error(resize(p2, N = 10, how = "step", time = 5),
+               "The model implies forward time direction but the specified event time")
+})
+
+test_that("resizing of populations is consistent with established population dynamics (backward time)", {
+  map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+  p1 <- population(name = "pop1", map = map, time = 30000, N = 500, center = c(10, 25), radius = 300000)
+  p2 <- population(name = "pop2", parent = p1, time = 25000, N = 500, center = c(10, 25), radius = 300000)
+  expect_error(resize(p2, N = 10, how = "step", time = 28000),
+               "The model implies backward time direction but the specified event time")
 })

@@ -151,6 +151,63 @@ change <- function(pop, time, N = NULL,
 }
 
 
+#' Resize the population size
+#'
+#' @param pop Object of the class \code{slendr_pop}
+#' @param N Final population size
+#' @param how How to change the population size (options are "step",
+#'   "exponential", "linear")
+#' @param time Time of the population size change
+#' @param start,end Time-window for the population size change (used for
+#'   exponential or linear change)
+resize <- function(pop, N, how = "step", time = NULL, start = NULL, end = NULL) {
+  if (N < 1) stop("Only positive population sizes allowed", call. = FALSE)
+
+  if (!how %in% c("step", "exponential", "linear"))
+    stop("Only 'step', 'exponential' and 'linear' are allowed as arguments
+for the 'how' parameter", call. = FALSE)
+
+  if ((how == "step" & is.null(time)) |
+      (how %in% c("exponential", "linear") & is.null(c(start, end))))
+    stop("Timing of the population change needs to be specified", call. = FALSE)
+
+  # get the last active population size
+  prev_N <- sapply(attr(pop, "history"), function(event) event$N) %>%
+    Filter(Negate(is.null), .) %>%
+    unlist %>%
+    tail(1)
+
+  if (how == "step") {
+    check_event_time(time, pop)
+    check_removal_time(time, pop)
+
+    change <- data.frame(
+      event = "resize",
+      how = "step",
+      time = time,
+      N = N,
+      prev_N = prev_N
+    )
+  } else {
+    check_event_time(c(start, end), pop)
+    check_removal_time(start, pop)
+
+    change <- data.frame(
+      event = "resize",
+      how = how,
+      start = start,
+      end = end,
+      N = N,
+      prev_N = prev_N
+    )
+  }
+
+  attr(pop, "history") <- append(attr(pop, "history"), list(change))
+
+  pop
+}
+
+
 #' Expand the population range
 #'
 #' Expands the spatial population range by a specified distance in a given

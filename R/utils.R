@@ -160,10 +160,21 @@ time (%s) is higher than the parent's (%s)",
 }
 
 
+# Get time of the very last event currently specified
+get_previous_time <- function(pop) {
+  sapply(attr(pop, "history"), function(event) {
+    c(event$time, event$start, event$end)
+  }) %>%
+    Filter(Negate(is.null), .) %>%
+    unlist %>%
+    tail(1)
+}
+
+
 check_event_time <- function(time, pop) {
   direction <- get_time_direction(pop)
 
-  previous_time <- pop$time[nrow(pop)]
+  previous_time <- get_previous_time(pop)
 
   comp <- if (direction == "forward") `<` else `>`
 
@@ -175,8 +186,8 @@ direction assumed by the model", direction), call. = FALSE)
   # check consistency of times with the last specified time event for
   # this population
   if (any(comp(time, previous_time)))
-    stop(sprintf("The model implies forward time direction but the specified event time
-(%s) is lower than last active time (%s). ", paste(time, collapse = "-"), previous_time), call. = FALSE)
+    stop(sprintf("The model implies %s time direction but the specified event time
+(%s) is lower than last active time (%s). ", direction, paste(time, collapse = "-"), previous_time), call. = FALSE)
 }
 
 

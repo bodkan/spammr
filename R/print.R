@@ -184,20 +184,23 @@ print_pop_history <- function(x) {
       cat(event$time, ": ", sep = "")
       parent <- attr(x, "parent")
       if (is.character(parent) && parent == "ancestor")
-        cat("created as an ancestral population\n")
+        cat("created as an ancestral population")
       else {
-        cat("split from", parent$pop[1], "\n")
+        cat("split from", parent$pop[1])
       }
     }
 
     # movement
     else if (event$event == "move") {
-      cat(sprintf("%d-%d: movement across a landscape\n", event$start, event$end))
-    }
-    else if (event$event == "expand") {
-      cat(sprintf("%d-%d: range expansion\n", event$start, event$end))
-    }
-    else
+      cat(sprintf("%d-%d: movement across a landscape", event$start, event$end))
+    } else if (event$event == "expand") {
+      cat(sprintf("%d-%d: range expansion", event$start, event$end))
+    } else if (event$event == "resize" & event$how == "step") {
+      cat(sprintf("%d: resize from %d to %d individuals",
+                  event$time, event$prev_N, event$N))
+    } else
       stop("Unknown event type", call. = FALSE)
+
+    cat("\n")
   }
 }
