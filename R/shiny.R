@@ -1,6 +1,6 @@
-#' Take a list of spannr_pop population boundary objects and
-#' "interpolate" all of them at time points specified by others
-#' (unless a given population is supposed to be removed at that time)
+# Take a list of slendr_pop population boundary objects and
+# "interpolate" all of them at time points specified by others
+# (unless a given population is supposed to be removed at that time)
 fill_maps <- function(pops, time = NULL) {
 
   removal_times <- sapply(pops, attr, "remove")
@@ -52,138 +52,7 @@ fill_maps <- function(pops, time = NULL) {
 }
 
 
-#' Plot spatial maps
-#'
-#' @import ggplot2
-plot_maps <- function(..., time = NULL, geneflows = FALSE,
-                      graticules = "original",
-                      intersect = TRUE, show_map = TRUE,
-                      interpolated_maps = NULL) {
-  if (!graticules %in% c("internal", "original"))
-    stop("Graticules can be either 'original' or 'internal'", call. = FALSE)
-
-  if (is.null(show_map)) show_map <- FALSE
-
-  args <- list(...)
-
-  if(!all(sapply(args, inherits, "spannr")))
-    stop("Only objects of the class 'spannr' can be visualized using plot.spannr", call. = FALSE)
-
-  classes <- grep("spannr_", unique(unlist(sapply(args, class))), value = TRUE)
-  if (length(classes) > 1 & "spannr_model" %in% classes)
-    stop("Either a single 'spannr_model' object or multiple objects of the type 'spannr_map', 'spannr_region', or 'spannr_pop' are allowed as arguments", call. = FALSE)
-
-  # a single model object was provided
-  if (length(args) == 1 & inherits(args[[1]], "spannr_model")) {
-    model <- args[[1]]
-    pops <- model$populations
-    map <- model$world
-  } else {
-    pops <- args
-
-    # extract the map component underlying each population object
-    # and make sure they are all the same with no conflicts
-    maps <- unique(lapply(pops, function(i) attr(i, "map")))
-    if (length(maps) != 1) {
-      stop("Objects do not share the same map component", call. = F)
-    }
-    map <- maps[[1]]
-  }
-
-  if (geneflows & (is.null(time) | !inherits(args[[1]], "spannr_model")))
-    stop("Migrations can be visualized only when a time point *and* a 'spannr_model' objects are specified", call. = FALSE)
-
-  pop_names <- unique(unlist(sapply(pops, `[[`, "pop")))
-
-  # if the user specified a time point, "interpolate" all maps at that
-  # time and return just those that match that time point (unless this
-  # was already pre-computed)
-  if (!is.null(time)) {
-    if (is.null(interpolated_maps))
-      interpolated_maps <- fill_maps(pops, time)
-
-    # get all time points defined by the user
-    all_times <- sort(unique(unlist(lapply(pops, `[[`, "time"))))
-
-    # get split and removal times of all specified populations
-    split_times <- sapply(sapply(pops, `[[`, "time"), `[`, 1)
-    removal_times <- sapply(pops, attr, "remove")
-
-    previous_time <- min(all_times[all_times >= time])
-    # get only those populations already/still present at the
-    # specified time...
-    present_pops <- interpolated_maps[split_times >= time & removal_times <= time]
-    # ... and extract their spatial maps
-    spatial_maps <- lapply(present_pops, function(pop) {
-      snapshot <- pop[pop$time == previous_time, ]
-      attributes(snapshot) <- attributes(pop)
-      snapshot
-    })
-  } else {
-    spatial_maps <- pops
-  }
-
-  if (intersect) spatial_maps <- lapply(spatial_maps, intersect_features)
-
-  spatial_maps <- do.call(rbind, spatial_maps)
-  spatial_maps$pop <- factor(spatial_maps$pop, levels = pop_names)
-
-  if (graticules == "original" & has_crs(map)) {
-    graticule_crs <- "EPSG:4326"
-    xlab <- "degrees longitude"; ylab <- "degrees latitude"
-  } else {
-    graticule_crs <- sf::st_crs(map)
-    xlab <- ylab <- NULL
-  }
-
-  if (has_crs(map)) {
-    bbox <- sf::st_bbox(map)
-    p_coord <- coord_sf(crs = sf::st_crs(map), datum = graticule_crs, expand = 0,
-                        xlim = c(bbox["xmin"], bbox["xmax"]),
-                        ylim = c(bbox["ymin"], bbox["ymax"]))
-  } else {
-    p_coord <- coord_sf(
-      xlim = attr(map, "xrange"),
-      ylim = attr(map, "yrange"),
-      expand = 0
-    )
-  }
-
-  if (nrow(map) & show_map)
-    p_map <- geom_sf(data = map, aes(frame = NULL), fill = "lightgray", color = NA)
-  else
-    p_map <- NULL
-
-  # build a base map with geographic features
-  p <- ggplot() +
-    p_map +
-    geom_sf(data = spatial_maps, aes(fill = pop), color = NA, alpha = 0.4) +
-    geom_sf(data = spatial_maps, fill = NA, color = "black", size = 0.1) +
-    scale_fill_discrete(drop = FALSE, name = "") +
-    theme_bw() +
-    p_coord
-
-  # add geneflow arrows, if requested
-  if (geneflows) {
-    migr_df <- get_geneflows(model, time)
-    if (nrow(migr_df))
-      p <- p +
-        geom_point(data = migr_df, aes(x = from_x, y = from_y, color = from), size = 7) +
-        geom_point(data = migr_df, aes(x = to_x, y = to_y, color = to), size = 7) +
-        geom_curve(
-          data = migr_df,
-          aes(x = from_x, y = from_y, xend = to_x, yend = to_y),
-          arrow = arrow(length = unit(2,"mm"), type = "closed"),
-          lineend = "round", size = 0.5, arrow.fill = "black"
-        ) +
-        scale_color_discrete(drop = FALSE) +
-        guides(color = FALSE)
-  }
-
-  p + labs(x = xlab, y = ylab)
-}
-
-#' Pick the next/previous value from a vector
+# Pick the next/previous value from a vector
 get_time_point <- function(times, current_value, what) {
   current_index <- which(current_value <= times & times <= current_value)
 
@@ -191,7 +60,7 @@ get_time_point <- function(times, current_value, what) {
     if (what == "previous")
       return(times[current_value <= times][1])
     else
-      return(tail(times[current_value >= times], 1))
+      return(utils::tail(times[current_value >= times], 1))
   } else {
     if (what == "previous")
       new_index <- current_index + 1
@@ -209,7 +78,7 @@ get_time_point <- function(times, current_value, what) {
 
 #' Open an interactive browser of the spatial model
 #'
-#' @param model Compiled \code{spannr_model} model object
+#' @param model Compiled \code{slendr_model} model object
 #'
 #' @import shiny
 #' @export
@@ -231,24 +100,24 @@ explore <- function(model) {
     split_events,
     sprintf("split of %s from %s", pop, parent)
   )
-  split_events <- split_events[split_events$tsplit != Inf, c("tsplit", "event")]
+  split_events <- split_events[split_events$orig_tsplit != Inf, c("orig_tsplit", "event")]
   colnames(split_events) <- c("time", "event")
 
-  if (!is.null(model$geneflows)) {
-    geneflow_starts <- model$geneflows
+  if (!is.null(model$geneflow)) {
+    geneflow_starts <- model$geneflow
     geneflow_starts$event <- with(
       geneflow_starts,
-      sprintf("geneflow %s → %s, %.2f%%", from, to, 100 * rate)
+      sprintf("geneflow %s -> %s, %.2f%%", from, to, 100 * rate)
     )
-    geneflow_starts <- geneflow_starts[, c("tstart", "event")]
+    geneflow_starts <- geneflow_starts[, c("orig_tstart", "event")]
     colnames(geneflow_starts) <- c("time", "event")
 
-    geneflow_ends <- model$geneflows
+    geneflow_ends <- model$geneflow
     geneflow_ends$event <- with(
       geneflow_ends,
-      sprintf("geneflow %s → %s ends", from, to)
+      sprintf("geneflow %s -> %s ends", from, to)
     )
-    geneflow_ends <- geneflow_ends[, c("tend", "event")]
+    geneflow_ends <- geneflow_ends[, c("orig_tend", "event")]
     colnames(geneflow_ends) <- c("time", "event")
   } else {
     geneflow_starts <- NULL
@@ -264,7 +133,7 @@ explore <- function(model) {
 
   events <- do.call(rbind, list(split_events, geneflow_starts,
                                 geneflow_ends, cleanup_events))
-  events <- aggregate(event~time,data = events, FUN = paste, collapse = ", ")
+  events <- stats::aggregate(event~time, data = events, FUN = paste, collapse = ", ")
   events$label <- sprintf("time %s: %s", events$time, events$event)
   events <- events[order(events$time), ]
   event_choices <- events$time
@@ -273,12 +142,14 @@ explore <- function(model) {
   # generate time points for the slider
   time_point_snapshots <-
     as.integer(c(0, event_choices, unlist(lapply(model$populations, `[[`, "time"))) %>%
-    sort %>% unique %>% .[. != Inf])
+    sort %>%
+    unique %>%
+    .[. != Inf])
 
   interpolated_maps <- fill_maps(model$populations, time_point_snapshots)
 
   ui <- fluidPage(
-    tags$style(type="text/css", ".recalculating { opacity: 1.0; }"),
+    tags$style(type = "text/css", ".recalculating { opacity: 1.0; }"),
 
     navbarPage(
       "Model explorer",
@@ -339,7 +210,7 @@ explore <- function(model) {
                 ))
               } else NULL,
 
-              if (!is.null(model$geneflows)) {
+              if (!is.null(model$geneflow)) {
                 column(4, checkboxInput(
                   inputId = "show_geneflows",
                   label = "Indicate geneflows",
@@ -357,7 +228,7 @@ explore <- function(model) {
             fluidRow(
               align = "center",
 
-              plotOutput(outputId = "spannr_maps", height = 480),
+              plotOutput(outputId = "slendr_maps", height = 480),
 
               hr(),
 
@@ -388,7 +259,7 @@ explore <- function(model) {
 
           mainPanel(
 
-            plotOutput(outputId = "spannr_graph")
+            plotOutput(outputId = "slendr_graph")
 
           )
 
@@ -426,36 +297,36 @@ explore <- function(model) {
       shinyWidgets::updateSliderTextInput(session, "time_slider", selected = value)
     })
 
-    output$spannr_maps <- renderPlot({
+    output$slendr_maps <- renderPlot({
 
-      plot_maps(
+      plot(
         model,
         time = input$time_slider,
         graticules = input$coord_system,
         intersect = input$intersect,
         show_map = input$show_map,
-        geneflows = if (is.null(model$geneflows)) FALSE else input$show_geneflows,
+        geneflows = if (is.null(model$geneflow)) FALSE else input$show_geneflows,
         interpolated_maps = interpolated_maps
       )
 
     })
 
     output$geneflows_table <- renderTable({
-      if (!is.null(model$geneflows)) {
+      if (!is.null(model$geneflow)) {
         migr_df <- get_geneflows(model, input$time_slider)
-        table <- migr_df[, c("from", "to", "tstart", "tend", "rate")]
+        table <- migr_df[, c("from", "to", "orig_tstart", "orig_tend", "rate")]
         table$rate_gen <- sprintf("%.1f%%", table$rate / model$generation_time * 100)
-        table$tstart <- as.integer(table$tstart)
-        table$tend <- as.integer(table$tend)
+        table$orig_tstart <- as.integer(table$orig_tstart)
+        table$orig_tend <- as.integer(table$orig_tend)
         table$rate <- sprintf("%.1f%%", table$rate * 100)
-        colnames(table) <- c("geneflow<br>source", "geneflow<br>target", "start", "end", "rate", "rate per<br>generation")
+        colnames(table) <- c("source", "target", "start", "end", "rate", "rate per gen.")
         table$overlapping <- ifelse(migr_df$overlap, "yes", "no")
         if (!nrow(table)) return(NULL)
         table
       } else return(NULL)
     }, sanitize.text.function = identity)
 
-    output$spannr_graph <- renderPlot({ graph(model, input$show_cleanups) },
+    output$slendr_graph <- renderPlot({ graph(model, input$show_cleanups) },
                                       height = 600)
 
   }

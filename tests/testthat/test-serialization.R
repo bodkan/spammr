@@ -12,7 +12,7 @@ test_that("read() restores a single-map model object", {
 
   # make sure that all components of the model list object before and after
   # serialization are equal
-  components <- c("splits", "geneflows", "maps", "generation_time", "resolution", "world")
+  components <- c("splits", "geneflow", "maps", "generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
   expect_true(all(unlist(model1$config) == unlist(model2$config)))
   expect_true(all(sapply(seq_along(model1$populations), function(i) all(model1$populations[[i]] == model2$populations[[i]]))))
@@ -30,7 +30,7 @@ test_that("read() restores a complex model object", {
     move(trajectory = list(c(-5, 33), c(-5, 40)), start = 9000, end = 8000, snapshots = 20) %>%
     expand(by = 2000000, start = 7000, end = 2000, snapshots = 10)
 
-  geneflows <- list(
+  geneflow <- list(
     geneflow(from = p5, to = p4, rate = 0.2, start = 2000, end = 0),
     geneflow(from = p5, to = p3, rate = 0.3, start = 2000, end = 0)
   )
@@ -39,7 +39,7 @@ test_that("read() restores a complex model object", {
   model1 <- compile(
     dir = model_dir,
     populations = list(p1, p2, p3, p4, p5),
-    geneflows = geneflows,
+    geneflow = geneflow,
     generation_time = 30,
     resolution = 10000,
     overwrite = TRUE,
@@ -47,22 +47,8 @@ test_that("read() restores a complex model object", {
   )
   model2 <- read(model1$config$directory)
 
-  components <- c("splits", "geneflows", "maps", "generation_time", "resolution", "world")
+  components <- c("splits", "geneflow", "maps", "generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
   expect_true(all(unlist(model1$config) == unlist(model2$config)))
   expect_true(all(sapply(seq_along(model1$populations), function(i) all(model1$populations[[i]] == model2$populations[[i]]))))
-})
-
-test_that("blank spatial maps throw an error", {
-  xrange <- c(-15, 60)
-  yrange <- c(20, 65)
-  l <- spannr:::create_polygon(list(c(-10, 30), c(50, 30), c(40, 50), c(0, 40)))
-  map <- world(xrange = xrange, yrange = yrange, landscape = l)
-  pop <- population("pop", parent = "ancestor", N = 10, time = 100, center = c(0, 60), radius = 20, map = map)
-  model_dir <- file.path(tempdir(), "tmp-blank-map-error")
-  expect_error(
-    compile(pop, model_dir, generation_time = 1, resolution = 5, overwrite = TRUE,
-            competition_dist = 1, mate_dist = 1, offspring_dist = 1),
-    "The generated raster map of pop at time \\d+ is blank."
-  )
 })

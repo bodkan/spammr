@@ -18,16 +18,16 @@ circular range}
 
 \item{polygon}{List of vector pairs, defining corners of the
 polygon range or a geographic region of the class
-\code{spannr_region} from which the polygon coordinates will be
+\code{slendr_region} from which the polygon coordinates will be
 extracted (see the \code{region() function})}
 }
 \value{
-Object of the class \code{spannr_region}
+Object of the class \code{slendr_region}
 }
 \description{
 Creates a geographic region (a polygon) on a given map and gives it
 a name. This can be used to define objects which can be reused in
-multiple places in a spannr script (such as \code{region} arguments
+multiple places in a slendr script (such as \code{region} arguments
 of \code{population}) without having to repeatedly define polygon
 coordinates.
 }

@@ -7,7 +7,7 @@
 change(pop, time, N = NULL, center = NULL, radius = NULL, polygon = NULL)
 }
 \arguments{
-\item{pop}{Object of the class \code{spannr_pop}}
+\item{pop}{Object of the class \code{slendr_pop}}
 
 \item{time}{Time of the change}
 
@@ -20,11 +20,11 @@ circular range}
 
 \item{polygon}{List of vector pairs, defining corners of the
 polygon range (see also the \code{region} argument) or a
-geographic region of the class \code{spannr_region} from which
+geographic region of the class \code{slendr_region} from which
 the polygon coordinates will be extracted}
 }
 \value{
-Object of the class \code{spannr_pop}
+Object of the class \code{slendr_pop}
 }
 \description{
 This function allows a more manual control of spatial map changes

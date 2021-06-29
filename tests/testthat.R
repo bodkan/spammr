@@ -1,6 +1,4 @@
 library(testthat)
-library(spannr)
+library(slendr)
 
-test_check("spannr")
-
-# world data for testing: saveRDS(map, "tests/testthat/map.rds")
+test_check("slendr")

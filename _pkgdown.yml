@@ -1,7 +1,16 @@
-url: https://bodkan.net/stamp
+url: https://bodkan.net/slendr
 
 reference:
-  - title: Spatial features
+
+  - title: Spatial population dynamics
+    contents:
+    - population
+    - expand
+    - move
+    - geneflow
+    - change
+
+  - title: Defining spatial features
     contents:
     - world
     - region
@@ -9,18 +18,16 @@ reference:
     - overlap
     - subtract
 
-  - title: Spatial population dynamics
+  - title: Coordinate conversion and distances
     contents:
-    - population
-    - expand
-    - move
-    - admixture
-    - change
+    - convert
+    - distance
+    - dimension
 
   - title: Model visualization and diagnostics
     contents:
-    - plot.spannr
-    - print.spannr
+    - plot.slendr
+    - print.slendr
     - graph
     - animate
     - ancestries
@@ -32,3 +39,6 @@ reference:
     - read
     - script
     - slim
+
+news:
+  one_page: true

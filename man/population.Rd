@@ -17,7 +17,8 @@ population(
   intersect = TRUE,
   competition_dist = NULL,
   mate_dist = NULL,
-  offspring_dist = NULL
+  offspring_dist = NULL,
+  aquatic = FALSE
 )
 }
 \arguments{
@@ -31,7 +32,7 @@ population(
 population does not have an ancestor, and that it is the first population
 in its "lineage")}
 
-\item{map}{Object of the type \code{spannr_map} which defines the world
+\item{map}{Object of the type \code{slendr_map} which defines the world
 context (created using the \code{world} function)}
 
 \item{center}{Two-dimensional vector specifying the center of the circular
@@ -40,7 +41,7 @@ range}
 \item{radius}{Radius of the circular range}
 
 \item{polygon}{List of vector pairs, defining corners of the polygon range or
-a geographic region of the class \code{spannr_region} from which the
+a geographic region of the class \code{slendr_region} from which the
 polygon coordinates will be extracted (see the \code{region() function})}
 
 \item{remove}{Time at which the population should be removed}
@@ -53,9 +54,12 @@ choice distance}
 
 \item{offspring_dist}{Standard deviation of the normal distribution of the
 parent-offspring distance}
+
+\item{aquatic}{Is the species aquatic (\code{FALSE} by default, i.e.
+terrestrial species)?}
 }
 \value{
-Object of the class \code{spannr_pop}
+Object of the class \code{slendr_pop}
 }
 \description{
 Defines a spatial range of a population and its most important parameters.

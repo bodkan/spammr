@@ -8,7 +8,8 @@ map <- ne_load(
   scale = 110, type = "land", category = "physical",
   destdir = "~/Google/postdoc/data/ne_data",
   returnclass = "sf"
-)
+) %>% st_make_valid
+
 map <- st_crop(
   map,
   st_bbox(c(xmin = -28, xmax = 80, ymin = -49, ymax = 70),
@@ -20,14 +21,15 @@ points_df <- tribble(
   -5, 20, 1,
   10, 10, 2,
   20, 25, 3,
-  20, -7, 4,
+  20, -4, 4,
   25, 5, 5,
   30, 18, 5.1,
   35, 10, 6,
-  35, -7, 7,
+  35, -4, 7,
   40, 37, 8,
   25, 40, 9,
   12, 48, 10,
+  27, 53, 10.1,
   45, 43, 11,
   62, 35, 12,
   45, 30, 13,
@@ -47,6 +49,7 @@ edges_df <- tribble(
   5, 6,
   8, 9,
   9, 10,
+  9, 10.1,
   8, 11,
   15, 13,
   13, 12,
@@ -65,22 +68,21 @@ p <- ggplot() +
 #  geom_label(data = points_df, aes(lon, lat, label = id)) +
   geom_segment(data = edges_df, aes(x = x, y = y, xend = xend, yend = yend, color = from)) +
   geom_point(data = points_df, aes(lon, lat, color = id), size = 1.5) +
-  guides(color = F, fill = F) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) +
+  guides(color = "none", fill = "none") +
   theme_void() +
   theme_transparent() +
-  geom_rect(aes(xmin = -28, xmax = 80, ymin = -32, ymax = -10),
+  geom_rect(aes(xmin = -30, xmax = 80, ymin = -20, ymax = -7),
             fill = "lightblue", alpha = 0.8)
 
 sticker(
-  p, package = "spannr",
-  p_size = 8, p_y = 0.46, p_color = "black",
+  p, package = "slendr",
+  p_size = 7, p_y = 0.37, p_color = "black",
   h_color = "black", h_fill = "#0077be",
-  s_y = 1.05, s_x = 1.05, s_width = 2.5, s_height = 2.3,
-  white_around_sticker = T,
+  s_y = 0.9, s_x = 0.99, s_width = 2.7, s_height = 2.7,
+  white_around_sticker = TRUE,
   filename = file.path(".", "logo.png")
 )
 
+unlink("man/figures/logo.png", force = TRUE)
 usethis::use_logo("logo.png")
 unlink("logo.png")

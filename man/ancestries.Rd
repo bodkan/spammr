@@ -4,10 +4,10 @@
 \alias{ancestries}
 \title{Plot simulated ancestry proportions}
 \usage{
-ancestries(model, generation_time = FALSE)
+ancestries(model)
 }
 \arguments{
-\item{model}{Compiled \code{spannr_model} model object}
+\item{model}{Compiled \code{slendr_model} model object}
 }
 \description{
 Plot simulated ancestry proportions

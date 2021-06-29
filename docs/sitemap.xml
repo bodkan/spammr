@@ -1,156 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://bodkan.net/stamp/index.html</loc>
+    <loc>https://bodkan.net/slendr/index.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/admixture.html</loc>
+    <loc>https://bodkan.net/slendr/reference/ancestries.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/ancestries.html</loc>
+    <loc>https://bodkan.net/slendr/reference/animate.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/animate.html</loc>
+    <loc>https://bodkan.net/slendr/reference/change.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/change.html</loc>
+    <loc>https://bodkan.net/slendr/reference/compile.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/check_not_intersected.html</loc>
+    <loc>https://bodkan.net/slendr/reference/convert.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/check_resolution.html</loc>
+    <loc>https://bodkan.net/slendr/reference/dimension.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/compile.html</loc>
+    <loc>https://bodkan.net/slendr/reference/distance.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/compile_maps.html</loc>
+    <loc>https://bodkan.net/slendr/reference/expand.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/compile_splits.html</loc>
+    <loc>https://bodkan.net/slendr/reference/explore.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/convert.html</loc>
+    <loc>https://bodkan.net/slendr/reference/geneflow.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/copy_attributes.html</loc>
+    <loc>https://bodkan.net/slendr/reference/get_nodes.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/create_polygon.html</loc>
+    <loc>https://bodkan.net/slendr/reference/graph.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/define_boundary.html</loc>
+    <loc>https://bodkan.net/slendr/reference/join.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/define_zoom.html</loc>
+    <loc>https://bodkan.net/slendr/reference/move.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/expand.html</loc>
+    <loc>https://bodkan.net/slendr/reference/overlap.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/explore.html</loc>
+    <loc>https://bodkan.net/slendr/reference/pipe.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/fill_maps.html</loc>
+    <loc>https://bodkan.net/slendr/reference/plot.slendr.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/get_admixture_edges.html</loc>
+    <loc>https://bodkan.net/slendr/reference/population.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/get_intermediate_edges.html</loc>
+    <loc>https://bodkan.net/slendr/reference/print.slendr.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/get_migrations.html</loc>
+    <loc>https://bodkan.net/slendr/reference/read.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/get_nodes.html</loc>
+    <loc>https://bodkan.net/slendr/reference/region.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/get_split_edges.html</loc>
+    <loc>https://bodkan.net/slendr/reference/script.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/get_terminal_edges.html</loc>
+    <loc>https://bodkan.net/slendr/reference/slendr.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/get_time_point.html</loc>
+    <loc>https://bodkan.net/slendr/reference/slim.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/graph.html</loc>
+    <loc>https://bodkan.net/slendr/reference/subtract.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/has_crs.html</loc>
+    <loc>https://bodkan.net/slendr/reference/world.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/stamp/reference/intersect_features.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/join.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/move.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/overlap.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/pipe.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/plot.spannr.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/plot_maps.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/population.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/print.spannr.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/rasterize.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/read.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/read_ancestries.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/region.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/render.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/save_png.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/script.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/set_bbox.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/set_class.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/slim.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/spannr.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/subtract.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/world.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/reference/write_model.html</loc>
-  </url>
-  <url>
-    <loc>https://bodkan.net/stamp/articles/tutorial.html</loc>
+    <loc>https://bodkan.net/slendr/articles/slendr.html</loc>
   </url>
 </urlset>

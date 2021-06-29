@@ -4,23 +4,35 @@
 \alias{expand}
 \title{Expand the population range}
 \usage{
-expand(pop, by, end, snapshots, start = NULL, polygon = NULL)
+expand(
+  pop,
+  by,
+  end,
+  start,
+  overlap = 0.8,
+  snapshots = NULL,
+  polygon = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
-\item{pop}{Object of the class \code{spannr_pop}}
+\item{pop}{Object of the class \code{slendr_pop}}
 
 \item{by}{How many units of distance to expand by?}
 
-\item{snapshots}{Number of time slices to split the expansion into}
-
 \item{start, end}{When does the expansion start/end?}
+
+\item{overlap}{Minimum overlap between subsequent spatial boundaries}
+
+\item{snapshots}{The number of intermediate snapshots (overrides the
+\code{overlap} parameter)}
 
 \item{polygon}{Geographic region to restrict the expansion to}
 }
 \value{
-Object of the class \code{spannr_pop}
+Object of the class \code{slendr_pop}
 }
 \description{
-Expands the spatial population range by a specified distance in a
-given time-window
+Expands the spatial population range by a specified distance in a given
+time-window
 }

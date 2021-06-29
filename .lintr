@@ -1,0 +1,16 @@
+linters: with_defaults(
+  line_length_linter(100),
+  object_name_linter = NULL,
+  cyclocomp_linter = NULL,
+  object_usage_linter = NULL)
+exclusions: list(
+  "R/shiny.R",
+  "test-abstract-vs-real-landscapes.R",
+  "test-compilation.R", 
+  "test-coordinate-conversions.R",
+  "test-geneflow.R",
+  "test-geometrical-operations.R", 
+  "test-interactive-elements.R",
+  "test-serialization.R",
+  "test-time-direction.R", 
+  "test-utililites.R")

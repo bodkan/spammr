@@ -4,22 +4,36 @@
 \alias{move}
 \title{Move the population to a new location in a given amount of time}
 \usage{
-move(pop, trajectory, end, snapshots, start = NULL)
+move(
+  pop,
+  trajectory,
+  end,
+  start,
+  overlap = 0.8,
+  snapshots = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
-\item{pop}{Object of the class \code{spannr_pop}}
+\item{pop}{Object of the class \code{slendr_pop}}
 
-\item{trajectory}{List of two-dimensional vectors (longitude,
-latitude) specifying the migration trajectory}
-
-\item{snapshots}{Number of time slices to split the movement into}
+\item{trajectory}{List of two-dimensional vectors (longitude, latitude)
+specifying the migration trajectory}
 
 \item{start, end}{Start/end points of the population migration}
+
+\item{overlap}{Minimum overlap between subsequent spatial boundaries}
+
+\item{snapshots}{The number of intermediate snapshots (overrides the
+\code{overlap} parameter)}
+
+\item{verbose}{Show the progress of searching through the number of
+sufficient snapshots?}
 }
 \value{
-Object of the class \code{spannr_pop}
+Object of the class \code{slendr_pop}
 }
 \description{
-This function defines a displacement of a population along a given
-trajectory in a given time frame
+This function defines a displacement of a population along a given trajectory
+in a given time frame
 }

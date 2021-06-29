@@ -2,7 +2,7 @@
 % Please edit documentation in R/compilation.R
 \name{slim}
 \alias{slim}
-\title{Run a spannr model as a SLiM script}
+\title{Run a slendr model as a SLiM script}
 \usage{
 slim(
   model,
@@ -15,10 +15,9 @@ slim(
   method = "gui",
   verbose = FALSE,
   include = NULL,
-  burnin = NULL,
-  script_path = file.path(model$config$directory, "script.slim"),
-  output_prefix = file.path(model$config$directory, "output"),
-  binary_path = NULL
+  burnin = 0,
+  seed = NULL,
+  slim_path = NULL
 )
 }
 \arguments{
@@ -46,24 +45,20 @@ initialization?}
 \item{method}{How to run the script? ("gui" - open in SLiMgui, "batch" - run
 on the command-line, "script" - simply return the script)}
 
+\item{verbose}{Write the SLiM output log to the console? (default
+\code{FALSE})}
+
 \item{include}{Vector of paths to custom SLiM scripts which should be
 combined with the backend SLiM code}
 
 \item{burnin}{Length of the burnin (in model's time units, i.e. years)}
 
-\item{script_path}{Name of the compiled output script}
+\item{seed}{Random seed (if missing, SLiM's own seed will be used)}
 
-\item{output_prefix}{Common prefix (including path) for all output files}
-
-\item{binary_path}{Optional way to specify path to an appropriate SLiM binary}
-
-\item{sim_length}{Total length of the simulation (in model time units, i.e.
-years)}
-
-\item{generation_time}{Generation time (in model's time units, i.e. years)}
+\item{slim_path}{Optional way to specify path to an appropriate SLiM binary}
 }
 \description{
-Generates a SLiM script from a built-in spannr template, substituting all
+Generates a SLiM script from a built-in slendr template, substituting all
 required parameters by values specified by the user. The user has an option
 to either run the script in batch mode, open it in SLiMgui, or simply save
 the generated SLiM script to a given location for later use.

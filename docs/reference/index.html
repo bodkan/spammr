@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • spannr</title>
+<title>Function reference • slendr</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -47,7 +47,7 @@
 
 
 <meta property="og:title" content="Function reference" />
-<meta property="og:image" content="https://bodkan.net/stamp/logo.png" />
+<meta property="og:image" content="https://bodkan.net/slendr/logo.png" />
 
 
 
@@ -78,7 +78,7 @@
         <span class="icon-bar"></span>
       </button>
       <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">spannr</a>
+        <a class="navbar-link" href="../index.html">slendr</a>
         <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
       </span>
     </div>
@@ -92,24 +92,18 @@
   </a>
 </li>
 <li>
+  <a href="../articles/slendr.html">Get started</a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Articles
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="../articles/tutorial.html">Introduction and tutorial</a>
-    </li>
-  </ul>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/bodkan/spannr/">
+  <a href="https://github.com/bodkan/slendr/">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -139,50 +133,6 @@
     </colgroup>
 
     <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-spatial-features" class="hasAnchor"><a href="#section-spatial-features" class="anchor"></a>Spatial features</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      
-      
-    </tbody><tbody>
-      
-      
-      <tr>
-        
-        <td>
-          <p><code><a href="world.html">world()</a></code> </p>
-        </td>
-        <td><p>Define a world map for all spatial operations</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="region.html">region()</a></code> </p>
-        </td>
-        <td><p>Define a geographic region</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="join.html">join()</a></code> </p>
-        </td>
-        <td><p>Combine two <code>spannr_region</code> objects into a single geographic
-region</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlap.html">overlap()</a></code> </p>
-        </td>
-        <td><p>Generate the overlap of two <code>spannr_region</code> objects</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="subtract.html">subtract()</a></code> </p>
-        </td>
-        <td><p>Generate the difference between two <code>spannr_region</code> objects</p></td>
-      </tr>
-    </tbody><tbody>
       <tr>
         <th colspan="2">
           <h2 id="section-spatial-population-dynamics" class="hasAnchor"><a href="#section-spatial-population-dynamics" class="anchor"></a>Spatial population dynamics</h2>
@@ -215,15 +165,90 @@ region</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="admixture.html">admixture()</a></code> </p>
+          <p><code><a href="geneflow.html">geneflow()</a></code> </p>
         </td>
-        <td><p>Define an admixture event</p></td>
+        <td><p>Define a geneflow event</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="change.html">change()</a></code> </p>
         </td>
         <td><p>Update the population map or one of its parameters</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-defining-spatial-features" class="hasAnchor"><a href="#section-defining-spatial-features" class="anchor"></a>Defining spatial features</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="world.html">world()</a></code> </p>
+        </td>
+        <td><p>Define a world map for all spatial operations</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="region.html">region()</a></code> </p>
+        </td>
+        <td><p>Define a geographic region</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="join.html">join()</a></code> </p>
+        </td>
+        <td><p>Combine two <code>slendr_region</code> objects into a single geographic
+region</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="overlap.html">overlap()</a></code> </p>
+        </td>
+        <td><p>Generate the overlap of two <code>slendr_region</code> objects</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="subtract.html">subtract()</a></code> </p>
+        </td>
+        <td><p>Generate the difference between two <code>slendr_region</code> objects</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-coordinate-conversion-and-distances" class="hasAnchor"><a href="#section-coordinate-conversion-and-distances" class="anchor"></a>Coordinate conversion and distances</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="convert.html">convert()</a></code> </p>
+        </td>
+        <td><p>Convert between coordinate systems</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="distance.html">distance()</a></code> </p>
+        </td>
+        <td><p>Calculate the distance between a pair of spatial boundaries</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="dimension.html">dimension()</a></code> </p>
+        </td>
+        <td><p>Return the dimensions of the world map</p></td>
       </tr>
     </tbody><tbody>
       <tr>
@@ -240,21 +265,21 @@ region</p></td>
       <tr>
         
         <td>
-          <p><code><a href="plot.spannr.html">plot(<i>&lt;spannr&gt;</i>)</a></code> </p>
+          <p><code><a href="plot.slendr.html">plot(<i>&lt;slendr&gt;</i>)</a></code> </p>
         </td>
-        <td><p>Plot <code>spannr</code> geographic features on a map</p></td>
+        <td><p>Plot <code>slendr</code> geographic features on a map</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="print.spannr.html">print(<i>&lt;spannr&gt;</i>)</a></code> </p>
+          <p><code><a href="print.slendr.html">print(<i>&lt;slendr&gt;</i>)</a></code> </p>
         </td>
-        <td><p>Print a summary of a <code>spannr</code> object</p></td>
+        <td><p>Print a summary of a <code>slendr</code> object</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="graph.html">graph()</a></code> </p>
         </td>
-        <td><p>Plot admixture graph based on given model configuration</p></td>
+        <td><p>Plot geneflow graph based on given model configuration</p></td>
       </tr><tr>
         
         <td>
@@ -309,7 +334,7 @@ region</p></td>
         <td>
           <p><code><a href="slim.html">slim()</a></code> </p>
         </td>
-        <td><p>Run a spannr model as a SLiM script</p></td>
+        <td><p>Run a slendr model as a SLiM script</p></td>
       </tr>
     </tbody>
     </table>

@@ -1,5 +1,5 @@
-Package: spannr
-Title: Population Genetics Simulations Spanning Time And Space
+Package: slendr
+Title: Spatio-temporal Population Genetics Simulations Using SLiM
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Martin",
@@ -15,6 +15,7 @@ Description: A framework for simulating spatially-explicit genomic
     on an arbitrary admixture graph. Spatial demographic models are then
     compiled into a custom-built SLiM script which can be extended by
     the user to perform arbitrary simulations.
+Depends: R (>= 3.6.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -23,6 +24,7 @@ RoxygenNote: 7.1.1
 SystemRequirements: SLiM is a genetically explicit forward simulation software package for population genetics and evolutionary biology. See <https://messerlab.org/slim/> for installation instructions and further information.
 Imports: 
     ggplot2,
+    rgdal,
     sf,
     rnaturalearth,
     rnaturalearthdata,
@@ -31,17 +33,19 @@ Imports:
     whisker,
     gganimate,
     png,
-    patchwork,
     ijtiff,
     ggraph,
-    rgdal,
     shinyWidgets,
-    shiny
+    shiny,
+    R.utils,
+    data.table,
+    tidygraph
 Suggests: 
     testthat (>= 3.0.0),
     knitr,
-    rmarkdown
+    rmarkdown,
+    devtools
 VignetteBuilder: knitr
-URL: https://github.com/bodkan/spannr
-BugReports: https://github.com/bodkan/spannr/issues
+URL: https://github.com/bodkan/slendr
+BugReports: https://github.com/bodkan/slendr/issues
 Config/testthat/edition: 3

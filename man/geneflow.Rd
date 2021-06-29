@@ -7,7 +7,7 @@
 geneflow(from, to, rate, start, end, overlap = TRUE)
 }
 \arguments{
-\item{from, to}{Objects of the class \code{spannr_pop}}
+\item{from, to}{Objects of the class \code{slendr_pop}}
 
 \item{rate}{Scalar value in the range (0, 1] specifying the
 proportion of migration over given time period}

@@ -2,22 +2,22 @@
 % Please edit documentation in R/interface.R
 \name{join}
 \alias{join}
-\title{Combine two \code{spannr_region} objects into a single geographic
+\title{Combine two \code{slendr_region} objects into a single geographic
 region}
 \usage{
 join(x, y, name = NULL)
 }
 \arguments{
-\item{x}{Object of the class \code{spannr_region}}
+\item{x}{Object of the class \code{slendr_region}}
 
-\item{y}{Object of the class \code{spannr_region}}
+\item{y}{Object of the class \code{slendr_region}}
 
 \item{name}{Name of the resulting geographic region}
 }
 \value{
-Object of the class \code{spannr_region}
+Object of the class \code{slendr_region}
 }
 \description{
-Combine two \code{spannr_region} objects into a single geographic
+Combine two \code{slendr_region} objects into a single geographic
 region
 }

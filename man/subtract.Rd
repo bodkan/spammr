@@ -2,20 +2,20 @@
 % Please edit documentation in R/interface.R
 \name{subtract}
 \alias{subtract}
-\title{Generate the difference between two \code{spannr_region} objects}
+\title{Generate the difference between two \code{slendr_region} objects}
 \usage{
 subtract(x, y, name = NULL)
 }
 \arguments{
-\item{x}{Object of the class \code{spannr_region}}
+\item{x}{Object of the class \code{slendr_region}}
 
-\item{y}{Object of the class \code{spannr_region}}
+\item{y}{Object of the class \code{slendr_region}}
 
 \item{name}{Name of the resulting geographic region}
 }
 \value{
-Object of the class \code{spannr_region}
+Object of the class \code{slendr_region}
 }
 \description{
-Generate the difference between two \code{spannr_region} objects
+Generate the difference between two \code{slendr_region} objects
 }

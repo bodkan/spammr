@@ -19,7 +19,7 @@ are expected to be in the \code{data.frame} specified in the
 \item{coords}{data.frame-like object with coordinates in columns
 "x" and "y"}
 
-\item{model}{Object of the class \code{spannr_model}}
+\item{model}{Object of the class \code{slendr_model}}
 
 \item{add}{Add column coordinates to the input data.frame
 \code{coords} (coordinates otherwise returned as a separate

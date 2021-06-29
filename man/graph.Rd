@@ -7,7 +7,7 @@
 graph(model, show_cleanups = TRUE)
 }
 \arguments{
-\item{model}{Compiled \code{spannr_model} model object}
+\item{model}{Compiled \code{slendr_model} model object}
 
 \item{show_cleanups}{Show nodes indicating the times of population
 removals?}

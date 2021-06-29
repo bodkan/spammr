@@ -33,7 +33,7 @@ manually downloaded and unzipped from
 (used only when \code{landscape = "naturalearth"})}
 }
 \value{
-Object of the class \code{spannr_map}
+Object of the class \code{slendr_map}
 }
 \description{
 Defines either an abstract geographic landscape (blank or

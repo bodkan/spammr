@@ -1,5 +1,5 @@
-#' Take a population region and intersect them with the
-#' underlying world map or its geographic region
+# Take a population region and intersect them with the
+# underlying world map or its geographic region
 intersect_features <- function(pop) {
   map <- attr(pop, "map")
   region <- attr(pop, "region")
@@ -9,8 +9,11 @@ intersect_features <- function(pop) {
   # restrict the population range to the landscape features
   if (attr(pop, "intersect") & nrow(map)) {
     intersected <- sf::st_intersection(pop, sf::st_geometry(map))
+    if (attr(pop, "aquatic"))
+      intersected <- sf::st_difference(pop, sf::st_combine(intersected))
     if (!sum(sf::st_area(intersected)))
-      stop(sprintf("No area left for %s after intersection with landscape at time %s", pop$pop, pop$time), call. = FALSE)
+      stop(sprintf("No area left for %s after intersection with landscape at time
+%s", pop$pop, pop$time), call. = FALSE)
   }
 
   sf::st_agr(intersected) <- "constant"
@@ -18,7 +21,7 @@ intersect_features <- function(pop) {
   result <- copy_attributes(
     intersected,
     pop,
-    c("map", "remove", "parent", "intersect")
+    c("map", "remove", "parent", "intersect", "aquatic")
   )
 
   # add a small tag signifying that the ranges have been processed
@@ -29,14 +32,15 @@ intersect_features <- function(pop) {
 }
 
 
-#' Define a range (simple geometry object) for a population or a
-#' geographic region
+# Define a range (simple geometry object) for a population or a
+# geographic region
 define_boundary <- function(map, center = NULL, radius = NULL, coords = NULL) {
   # check function arguments
   if (all(is.null(c(center, radius, coords))))
     stop("Either a circular range or a polygon range must be specified", call. = FALSE)
   if (!is.null(center) & !is.null(coords))
-    stop("Either a circular range (center and radius) or the corners of a polygon need to be specified, but not both", call. = F)
+    stop("Either a circular range (center and radius) or the corners of
+a polygon need to be specified, but not both", call. = FALSE)
   if (!is.null(center) & is.null(radius))
     stop("Missing radius argument when defining a circular population range", call. = FALSE)
   if (is.null(center) & !is.null(radius))
@@ -67,8 +71,8 @@ define_boundary <- function(map, center = NULL, radius = NULL, coords = NULL) {
 }
 
 
-#' Create a simple geometry polygon object from the list of
-#' coordinates
+# Create a simple geometry polygon object from the list of
+# coordinates
 create_polygon <- function(coords) {
   # "loop-back" to the last point to close the polygon
   coords <- c(coords, coords[1])
@@ -84,10 +88,12 @@ create_polygon <- function(coords) {
 }
 
 
-#' Define a rectangular region for zooming in on a part of the world
+# Define a rectangular region for zooming in on a part of the world
 define_zoom <- function(lon, lat, source_crs = "EPSG:4326") {
-  x1 <- lon[1]; x2 <- lon[2]
-  y1 <- lat[1]; y2 <- lat[2]
+  x1 <- lon[1]
+  x2 <- lon[2]
+  y1 <- lat[1]
+  y2 <- lat[2]
   sf::st_sfc(sf::st_polygon(list(cbind(
     c(x1, x2, x2, x1, x1),
     c(y1, y1, y2, y2, y1)

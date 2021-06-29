@@ -14,3 +14,10 @@ test_that("distances beyond the world dimension throw and error", {
   expect_silent(check_resolution(map, xrange / 10))
   expect_silent(check_resolution(map, yrange / 10))
 })
+
+test_that("binaries are found for all methods of running SLiM", {
+  skip_on_os("windows")
+  skip_on_os("linux")
+  expect_equal(get_binary("gui"), "open -a SLiMgui")
+  expect_equal(get_binary("batch"), as.character(Sys.which("slim")))
+})

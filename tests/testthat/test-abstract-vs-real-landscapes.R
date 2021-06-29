@@ -11,6 +11,6 @@ test_that("blank abstract landscape is allowed", {
 test_that("user-defined abstract landscape is allowed", {
   xrange <- c(-15, 60)
   yrange <- c(20, 65)
-  polygon <- spannr:::create_polygon(list(c(-10, 30), c(50, 30), c(40, 50), c(0, 40)))
+  polygon <- slendr:::create_polygon(list(c(-10, 30), c(50, 30), c(40, 50), c(0, 40)))
   expect_silent(world(xrange = xrange, yrange = yrange, landscape = polygon))
 })
