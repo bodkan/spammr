@@ -697,7 +697,7 @@ print.slendr <- function(x, ...) {
     if (is.character(parent) && parent == "ancestor")
       cat("[this is an ancestral population]\n")
     else {
-      cat(parent$pop, "\n")
+      cat(parent$pop[1], "\n")
       cat("split time:", x$time[1], "\n")
     }
     cat("removed at: ")

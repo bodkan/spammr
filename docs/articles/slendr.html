@@ -77,7 +77,7 @@
 
       
 
-      </header><script src="slendr_files/header-attrs-2.7/header-attrs.js"></script><div class="row">
+      </header><script src="slendr_files/header-attrs-2.9/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Introduction and tutorial</h1>
@@ -160,7 +160,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpddFEzK", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQlgyBu", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -222,7 +222,9 @@
 <p>Furthermore, note that in all <code><a href="../reference/region.html">region()</a></code> calls we specified the <code>map</code> object defined at the very beginning. This object is added as a hidden attribute to each <code>slendr</code> object and represents the context for all geospatial transformations, expansions, and plotting.</p>
 <p>Again, we can use the generic <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function to plot both geographic regions in the context of the defined section of the world map:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">africa</span>, <span class="va">europe</span>, <span class="va">anatolia</span>, title <span class="op">=</span> <span class="st">"Geographic regions"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">africa</span>, <span class="va">europe</span>, <span class="va">anatolia</span>, title <span class="op">=</span> <span class="st">"Geographic regions"</span><span class="op">)</span>
+<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =</span>
+<span class="co">#&gt; "none")` instead.</span></code></pre></div>
 <p><img src="slendr_files/figure-html/plot_europe_anatolia-1.png" width="480"></p>
 <p>Note that the <code>map</code> object is no longer explicitly specified. It is not needed, because each other class of objects provided to the <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function must carry it as a “map” attribute. In fact, each such object must carry the same map context - <code>slendr</code> complains whenever this is not the case.</p>
 <p>We can check that the component is really there, although hidden, using the built-in <code>attr</code> function and verify that it is the same as the map object we created at the beginning:</p>
@@ -371,7 +373,7 @@
 <span class="co">#&gt; slendr 'population' object </span>
 <span class="co">#&gt; -------------------------- </span>
 <span class="co">#&gt; name: ANA </span>
-<span class="co">#&gt; split from: OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA OOA </span>
+<span class="co">#&gt; split from: OOA </span>
 <span class="co">#&gt; split time: 28000 </span>
 <span class="co">#&gt; removed at: 4000 </span>
 <span class="co">#&gt; habitat: terrestrial</span>
@@ -582,7 +584,9 @@ between populations.</code></pre>
 <p>For this purpose, the package includes a function <code><a href="../reference/graph.html">graph()</a></code> which takes in all the information about the relationships between populations (i.e., the population and geneflow objects we defined above) and plots it all in the form of a so-called <em>admixture graph</em> (see <a href="https://academic.oup.com/genetics/article/192/3/1065/5935193">here</a> for a discussion of the admixture graph concept).</p>
 <p>One important thing to note here is that unlike traditional admixture graphs where each node/population is present only once, in the full <em>slendr</em> graph, a single population can participate in many geneflow events over the course of history. This is visualized by assigning a color to each population, and different nodes of the same color representing snapshots in time when a demographic event affecting that population happens.</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span>, show_cleanups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span>, show_cleanups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =</span>
+<span class="co">#&gt; "none")` instead.</span></code></pre></div>
 <p><img src="slendr_files/figure-html/plot_graph-1.png" width="960"></p>
 </div>
 <div id="interactive-exploration-of-spatio-temporal-models" class="section level2">
