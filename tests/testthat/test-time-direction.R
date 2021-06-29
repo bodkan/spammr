@@ -124,3 +124,56 @@ test_that("forward and backward models yield the same simulation result", {
 
   expect_equal(f_loc, b_loc)
 })
+
+test_that("move preceding population split results in an error", {
+  map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+  p1 <- population(name = "p1", time = 1, N = 1, center = c(1, 1), radius = 10, map = map)
+  p2 <- population(name = "p2", parent = p1, time = 10, N = 1, center = c(20, 50), radius = 20)
+  expect_error(move(p2, trajectory = c(100, 100), start = 3, end = 20, snapshots = 5),
+    "The model implies forward time direction but the specified event time"
+  )
+})
+
+test_that("overlaps in time result in an error (forward time)", {
+  map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+  p1 <- population(name = "p1", time = 1, N = 1, center = c(1, 1), radius = 10, map = map)
+  p2 <- population(name = "p2", parent = p1, time = 10, N = 1, center = c(20, 50), radius = 20) %>%
+    move(trajectory = c(100, 100), start = 10, end = 20, snapshots = 5)
+  # repeating the same move
+  expect_error(
+    move(p2, trajectory = c(100, 100), start = 10, end = 20, snapshots = 5),
+    "The model implies forward time direction but the specified event time"
+  )
+  # overlapping time window of the second move
+  expect_error(
+    move(p2, trajectory = c(100, 100), start = 5, end = 30, snapshots = 5),
+    "The model implies forward time direction but the specified event time"
+  )
+  # overlapping time window of the following range expansion
+  expect_error(
+    expand(p2, by = 20, start = 5, end = 30, snapshots = 5),
+    "The model implies forward time direction but the specified event time"
+  )
+})
+
+test_that("overlaps in time result in an error (backward time)", {
+  map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+  p1 <- population(name = "p1", time = 100, N = 1, center = c(1, 1), radius = 10, map = map)
+  p2 <- population(name = "p2", parent = p1, time = 40, N = 1, center = c(20, 50), radius = 20) %>%
+    move(trajectory = c(100, 100), start = 30, end = 10, snapshots = 5)
+  # repeating the same move
+  expect_error(
+    move(p2, trajectory = c(100, 100), start = 30, end = 10, snapshots = 5),
+    "The model implies forward time direction but the specified event time"
+  )
+  # overlapping time window of the second move
+  expect_error(
+    move(p2, trajectory = c(100, 100), start = 25, end = 5, snapshots = 5),
+    "The model implies forward time direction but the specified event time"
+  )
+  # overlapping time window of the following range expansion
+  expect_error(
+    expand(p2, by = 20, start = 25, end = 5, snapshots = 5),
+    "The model implies forward time direction but the specified event time"
+  )
+})

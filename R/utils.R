@@ -163,19 +163,20 @@ time (%s) is higher than the parent's (%s)",
 check_event_time <- function(time, pop) {
   direction <- get_time_direction(pop)
 
-  previous_time <- pop$time[1]
-  if (direction == "forward" & any(time < previous_time)) {
+  previous_time <- pop$time[nrow(pop)]
+
+  comp <- if (direction == "forward") `<` else `>`
+
+  # test if all times are consistent with the assumed time direction
+  if (length(time) > 1 & all(comp(diff(time), 0)))
+      stop(sprintf("Specified start-end time window is inconsistent with the %s time
+direction assumed by the model", direction), call. = FALSE)
+
+  # check consistency of times with the last specified time event for
+  # this population
+  if (any(comp(time, previous_time)))
     stop(sprintf("The model implies forward time direction but the specified event time
-(%d) is lower than last active time (%s). ",
-                 time, previous_time),
-         call. = FALSE)
-  }
-  if (direction == "backward" & any(time > previous_time)) {
-    stop(sprintf("The model implies backward time direction but the specified event time
-(%d) is lower than last active time (%s). ",
-                 time, previous_time),
-         call. = FALSE)
-  }
+(%s) is lower than last active time (%s). ", paste(time, collapse = "-"), previous_time), call. = FALSE)
 }
 
 
