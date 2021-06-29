@@ -58,7 +58,16 @@
     <loc>https://bodkan.net/slendr/reference/population.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/slendr/reference/print.slendr.html</loc>
+    <loc>https://bodkan.net/slendr/reference/print.slendr_map.html</loc>
+  </url>
+  <url>
+    <loc>https://bodkan.net/slendr/reference/print.slendr_model.html</loc>
+  </url>
+  <url>
+    <loc>https://bodkan.net/slendr/reference/print.slendr_pop.html</loc>
+  </url>
+  <url>
+    <loc>https://bodkan.net/slendr/reference/print.slendr_region.html</loc>
   </url>
   <url>
     <loc>https://bodkan.net/slendr/reference/read.html</loc>

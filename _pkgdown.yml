@@ -27,11 +27,14 @@ reference:
   - title: Model visualization and diagnostics
     contents:
     - plot.slendr
-    - print.slendr
     - graph
     - animate
     - ancestries
     - explore
+    - print.slendr_map
+    - print.slendr_region
+    - print.slendr_pop
+    - print.slendr_model
 
   - title: Compiling and running spatial models
     contents:
