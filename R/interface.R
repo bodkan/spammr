@@ -37,7 +37,7 @@
 population <- function(name, time, N, parent = "ancestor", map = NULL,
                        center = NULL, radius = NULL, polygon = NULL,
                        remove = NULL, intersect = TRUE,
-                       competition_dist = NULL, mate_dist = NULL, offspring_dist = NULL,
+                       competition_dist = NA, mate_dist = NA, offspring_dist = NA,
                        aquatic = FALSE) {
   # is this the first population defined in the model?
   if (is.character(parent) && parent == "ancestor") {
@@ -58,7 +58,7 @@ population <- function(name, time, N, parent = "ancestor", map = NULL,
     geometry <- define_boundary(map, center, radius, polygon)
 
   pop <- sf::st_sf(
-    data.frame(pop = name, time = time, N = N, stringsAsFactors = FALSE),
+    data.frame(pop = name, time = time, stringsAsFactors = FALSE),
     geometry = geometry
   )
   sf::st_agr(pop) <- "constant"
@@ -78,12 +78,16 @@ population <- function(name, time, N, parent = "ancestor", map = NULL,
     stop("Suspicious parent population", call. = FALSE)
 
   attr(pop, "intersect") <- intersect
-
-  attr(pop, "competition_dist") <- competition_dist
-  attr(pop, "mate_dist") <- mate_dist
-  attr(pop, "offspring_dist") <- offspring_dist
-
   attr(pop, "aquatic") <- aquatic
+
+  attr(pop, "history") <- list(data.frame(
+    event = "split",
+    time = time,
+    N = N,
+    competition_dist = competition_dist,
+    mate_dist = mate_dist,
+    offspring_dist = offspring_dist
+  ))
 
   class(pop) <- set_class(pop, "pop")
 
@@ -234,9 +238,14 @@ seconds but if you don't want to wait, you can set `snapshots = N` manually.")
 
   result <- copy_attributes(
     all_maps, pop,
-    c("map", "parent", "remove", "intersect", "competition_dist",
-      "mate_dist", "offspring_dist", "aquatic")
+    c("map", "parent", "remove", "intersect", "aquatic", "history")
   )
+
+  attr(result, "history") <- append(attr(result, "history"), list(data.frame(
+    event = "expand",
+    start = start,
+    end = end
+  )))
 
   result
 }
@@ -334,7 +343,6 @@ seconds but if you don't want to wait, you can set `snapshots = N` manually.")
         data.frame(
           pop = region_start$pop,
           time = traj_diffs[i, "time"],
-          N = region_start$N,
           stringsAsFactors = FALSE
         ),
         geometry = shifted_region,
@@ -372,9 +380,14 @@ seconds but if you don't want to wait, you can set `snapshots = N` manually.")
 
   result <- copy_attributes(
     inter_regions, pop,
-    c("map", "parent", "remove", "intersect", "competition_dist",
-      "mate_dist", "offspring_dist", "aquatic")
+    c("map", "parent", "remove", "intersect", "aquatic", "history")
   )
+
+  attr(result, "history") <- append(attr(result, "history"), list(data.frame(
+    event = "move",
+    start = start,
+    end = end
+  )))
 
   result
 }

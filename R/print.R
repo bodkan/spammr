@@ -20,14 +20,6 @@ print.slendr_pop <- function(x, ...) {
 
   cat("name:", unique(x$pop), "\n")
 
-  # ancestor?
-  parent <- attr(x, "parent")
-  if (is.character(parent) && parent == "ancestor")
-    cat("ancestral population\n")
-  else {
-    cat("split from", parent$pop[1], "at time", x$time[1], "\n")
-  }
-
   # removal time of the population
   if (attr(x, "remove") == -1)
     cat("stays until the end of the simulation\n")
@@ -40,7 +32,9 @@ print.slendr_pop <- function(x, ...) {
   else
     cat("habitat: aquatic\n")
 
-  cat("number of spatial maps:", nrow(x), "\n\n")
+  print_pop_history(x)
+
+  cat("\nnumber of spatial maps:", nrow(x), "\n")
 
   print_map_info(x)
 }
@@ -177,4 +171,33 @@ print_map_info <- function(x) {
                 units, xrange[1], xrange[2], yrange[1], yrange[2]))
   } else
     cat("[no map defined]\n")
+}
+
+print_pop_history <- function(x) {
+  cat("\npopulation history overview:\n")
+  history <- attr(x, "history")
+  for (event in history) {
+    cat("  - time ")
+
+    # population split
+    if (event$event == "split") {
+      cat(event$time, ": ", sep = "")
+      parent <- attr(x, "parent")
+      if (is.character(parent) && parent == "ancestor")
+        cat("created as an ancestral population\n")
+      else {
+        cat("split from", parent$pop[1], "\n")
+      }
+    }
+
+    # movement
+    else if (event$event == "move") {
+      cat(sprintf("%d-%d: movement across a landscape\n", event$start, event$end))
+    }
+    else if (event$event == "expand") {
+      cat(sprintf("%d-%d: range expansion\n", event$start, event$end))
+    }
+    else
+      stop("Unknown event type", call. = FALSE)
+  }
 }
