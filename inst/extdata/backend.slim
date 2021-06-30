@@ -150,7 +150,10 @@ initialize() {
     sim.deregisterScriptBlock(s6);
 
   // output tree sequence data
-  sim.rescheduleScriptBlock(s7, generations = SIM_END);
+  if (TS_RECORDING) {
+    sim.rescheduleScriptBlock(s7, generations = SIM_END);
+  } else
+    sim.deregisterScriptBlock(s7);
 
   // output ancestry proportions
   if (TRACK_ANCESTRY) {
@@ -158,6 +161,9 @@ initialize() {
      write_ancestries_header();
   } else
      sim.deregisterScriptBlock(s8);
+
+  // stop the simulation
+  sim.rescheduleScriptBlock(s9, generations = SIM_END);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -237,7 +243,7 @@ s6 late() {
   // TODO: make this programmable by the user on the R side
   if (sim.generation % 10 == 0) {
     inds = sapply(sim.subpopulations, "sample(applyValue.individuals, 1);");
-    inds.setValue("sampled", 1);
+    if (length(inds)) inds.setValue("sampled", 1);
     if (TS_RECORDING) sim.treeSeqRememberIndividuals(inds);
   }
   // save location of each individual present
@@ -249,18 +255,22 @@ s6 late() {
 // Save tree sequences at the end of the simulation
 s7 late() {
   catn("--------------------------------------------------");
-  log_output("simulation finished");
+  log_output("saving tree-sequence data");
 
   if (TS_RECORDING) {
      filename = paste0(OUTPUT_PREFIX, "_tree_seq.trees");
      sim.treeSeqOutput(filename);
   }
-
-  sim.simulationFinished();
 }
 
 s8 late() {
   write_ancestries();
+}
+
+s9 late() {
+  catn("--------------------------------------------------");
+  log_output("simulation finished");
+  sim.simulationFinished();
 }
 
 
