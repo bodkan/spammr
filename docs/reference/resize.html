@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compile the spatial demographic model — compile • slendr</title>
+<title>Resize the population size — resize • slendr</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -46,12 +46,8 @@
 
 
 
-<meta property="og:title" content="Compile the spatial demographic model — compile" />
-<meta property="og:description" content="First, compiles the vectorized population spatial maps into a series of binary raster PNG files,
-which is the format that SLiM understands and uses it to define population boundaries. Then
-extracts the demographic model defined by the user (i.e. population divergences and gene flow
-events) into a series of tables which are later used by the built-in SLiM script to program the
-timing of simulation events." />
+<meta property="og:title" content="Resize the population size — resize" />
+<meta property="og:description" content="Resize the population size" />
 <meta property="og:image" content="https://bodkan.net/slendr/logo.png" />
 
 
@@ -126,81 +122,44 @@ timing of simulation events." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compile the spatial demographic model</h1>
-    <small class="dont-index">Source: <a href='https://github.com/bodkan/slendr/blob/master/R/compilation.R'><code>R/compilation.R</code></a></small>
-    <div class="hidden name"><code>compile.Rd</code></div>
+    <h1>Resize the population size</h1>
+    <small class="dont-index">Source: <a href='https://github.com/bodkan/slendr/blob/master/R/interface.R'><code>R/interface.R</code></a></small>
+    <div class="hidden name"><code>resize.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>First, compiles the vectorized population spatial maps into a series of binary raster PNG files,
-which is the format that SLiM understands and uses it to define population boundaries. Then
-extracts the demographic model defined by the user (i.e. population divergences and gene flow
-events) into a series of tables which are later used by the built-in SLiM script to program the
-timing of simulation events.</p>
+    <p>Resize the population size</p>
     </div>
 
-    <pre class="usage"><span class='fu'>compile</span><span class='op'>(</span>
-  <span class='va'>populations</span>,
-  <span class='va'>dir</span>,
-  <span class='va'>generation_time</span>,
-  <span class='va'>resolution</span>,
-  competition_dist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  mate_dist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  offspring_dist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  geneflow <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='op'>)</span>,
-  overwrite <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  sim_length <span class='op'>=</span> <span class='cn'>NULL</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>resize</span><span class='op'>(</span><span class='va'>pop</span>, <span class='va'>N</span>, how <span class='op'>=</span> <span class='st'>"step"</span>, time <span class='op'>=</span> <span class='cn'>NULL</span>, start <span class='op'>=</span> <span class='cn'>NULL</span>, end <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>populations</th>
-      <td><p>Object(s) of the <code>slendr_pop</code> class (multiple objects need to be
-specified in a <code>list</code>)</p></td>
+      <th>pop</th>
+      <td><p>Object of the class <code>slendr_pop</code></p></td>
     </tr>
     <tr>
-      <th>dir</th>
-      <td><p>Output directory for the model configuration files which will be loaded by the backend
-SLiM script</p></td>
+      <th>N</th>
+      <td><p>Population size after the change</p></td>
     </tr>
     <tr>
-      <th>generation_time</th>
-      <td><p>Generation time (in model time units)</p></td>
+      <th>how</th>
+      <td><p>How to change the population size (options are "step",
+"exponential", "linear")</p></td>
     </tr>
     <tr>
-      <th>resolution</th>
-      <td><p>How many distance units per pixel?</p></td>
+      <th>time</th>
+      <td><p>Time of the population size change</p></td>
     </tr>
     <tr>
-      <th>competition_dist, mate_dist</th>
-      <td><p>Maximum spatial competition and mating choice distance</p></td>
-    </tr>
-    <tr>
-      <th>offspring_dist</th>
-      <td><p>Standard deviation of the normal distribution of the parent-offspring
-distance</p></td>
-    </tr>
-    <tr>
-      <th>geneflow</th>
-      <td><p>Geneflow events generated by the <code>geneflow</code> function (either a list of
-data.frame objects in the format defined by the <code>geneflow</code> function, or a single
-data.frame)</p></td>
-    </tr>
-    <tr>
-      <th>overwrite</th>
-      <td><p>Overwrite the contents of the output directory in case it already exists?</p></td>
-    </tr>
-    <tr>
-      <th>sim_length</th>
-      <td><p>Total length of the simulation (if time is specified in a forward direction)</p></td>
+      <th>start, end</th>
+      <td><p>Time-window for the population size change (used for
+exponential or linear change)</p></td>
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>Compiled <code>slendr_model</code> model object</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

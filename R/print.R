@@ -190,12 +190,17 @@ print_pop_history <- function(x) {
       }
     }
 
-    # movement
+    # spatial dynamics events
     else if (event$event == "move") {
       cat(sprintf("%d-%d: movement across a landscape", event$start, event$end))
     } else if (event$event == "expand") {
       cat(sprintf("%d-%d: range expansion", event$start, event$end))
-    } else if (event$event == "resize" & event$how == "step") {
+    } else if (event$event == "range") {
+      cat(sprintf("%d: change of the spatial boundary", event$time))
+    }
+
+    # population size change
+    else if (event$event == "resize" & event$how == "step") {
       cat(sprintf("%d: resize from %d to %d individuals",
                   event$time, event$prev_N, event$N))
     } else

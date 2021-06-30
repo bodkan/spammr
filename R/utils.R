@@ -180,14 +180,15 @@ check_event_time <- function(time, pop) {
 
   # test if all times are consistent with the assumed time direction
   if (length(time) > 1 & all(comp(diff(time), 0)))
-      stop(sprintf("Specified start-end time window is inconsistent with the %s time
-direction assumed by the model", direction), call. = FALSE)
+      stop(sprintf("Specified start-end time window is inconsistent with the %s time direction assumed by the model", direction),
+           call. = FALSE)
 
   # check consistency of times with the last specified time event for
   # this population
   if (any(comp(time, previous_time)))
-    stop(sprintf("The model implies %s time direction but the specified event time
-(%s) is lower than last active time (%s). ", direction, paste(time, collapse = "-"), previous_time), call. = FALSE)
+    stop(sprintf("The specified event time (%s) is inconsistent with last active time (%s) given the assumed %s time direction",
+                 paste(time, collapse = "-"), previous_time, direction),
+         call. = FALSE)
 }
 
 
@@ -196,14 +197,12 @@ check_removal_time <- function(time, pop) {
 
   removal_time <- attr(pop, "remove")
   if (removal_time != -1 & direction == "forward" & any(time > removal_time)) {
-    stop(sprintf("The specified event time (%d) is not consistent with the scheduled
-removal of %s (%s). ",
+    stop(sprintf("The specified event time (%d) is not consistent with the scheduled removal of %s (%s). ",
                  time, pop$pop[1], removal_time),
          call. = FALSE)
   }
   if (removal_time != -1 & direction == "backward" & any(time < removal_time)) {
-    stop(sprintf("The specified event time (%d) is not consistent with the scheduled
-removal of %s (%s). ",
+    stop(sprintf("The specified event time (%d) is not consistent with the scheduled removal of %s (%s). ",
                  time, pop$pop[1], removal_time),
          call. = FALSE)
   }
@@ -221,6 +220,21 @@ convert_time <- function(df, direction, columns, max_time, generation_time) {
     }
   }
   df
+}
+
+
+# Calculate overlap between subsequent spatial maps
+compute_overlaps <- function(x) {
+  sf::st_agr(x) <- "constant"
+  sapply(
+    (1:nrow(x))[-1], function(i) {
+      a <- x[i - 1, ]
+      b <- x[i, ]
+      intersection <- sf::st_intersection(a, b)
+      if (nrow(intersection) == 0) return(0)
+      sf::st_area(intersection) / sf::st_area(b)
+    }
+  )
 }
 
 

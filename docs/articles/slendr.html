@@ -160,7 +160,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpN4dgEz", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpb7MlKc", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -287,11 +287,14 @@
 <span class="co">#&gt; slendr 'population' object </span>
 <span class="co">#&gt; -------------------------- </span>
 <span class="co">#&gt; name: OOA </span>
-<span class="co">#&gt; split from AFR at time 51000 </span>
 <span class="co">#&gt; scheduled removal at time  25000 </span>
 <span class="co">#&gt; habitat: terrestrial</span>
-<span class="co">#&gt; number of spatial maps: 28 </span>
 <span class="co">#&gt; </span>
+<span class="co">#&gt; population history overview:</span>
+<span class="co">#&gt;   - time 51000: split from AFR</span>
+<span class="co">#&gt;   - time 50000-40000: movement across a landscape</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; number of spatial maps: 28 </span>
 <span class="co">#&gt; map: internal coordinate reference system: EPSG 3035</span></code></pre></div>
 <p>Checking the result visually again, we see:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
@@ -343,11 +346,13 @@
 <span class="co">#&gt; slendr 'population' object </span>
 <span class="co">#&gt; -------------------------- </span>
 <span class="co">#&gt; name: ANA </span>
-<span class="co">#&gt; split from OOA at time 28000 </span>
 <span class="co">#&gt; scheduled removal at time  4000 </span>
 <span class="co">#&gt; habitat: terrestrial</span>
-<span class="co">#&gt; number of spatial maps: 17 </span>
 <span class="co">#&gt; </span>
+<span class="co">#&gt; population history overview:</span>
+<span class="co">#&gt;   - time 28000: split from OOA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; number of spatial maps: 17 </span>
 <span class="co">#&gt; map: internal coordinate reference system: EPSG 3035</span></code></pre></div>
 <p>We can (and should) check the results visually:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">

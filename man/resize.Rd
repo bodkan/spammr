@@ -9,15 +9,15 @@ resize(pop, N, how = "step", time = NULL, start = NULL, end = NULL)
 \arguments{
 \item{pop}{Object of the class \code{slendr_pop}}
 
-\item{N}{Final population size}
+\item{N}{Population size after the change}
 
-\item{how}{How to change the population size (options are "step",
-"exponential", "linear")}
+\item{how}{How to change the population size (options are \code{"step"}, \code{"exponential"},
+\code{"linear"})}
 
 \item{time}{Time of the population size change}
 
-\item{start, end}{Time-window for the population size change (used for
-exponential or linear change)}
+\item{start, end}{Time-window for the population size change (used for exponential or linear
+change)}
 }
 \description{
 Resize the population size
