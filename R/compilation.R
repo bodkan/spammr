@@ -74,16 +74,20 @@ compile <- function(populations, dir, generation_time, resolution,
   # first)
   split_table <- compile_splits(populations, generation_time, direction, max_time)
 
-  # take care of missing interactions and offspring distances
-  split_table <- set_distances(split_table, resolution,
-                               competition_dist, mate_dist, offspring_dist)
-
   admix_table <- compile_geneflows(geneflow, split_table, generation_time,
                                    direction, max_time)
 
   # compile the spatial maps
   map_table <- compile_maps(populations, split_table, resolution,
                             generation_time, direction, max_time, dir)
+
+  # compile the table of population resize events
+  resize_table <- compile_resizes(populations, generation_time, direction,
+                                  max_time, split_table)
+
+  # take care of missing interactions and offspring distances
+  split_table <- set_distances(split_table, resolution,
+                               competition_dist, mate_dist, offspring_dist)
 
   # convert times into generations, keeping the original times in a dedicated column
   map_table$orig_time <- map_table$time
@@ -118,7 +122,7 @@ compile <- function(populations, dir, generation_time, resolution,
   )
   class(result) <- set_class(result, "model")
 
-  write_model(dir, populations, admix_table, map_table, split_table,
+  write_model(dir, populations, admix_table, map_table, split_table, resize_table,
               generation_time, resolution, max_time)
 
   result
@@ -371,8 +375,8 @@ script <- function(path, output = NULL, ...) {
 
 
 # Write a compiled slendr model to disk
-write_model <- function(dir, populations, admix_table, map_table,
-                        split_table, generation_time, resolution, length) {
+write_model <- function(dir, populations, admix_table, map_table, split_table,
+                        resize_table, generation_time, resolution, length) {
   if (!is.null(admix_table)) {
     admix_table$rate <- as.integer(admix_table$rate * 100)
     admix_table$overlap <- as.integer(admix_table$overlap)
@@ -406,6 +410,13 @@ write_model <- function(dir, populations, admix_table, map_table,
     map_table[, c("pop_id", "time", "time_gen", "map_number", "orig_time")],
     file.path(dir, "maps.tsv"),
     sep = "\t", quote = FALSE, row.names = FALSE
+  )
+
+  if (!is.null(resize_table))
+    utils::write.table(
+      resize_table,
+      file.path(dir, "resizes.tsv"),
+      sep = "\t", quote = FALSE, row.names = FALSE
   )
 
   # save the population names (SLiM doesn't do data frames with mixed numeric
@@ -550,6 +561,34 @@ compile_geneflows <- function(geneflow, split_table, generation_time,
   admix_table[, c("from", "from_id", "to", "to_id", "tstart", "tstart_gen",
                   "tend", "tend_gen", "rate", "overlap",
                   "orig_tstart", "orig_tend")]
+}
+
+
+# Compile table of population resize events
+compile_resizes <- function(populations, generation_time, direction,
+                            max_time, split_table) {
+  resize_events <- lapply(populations, function(p) {
+    lapply(attr(p, "history"), function(event) {
+      if (event$event == "resize") event
+    }) %>% do.call(rbind, .)
+  }) %>% do.call(rbind, .)
+
+  if (is.null(resize_events)) return(NULL)
+
+  resize_table <- convert_time(
+    resize_events,
+    direction = direction,
+    columns = "time",
+    max_time = max_time,
+    generation_time = generation_time
+  )
+
+  resize_table$pop_id <- sapply(
+    resize_table$pop,
+    function(i) split_table[split_table$pop == i, ]$pop_id
+  ) %>% as.numeric
+
+  resize_table[, c("pop", "pop_id", "how", "N", "time", "orig_time")]
 }
 
 

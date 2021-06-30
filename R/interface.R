@@ -82,6 +82,7 @@ population <- function(name, time, N, parent = "ancestor", map = NULL,
 
   # create the first population history event - population split
   attr(pop, "history") <- list(data.frame(
+    pop =  name,
     event = "split",
     time = time,
     N = N,
@@ -221,6 +222,7 @@ move <- function(pop, trajectory, end, start, overlap = 0.8, snapshots = NULL,
   )
 
   attr(result, "history") <- append(attr(result, "history"), list(data.frame(
+    pop =  unique(region_start$pop),
     event = "move",
     start = start,
     end = end
@@ -313,6 +315,13 @@ seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
     c("map", "parent", "remove", "intersect", "aquatic", "history")
   )
 
+  attr(result, "history") <- append(attr(result, "history"), list(data.frame(
+    pop =  unique(region_start$pop),
+    event = "expand",
+    start = start,
+    end = end
+  )))
+
   result
 }
 
@@ -403,6 +412,7 @@ for the 'how' parameter", call. = FALSE)
     tail(1)
 
   change <- data.frame(
+    pop =  unique(pop$pop),
     event = "resize",
     how = how,
     N = N,
