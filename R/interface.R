@@ -164,7 +164,7 @@ move <- function(pop, trajectory, end, start, overlap = 0.8, snapshots = NULL,
     n <- 1
     message("Iterative search for the minimum sufficient number of intermediate ",
             "spatial snapshots, starting at ", n, ". This should only take a couple of ",
-            "seconds but if you don't want to wait, you can set `snapshots = N` manually.")
+            "seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
   } else
     n <- snapshots
 
@@ -261,7 +261,7 @@ expand <- function(pop, by, end, start, overlap = 0.8, snapshots = NULL,
     n <- 1
     message("Iterative search for the minimum sufficient number of intermediate
 spatial snapshots, starting at ", n, ". This should only take a couple of
-seconds but if you don't want to wait, you can set `snapshots = N` manually.")
+seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
   } else
     n <- snapshots
 
