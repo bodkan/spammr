@@ -185,7 +185,7 @@ graph <- function(model, show_cleanups = TRUE) {
                                         "continuation" = "solid",
                                         "geneflow" = "solid")) +
 
-  guides(fill = guide_legend(""), edge_linetype = FALSE) +
+  guides(fill = guide_legend(""), edge_linetype = "none") +
 
   theme_void() +
   theme(legend.position = "right",
@@ -511,7 +511,7 @@ interactively.", call. = FALSE)
             lineend = "round", size = 0.5, arrow.fill = "black"
           ) +
           scale_color_discrete(drop = FALSE) +
-          guides(color = FALSE)
+          guides(color = "none")
     }
   }
 
@@ -520,7 +520,7 @@ interactively.", call. = FALSE)
     p <- p +
       geom_sf(data = region_maps, aes(fill = region), linetype = 2, alpha = 0.5) +
       geom_sf_label(data = region_maps, aes(label = region, color = region)) +
-      guides(color = FALSE, fill = FALSE)
+      guides(color = "none", fill = "none")
   }
 
   if (!is.null(title)) p <- p + ggtitle(title)
