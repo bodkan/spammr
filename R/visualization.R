@@ -459,7 +459,7 @@ objects are specified", call. = FALSE)
       all_times <- sort(unique(unlist(lapply(pops, `[[`, "time"))))
 
       # get split and removal times of all specified populations
-      split_times <- sapply(sapply(pops, `[[`, "time"), `[`, 1)
+      split_times <- sapply(pops, function(p) { attr(p, "history")[[1]]$time })
       removal_times <- sapply(pops, attr, "remove")
 
       previous_time <- min(all_times[all_times >= time])
