@@ -75,32 +75,8 @@ compile <- function(populations, dir, generation_time, resolution,
   split_table <- compile_splits(populations, generation_time, direction, max_time)
 
   # take care of missing interactions and offspring distances
-  if (any(is.na(split_table$competition_dist))) {
-    if (is.null(competition_dist)) {
-      pop_names <- paste(split_table[is.na(split_table$competition_dist), ]$pop, collapse = ", ")
-      stop("Parameter 'competition_dist' missing for ", pop_names, " and a general
-value of this parameter was not provided to the compile() function", call. = FALSE)
-    } else
-      split_table$competition_dist[is.na(split_table$competition_dist)] <- competition_dist
-  }
-  if (any(is.na(split_table$mate_dist))) {
-    if (is.null(mate_dist)) {
-      pop_names <- paste(split_table[is.na(split_table$mate_dist), ]$pop, collapse = ", ")
-      stop("Parameter 'mate_dist' missing for ", pop_names, " and a general
-value of this parameter was not provided to the compile() function", call. = FALSE)
-    } else
-      split_table$mate_dist[is.na(split_table$mate_dist)] <- mate_dist
-  }
-  if (any(is.na(split_table$offspring_dist))) {
-    if (is.null(offspring_dist)) {
-      pop_names <- paste(split_table[is.na(split_table$offspring_dist), ]$pop, collapse = ", ")
-      stop("Parameter 'offspring_dist' missing for ", pop_names, " and a general
-value of this parameter was not provided to the compile() function", call. = FALSE)
-    } else
-      split_table$offspring_dist[is.na(split_table$offspring_dist)] <- offspring_dist
-  }
-  split_table[, c("competition_dist", "mate_dist", "offspring_dist")] <-
-    split_table[, c("competition_dist", "mate_dist", "offspring_dist")] / resolution
+  split_table <- set_distances(split_table, resolution,
+                               competition_dist, mate_dist, offspring_dist)
 
   admix_table <- compile_geneflows(geneflow, split_table, generation_time,
                                    direction, max_time)
@@ -109,17 +85,15 @@ value of this parameter was not provided to the compile() function", call. = FAL
   map_table <- compile_maps(populations, split_table, resolution,
                             generation_time, direction, max_time, dir)
 
+  # convert times into generations, keeping the original times in a dedicated column
   map_table$orig_time <- map_table$time
-  map_table$time_gen <- map_table$time
-  map_table$time_gen <- map_table$time_gen / generation_time
-  split_table$parent_id <- ifelse(is.na(split_table$parent_id), -1, split_table$parent_id)
-
-  # convert times into generations (only in the table of splits which will be
-  # saved for later SLiM runs)
+  map_table$time_gen <- map_table$time / generation_time
   split_table$tsplit_gen <- split_table$tsplit / generation_time
   split_table$tremove_gen <- split_table$tremove
   split_table$tremove_gen[split_table$tremove_gen != -1] <-
     split_table$tremove[split_table$tremove_gen != -1] / generation_time
+
+  split_table$parent_id <- ifelse(is.na(split_table$parent_id), -1, split_table$parent_id)
 
   # compile the result
   result <- list(
