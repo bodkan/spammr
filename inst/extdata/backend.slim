@@ -17,6 +17,8 @@ initialize() {
   defineConstant("GENEFLOW_TABLE", read_table(paste0(MODEL_DIR, "/geneflow.tsv")));
   defineConstant("MAP_TABLE", read_table(paste0(MODEL_DIR, "/maps.tsv")));
 
+  defineConstant("SIZE_CHANGES", read_dataframe(model_path("resizes.tsv")));
+
   // load all spatial maps
   defineConstant("MAPS", sapply(map_param("map_number"), "Image(paste0(MODEL_DIR, '/', applyValue, '.png'));"));
 
@@ -114,6 +116,12 @@ initialize() {
   evaluate_interactions();
 
   sim.rescheduleScriptBlock(s0, generations = SIM_START);
+
+  if (!isNULL(SIZE_CHANGES)) {
+    SIZE_CHANGES.setValue("slim_time", T_BURNIN + SIZE_CHANGES.getValue("time"));
+    sim.rescheduleScriptBlock(s10, generations = SIZE_CHANGES.getValue("slim_time"));
+  } else
+    sim.deregisterScriptBlock(s10);
 
   // population splits
   if (exists("T_SPLITS"))
@@ -273,6 +281,15 @@ s9 late() {
   sim.simulationFinished();
 }
 
+s10 {
+  events = filter_table(SIZE_CHANGES, "slim_time", sim.generation);
+  for (p in events.getValue("pop")) {
+    N = events.getValue("N");
+    get_pop(p).setSubpopulationSize(N);
+    log_output(p + " resized to " + N + " individuals");
+  }
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // Callbacks and interaction evaluations
@@ -328,6 +345,10 @@ modifyChild() {
 //////////////////////////////////////////////////////////////////////
 // Input/output utility functions
 //////////////////////////////////////////////////////////////////////
+
+function (s$) model_path(s$ file) {
+  return paste0(MODEL_DIR, "/", file);
+}
 
 // Read table of population splits, migrations, etc.
 function (i) read_table(s$ path) {
@@ -545,3 +566,71 @@ function (numeric) map_param(s$ col, [Ni$ pop_i = NULL], [Ni$ time = NULL]) {
 
   return val[which(val != -1)];
 }
+
+
+// Data frame implementation based on Dictionary
+// Read a TSV file as a Dictionary of pairs of the form:
+//   <column name>-<vector of column values>
+function (object<Dictionary>) read_dataframe(s$ path) {
+	lines = readFile(path);
+
+	// extract column names
+	columns = strsplit(lines[0], "\t");
+	// parse the body of the table into individual elements
+	body = lines[1 : (length(lines) - 1)];
+	body_elements = sapply(body, "strsplit(applyValue, '\t');");
+
+	// generate a dictionary of key-vector (pairs column-column values)
+	dict = Dictionary();
+	for (i in seqAlong(columns)) {
+		// extract values of the i-th column
+		indices = seq(i, length(body_elements) - 1, by = length(columns));
+		column_values = convert_type(columns[i], body_elements[indices]);
+
+		dict.setValue(columns[i], column_values);
+	}
+
+	return dict;
+}
+
+
+// Filter Dictionary/data-frame for rows where the <column> is
+// equal to <value>
+function (object<Dictionary>) filter_table(
+	object<Dictionary> d,
+	s$ column,
+	ifsl$ value
+) {
+	values = d.getValue(column);
+	return d.getRowValues(values == value);
+}
+
+
+// Convert column vector values to a required type (this is hardcoded
+// for every column among all slendr-generated TSV files)
+function (ifsl) convert_type(s$ column_name, s string_values) {
+	integer = c("pop_id", "N", "time", "orig_time");
+	float = c("rate");
+	logical = c("overlap");
+
+	if (any(column_name == integer))
+		values = asInteger(string_values);
+	else if (any(column_name == float))
+		values = asFloat(string_values);
+	else if (any(column_name == logical))
+		values = asLogical(string_values);
+	else
+		values = string_values;
+
+	return values;
+}
+
+//size_changes = read_table("/tmp/example-model/resizes.tsv")
+
+//size_changes
+
+//size_changes.getRowValues(1)
+
+//size_changes.getValue("pop")
+
+//filter_table(size_changes, "pop", "YAM").getValue("time")
