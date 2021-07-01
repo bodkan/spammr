@@ -53,14 +53,10 @@ compile <- function(populations, dir, generation_time, resolution,
   if (length(direction) > 1)
     stop("Inconsistent direction of time among the specified populations",
          call. = FALSE)
-
-  if (length(direction) == 0) {
+  if (length(direction) == 0)
     if (min(sapply(populations, function(x) x$time[1])) == 1 & is.null(sim_length))
       stop("Simulation length 'sim_length' must be specified for forward time direction",
-      call. = FALSE)
-    else
-      direction <- "backward"
-  }
+        call. = FALSE)
 
   map <- attr(populations[[1]], "map")
 
@@ -69,56 +65,29 @@ compile <- function(populations, dir, generation_time, resolution,
   if (!is.null(offspring_dist)) check_resolution(map, offspring_dist)
   check_resolution(map, resolution)
 
-  # save split and geneflow tables which will be returned in the model object
-  # in separate objects (tables serialized for SLiM will have to be stripped
-  # first)
   split_table <- compile_splits(populations, generation_time, direction, max_time)
-
-  admix_table <- compile_geneflows(geneflow, split_table, generation_time,
-                                   direction, max_time)
-
-  # compile the spatial maps
-  map_table <- compile_maps(populations, split_table, resolution,
-                            generation_time, direction, max_time, dir)
-
-  # compile the table of population resize events
-  resize_table <- compile_resizes(populations, generation_time, direction,
-                                  max_time, split_table)
+  admix_table <- compile_geneflows(geneflow, split_table, generation_time, direction, max_time)
+  map_table <- compile_maps(populations, split_table, resolution, generation_time, direction, max_time, dir)
+  resize_table <- compile_resizes(populations, generation_time, direction, max_time, split_table)
 
   # take care of missing interactions and offspring distances
-  split_table <- set_distances(split_table, resolution,
-                               competition_dist, mate_dist, offspring_dist)
-
-  # convert times into generations, keeping the original times in a dedicated column
-  map_table$orig_time <- map_table$time
-  map_table$time_gen <- map_table$time / generation_time
-  split_table$tsplit_gen <- split_table$tsplit / generation_time
-  split_table$tremove_gen <- split_table$tremove
-  split_table$tremove_gen[split_table$tremove_gen != -1] <-
-    split_table$tremove[split_table$tremove_gen != -1] / generation_time
-
-  split_table$parent_id <- ifelse(is.na(split_table$parent_id), -1, split_table$parent_id)
+  split_table <- set_distances(split_table, resolution, competition_dist, mate_dist, offspring_dist)
 
   # compile the result
   result <- list(
-    config = list(
-      directory = dir,
-      splits = file.path(dir, "populations.tsv"),
-      maps = file.path(dir, "maps.tsv"),
-      geneflow = if (length(geneflow) == 0) NULL else file.path(dir, "geneflow.tsv")
-    ),
+    config = list(directory = dir,
+                  splits = file.path(dir, "populations.tsv"),
+                  maps = file.path(dir, "maps.tsv"),
+                  geneflow = file.path(dir, "geneflow.tsv")),
     world = map,
     populations = populations,
-    splits = split_table[, c("pop", "pop_id", "parent", "parent_id", "N",
-                             "tsplit", "tsplit_gen", "tremove", "tremove_gen",
-                             "competition_dist", "mate_dist", "offspring_dist",
-                             "orig_tsplit", "orig_tremove")],
+    splits = split_table,
     geneflow = admix_table,
-    maps = map_table[, c("pop", "pop_id", "time", "time_gen", "path", "orig_time")],
+    maps = map_table[, c("pop", "pop_id", "time_orig", "time_gen", "path")],
     generation_time = generation_time,
     resolution = resolution,
     length = max_time,
-    direction = ifelse(direction == "backward", "backward", "forward")
+    direction = direction
   )
   class(result) <- set_class(result, "model")
 
@@ -305,6 +274,7 @@ a non-zero integer number (number of neutral ancestry markers)", call. = FALSE)
     seq_length = seq_length,
     recomb_rate = recomb_rate,
     ancestry_markers = markers_count,
+    track_ancestry = if (markers_count > 0) "T" else "F",
     save_locations = if (save_locations) "T" else "F",
     generation_time = model$generation_time,
     seed = if (is.null(seed)) "getSeed()" else seed
@@ -377,17 +347,9 @@ script <- function(path, output = NULL, ...) {
 # Write a compiled slendr model to disk
 write_model <- function(dir, populations, admix_table, map_table, split_table,
                         resize_table, generation_time, resolution, length) {
-  if (!is.null(admix_table)) {
-    admix_table$rate <- as.integer(admix_table$rate * 100)
-    admix_table$overlap <- as.integer(admix_table$overlap)
-
-    utils::write.table(
-      admix_table[, c("from_id", "to_id", "tstart", "tstart_gen", "tend", "tend_gen",
-                      "rate", "overlap", "orig_tstart", "orig_tend")],
-      file.path(dir, "geneflow.tsv"),
-      sep = "\t", quote = FALSE, row.names = FALSE
-    )
-  }
+  if (!is.null(admix_table)) admix_table$overlap <- as.integer(admix_table$overlap)
+  utils::write.table(admix_table, file.path(dir, "geneflow.tsv"),
+                     sep = "\t", quote = FALSE, row.names = FALSE)
 
   for (i in seq_len(nrow(map_table))) {
     map_row <- map_table[i, ]
@@ -397,27 +359,16 @@ write_model <- function(dir, populations, admix_table, map_table, split_table,
 
   saveRDS(populations, file.path(dir, "populations.rds"))
 
-  utils::write.table(
-    split_table[, c("pop_id", "N", "parent_id", "tsplit", "tsplit_gen",
-                    "tremove", "tremove_gen",
-                    "competition_dist", "mate_dist", "offspring_dist",
-                    "orig_tsplit", "orig_tremove")],
-    file.path(dir, "populations.tsv"),
-    sep = "\t", quote = FALSE, row.names = FALSE
-  )
+  utils::write.table(split_table, file.path(dir, "populations.tsv"),
+                     sep = "\t", quote = FALSE, row.names = FALSE)
 
-  utils::write.table(
-    map_table[, c("pop_id", "time", "time_gen", "map_number", "orig_time")],
-    file.path(dir, "maps.tsv"),
-    sep = "\t", quote = FALSE, row.names = FALSE
-  )
+  utils::write.table(map_table[, c("pop", "pop_id", "time_orig", "time_gen", "path")],
+                     file.path(dir, "maps.tsv"), sep = "\t", quote = FALSE,
+                     row.names = FALSE  )
 
   if (!is.null(resize_table))
-    utils::write.table(
-      resize_table,
-      file.path(dir, "resizes.tsv"),
-      sep = "\t", quote = FALSE, row.names = FALSE
-  )
+    utils::write.table(resize_table, file.path(dir, "resizes.tsv"),
+                       sep = "\t", quote = FALSE, row.names = FALSE)
 
   # save the population names (SLiM doesn't do data frames with mixed numeric
   # and character types, so this needs to be saved separately)
@@ -457,9 +408,6 @@ compile_splits <- function(populations, generation_time, direction, max_time) {
     )
   }) %>% do.call(rbind, .)
 
-  split_table[, c("orig_tsplit", "orig_tremove")] <-
-    split_table[, c("tsplit", "tremove")]
-
   # convert times into a forward direction
   split_table <- convert_time(
     split_table,
@@ -471,7 +419,7 @@ compile_splits <- function(populations, generation_time, direction, max_time) {
 
   # order populations by split time and assign a numeric identifier to each
   split_table <- split_table[
-    order(split_table$tsplit, decreasing = FALSE, na.last = FALSE), ]
+    order(split_table$tsplit_gen, decreasing = FALSE, na.last = FALSE), ]
   split_table$pop_id <- seq_len(nrow(split_table)) - 1
   split_table$parent_id <- lapply(
     split_table$parent,
@@ -512,16 +460,14 @@ compile_maps <- function(populations, split_table, resolution, generation_time,
     generation_time = generation_time
   )
 
-  map_table$time <- round(map_table$time)
   # number maps sequentially in the order SLiM will be swapping them
   # later (each map number X corresponds to X.png)
-  map_table <- map_table[order(map_table$time, na.last = FALSE), ]
+  map_table <- map_table[order(map_table$time_gen, na.last = FALSE), ]
   # in some situations, multiple maps are scheduled for a single generation
   # for one population - this removes the duplicates, but ideally this kind
   # of problem should be caught somewhere upstream
-  map_table <- map_table[!duplicated(map_table[, c("pop", "time")]), ]
-  map_table$map_number <- seq_len(nrow(map_table))
-  map_table$path <- map_table$map_number %>%
+  map_table <- map_table[!duplicated(map_table[, c("pop", "time_gen")]), ]
+  map_table$path <- seq_len(nrow(map_table)) %>%
     paste0(., ".png") %>%
     file.path(dir, .) %>%
     sub("//", "/", .)
@@ -536,8 +482,6 @@ compile_geneflows <- function(geneflow, split_table, generation_time,
     return(NULL)
 
   admix_table <- do.call(rbind, geneflow)
-  admix_table[, c("orig_tstart", "orig_tend")] <-
-    admix_table[, c("tstart", "tend")]
   admix_table <- convert_time(
     admix_table,
     direction = direction,
@@ -546,8 +490,7 @@ compile_geneflows <- function(geneflow, split_table, generation_time,
     generation_time = generation_time
   )
   names(admix_table)[1:2] <- c("from", "to")
-  admix_table$tstart_gen <- admix_table$tstart / generation_time
-  admix_table$tend_gen <- admix_table$tend / generation_time
+
   # convert population names and their parents' names to SLiM numbers
   admix_table$from_id <- unlist(lapply(
     admix_table$from,
@@ -558,9 +501,7 @@ compile_geneflows <- function(geneflow, split_table, generation_time,
     function(i) split_table[split_table$pop == i, ]$pop_id
   ))
 
-  admix_table[, c("from", "from_id", "to", "to_id", "tstart", "tstart_gen",
-                  "tend", "tend_gen", "rate", "overlap",
-                  "orig_tstart", "orig_tend")]
+  admix_table
 }
 
 
@@ -588,7 +529,7 @@ compile_resizes <- function(populations, generation_time, direction,
     function(i) split_table[split_table$pop == i, ]$pop_id
   ) %>% as.numeric
 
-  resize_table[, c("pop", "pop_id", "how", "N", "time", "orig_time")]
+  resize_table[, c("pop", "pop_id", "resize_how", "N", "time_orig", "time_gen")]
 }
 
 
@@ -672,4 +613,24 @@ save_png <- function(raster, path) {
   img_matrix[img_matrix > 0] <- 1
 
   png::writePNG(img_matrix, path)
+}
+
+
+# Convert time from backward to forward direction (if necessary) and to generations
+convert_time <- function(df, direction, columns, max_time, generation_time) {
+  for (column in columns) {
+    times <- df[[column]]
+
+    # if necessary, convert to forward direction
+    if (direction == "backward")
+      times[times != -1] <- max_time - times[times != -1] + generation_time
+
+    # convert to generations
+    times[times != -1] <- as.integer(round(times[times != -1] / generation_time))
+
+    df[[paste0(column, "_gen")]] <- times
+    df[[paste0(column, "_orig")]] <- df[[column]]
+    df[[column]] <- NULL
+  }
+  df
 }

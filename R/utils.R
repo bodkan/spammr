@@ -209,20 +209,6 @@ check_removal_time <- function(time, pop) {
 }
 
 
-# Convert time from backward to forward direction
-convert_time <- function(df, direction, columns, max_time, generation_time) {
-  if (direction == "backward") {
-    for (column in columns) {
-      df[[paste0("orig_", column)]] <- df[[column]]
-      times <- df[[column]]
-      times[times != -1] <- max_time - times[times != -1] + generation_time
-      df[[column]] <- times
-    }
-  }
-  df
-}
-
-
 # Calculate overlap between subsequent spatial maps
 compute_overlaps <- function(x) {
   sf::st_agr(x) <- "constant"

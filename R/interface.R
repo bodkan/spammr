@@ -414,7 +414,7 @@ for the 'how' parameter", call. = FALSE)
   change <- data.frame(
     pop =  unique(pop$pop),
     event = "resize",
-    how = how,
+    resize_how = how,
     N = N,
     prev_N = prev_N
   )
