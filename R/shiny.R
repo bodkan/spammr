@@ -100,7 +100,7 @@ explore <- function(model) {
     split_events,
     sprintf("split of %s from %s", pop, parent)
   )
-  split_events <- split_events[split_events$orig_tsplit != Inf, c("orig_tsplit", "event")]
+  split_events <- split_events[split_events$tsplit_orig != Inf, c("tsplit_orig", "event")]
   colnames(split_events) <- c("time", "event")
 
   if (!is.null(model$geneflow)) {
@@ -109,7 +109,7 @@ explore <- function(model) {
       geneflow_starts,
       sprintf("geneflow %s -> %s, %.2f%%", from, to, 100 * rate)
     )
-    geneflow_starts <- geneflow_starts[, c("orig_tstart", "event")]
+    geneflow_starts <- geneflow_starts[, c("tstart_orig", "event")]
     colnames(geneflow_starts) <- c("time", "event")
 
     geneflow_ends <- model$geneflow
@@ -117,7 +117,7 @@ explore <- function(model) {
       geneflow_ends,
       sprintf("geneflow %s -> %s ends", from, to)
     )
-    geneflow_ends <- geneflow_ends[, c("orig_tend", "event")]
+    geneflow_ends <- geneflow_ends[, c("tend_orig", "event")]
     colnames(geneflow_ends) <- c("time", "event")
   } else {
     geneflow_starts <- NULL
@@ -314,10 +314,10 @@ explore <- function(model) {
     output$geneflows_table <- renderTable({
       if (!is.null(model$geneflow)) {
         migr_df <- get_geneflows(model, input$time_slider)
-        table <- migr_df[, c("from", "to", "orig_tstart", "orig_tend", "rate")]
+        table <- migr_df[, c("from", "to", "tstart_orig", "tend_orig", "rate")]
         table$rate_gen <- sprintf("%.1f%%", table$rate / model$generation_time * 100)
-        table$orig_tstart <- as.integer(table$orig_tstart)
-        table$orig_tend <- as.integer(table$orig_tend)
+        table$tstart_orig <- as.integer(table$tstart_orig)
+        table$tend_orig <- as.integer(table$tend_orig)
         table$rate <- sprintf("%.1f%%", table$rate * 100)
         colnames(table) <- c("source", "target", "start", "end", "rate", "rate per gen.")
         table$overlapping <- ifelse(migr_df$overlap, "yes", "no")

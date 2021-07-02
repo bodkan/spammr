@@ -83,7 +83,7 @@ get_geneflows <- function(model, time) {
   if (is.null(model$geneflow)) return(NULL)
   pop_names <- unique(unlist(sapply(model$populations, `[[`, "pop")))
 
-  geneflows <- subset(model$geneflow, orig_tstart >= time & orig_tend <= time)
+  geneflows <- subset(model$geneflow, tstart_orig >= time & tend_orig <= time)
   geneflows$from <- factor(geneflows$from, levels = pop_names)
   geneflows$to <- factor(geneflows$to, levels = pop_names)
 
@@ -275,7 +275,7 @@ NULL
 
 utils::globalVariables(
   names = c("time", "prop", "ancestry", "newx", "newy", "pop",
-  "tblock", "start", ".", "orig_tstart", "orig_tend", "type", "rate",
+  "tblock", "start", ".", "tstart_orig", "tend_orig", "type", "rate",
   "node1.name", "node2.name", "from_x", "from_y", "from", "to_x", "to_y",
   "to"), package = "slendr"
 )

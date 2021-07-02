@@ -124,9 +124,9 @@ ancestries <- function(model) {
 graph <- function(model, show_cleanups = TRUE) {
   # plot times in their original direction
   split_table <- model$splits
-  split_table[, c("tsplit", "tremove")] <-   split_table[, c("orig_tsplit", "orig_tremove")]
+  split_table[, c("tsplit", "tremove")] <-   split_table[, c("tsplit_orig", "tremove_orig")]
   geneflow_table <- model$geneflow
-  geneflow_table[, c("tstart", "tend")] <-   geneflow_table[, c("orig_tstart", "orig_tend")]
+  geneflow_table[, c("tstart", "tend")] <-   geneflow_table[, c("tstart_orig", "tend_orig")]
 
   split_edges <- get_split_edges(split_table)
   geneflow_edges <- get_geneflow_edges(geneflow_table)
