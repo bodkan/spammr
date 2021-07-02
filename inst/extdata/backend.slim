@@ -20,7 +20,7 @@ initialize() {
   // load model definition tables
   defineConstant("POPULATIONS", read_table(model_path("populations.tsv")));
   defineConstant("GENEFLOWS", read_table(model_path("geneflow.tsv")));
-  defineConstant("SIZE_CHANGES", read_table(model_path("resizes.tsv")));
+  defineConstant("RESIZES", read_table(model_path("resizes.tsv")));
   defineConstant("MAPS", read_table(model_path("maps.tsv")));
   // load all spatial maps (image objects)
   MAPS.setValue("image", sapply(MAPS.getValue("path"), "Image(applyValue);"));
@@ -30,7 +30,7 @@ initialize() {
   slim_time(POPULATIONS);
   slim_time(GENEFLOWS);
   slim_time(MAPS);
-  slim_time(SIZE_CHANGES);
+  slim_time(RESIZES);
 
   // world map dimensions
   defineConstant("WIDTH", MAPS.getValue("image")[0].width); catn("WIDTH: " + WIDTH);
@@ -63,17 +63,18 @@ initialize() {
     max_distance = filter(POPULATIONS, "pop_id", i).getValue("competition_dist");
     mate_distance = filter(POPULATIONS, "pop_id", i).getValue("mate_dist");
 
-    initializeInteractionType(2 * i, "xy", reciprocal = T, maxDistance = max_distance);
-    initializeInteractionType(2 * i + 1, "xy", reciprocal = T, maxDistance = mate_distance);
+    initializeInteractionType(2*i, "xy", reciprocal = T, maxDistance = max_distance);
+    initializeInteractionType(2*i+1, "xy", reciprocal = T, maxDistance = mate_distance);
   }
 }
 
 1 early() {
-  // creating ancestral populations (i.e. those without parents)
+  // create ancestral populations
   pops = filter(POPULATIONS, "parent", "ancestor");
   for (i in iter(pops)) {
-    id = pops.getRowValues(i).getValue("pop_id");
-    N = pops.getRowValues(i).getValue("N");
+    pop = pops.getRowValues(i);
+    id = pop.getValue("pop_id"); N = pop.getValue("N");
+
     sim.addSubpop(id, N);
     set_map(id, sim.generation);
     set_coordinates(get_pop(id).individuals, id);
@@ -81,19 +82,16 @@ initialize() {
   }
   evaluate_interactions();
 
-  // end of burnin script block
-  sim.rescheduleScriptBlock(s0, generations = SIM_START);
-
   // schedule population size changes
-  if (!isNULL(SIZE_CHANGES))
-    sim.rescheduleScriptBlock(s10, generations = unique(SIZE_CHANGES.getValue("time")));
+  if (!isNULL(RESIZES))
+    sim.rescheduleScriptBlock(s10, generations = unique(RESIZES.getValue("time")));
   else
     sim.deregisterScriptBlock(s10);
 
   // schedule population splits (if any)
-  split_times = filter(POPULATIONS, "parent", "ancestor", negate = T).getValue("tsplit");
-  if (length(split_times))
-    sim.rescheduleScriptBlock(s1, generations = unique(split_times));
+  splits = filter(POPULATIONS, "parent", "ancestor", negate = T);
+  if (num_rows(splits))
+    sim.rescheduleScriptBlock(s1, generations = unique(splits.getValue("tsplit")));
   else
     sim.deregisterScriptBlock(s1);
 
@@ -107,14 +105,14 @@ initialize() {
   }
 
   // removing populations which are no longer required
-  removal_times = filter(POPULATIONS, "tremove", -1, negate = T).getValue("tremove");
-  if (length(removal_times))
-     sim.rescheduleScriptBlock(s4, generations = unique(removal_times));
+  cleanups = filter(POPULATIONS, "tremove", -1, negate = T);
+  if (num_rows(cleanups))
+     sim.rescheduleScriptBlock(s4, generations = unique(cleanups.getValue("tremove")));
   else
      sim.deregisterScriptBlock(s4);
 
   // spatial map changes
-  if (any(MAPS.getValue("time") > 1))
+  if (any(MAPS.getValue("time_gen") > 1))
      sim.rescheduleScriptBlock(s5, generations = unique(MAPS.getValue("time")));
   else
      sim.deregisterScriptBlock(s5);
@@ -134,7 +132,7 @@ initialize() {
 
   // output ancestry proportions
   if (TRACK_ANCESTRY) {
-     sim.rescheduleScriptBlock(s8, generations = SIM_START:SIM_END);
+     sim.rescheduleScriptBlock(s8, generations = SIM_START : SIM_END);
      write_ancestries_header();
   } else
      sim.deregisterScriptBlock(s8);
@@ -144,34 +142,28 @@ initialize() {
 }
 
 //////////////////////////////////////////////////////////////////////
-// Demography script blocks
+// Scheduled event script blocks
 //////////////////////////////////////////////////////////////////////
-
-s0 late() {
-  log_output("burnin ends");
-}
 
 // Population splits
 s1 late() {
-  // get the populations splitting in the current generation
   pops = filter(POPULATIONS, "tsplit", sim.generation);
   for (i in iter(pops)) {
-    id = pops.getRowValues(i).getValue("pop_id");
-    split_pop(id);
-    set_map(id, sim.generation);
-    set_coordinates(get_pop(id).individuals, id);
-    add_markers(id);
+    pop_id = pops.getRowValues(i).getValue("pop_id");
+    split_pop(pop_id);
+    set_map(pop_id, sim.generation);
+    set_coordinates(get_pop(pop_id).individuals, pop_id);
+    add_markers(pop_id);
     evaluate_interactions();
   }
 }
 
 // Geneflow events
 s2 late() {
-  // iterate over all geneflow events scheduled for this generation
-  // and set them accordingly
-  events = filter(GENEFLOWS, "tsplit", sim.generation);
-  for (i in events.getValue("row")) {
+  events = filter(GENEFLOWS, "tstart", sim.generation);
+  for (i in iter(events)) {
     event = events.getRowValues(i);
+
     from = event.getValue("from"); to = event.getValue("to");
     from_id = event.getValue("from_id"); to_id = event.getValue("to_id");
     rate = event.getValue("rate");
@@ -187,17 +179,16 @@ s2 late() {
 
 // Stopping geneflow
 s3 late() {
-  // iterate over all geneflow events scheduled for this generation
-  // and set them accordingly
-  events = filter(GENEFLOWS, "tsplit", sim.generation);
-  for (i in events.getValue("row")) {
+  events = filter(GENEFLOWS, "tend", sim.generation);
+  for (i in iter(events)) {
     event = events.getRowValues(i);
+
     from = event.getValue("from"); to = event.getValue("to");
     from_id = event.getValue("from_id"); to_id = event.getValue("to_id");
     rate = event.getValue("rate");
     span = event.getValue("tend") - event.getValue("tstart");
 
-    get_pop(to_id).setMigrationRates(from_id, rate / span);
+    get_pop(to_id).setMigrationRates(from_id, 0.0);
 
     log_output("geneflow " + from + "(p" + from_id + ")" +
                " -> " + to + "(p" + to_id + ")" + " set to 0%");
@@ -209,14 +200,14 @@ s4 late() {
   pops = filter(POPULATIONS, "tremove", sim.generation);
   for (i in iter(pops)) {
     pop = pops.getRowValues(i);
-    log_output("cleanup of " + pop.getValue("pop") + "(p" + pop.getValue("pop_id") + ")");
+    log_output("cleanup of " + pop.getValue("pop") +
+               "(p" + pop.getValue("pop_id") + ")");
     get_pop(pop.getValue("pop")).setSubpopulationSize(0);
   }
 }
 
 // Update population spatial maps
 s5 late() {
-  // get populations whose spatial maps should be updated
   maps = filter(MAPS, "time", sim.generation);
   for (i in iter(maps)) {
     map = maps.getRowValues(i);
@@ -268,7 +259,7 @@ s9 late() {
 }
 
 s10 late() {
-  events = filter(SIZE_CHANGES, "time", sim.generation);
+  events = filter(RESIZES, "time", sim.generation);
   for (e in events) {
     pop = e.getValue("pop"); N = e.getValue("N");
     get_pop(pop).setSubpopulationSize(N);
@@ -303,15 +294,16 @@ modifyChild() {
     active = GENEFLOWS.getValue("tstart") <= sim.generation &
              sim.generation <= GENEFLOWS.getValue("tend");
 
-    // get population of the offspring's parents (i.e. the source of geneflow)
+    // get population of the offspring's parents
     source = sourceSubpop.id == GENEFLOWS.getValue("from_id");
 
-    // get the offspring's new population(i.e. the target of geneflow)
+    // get the offspring's new population
     target = subpop.id == GENEFLOWS.getValue("to_id");
 
     // if the current admixture event is non-overlapping, set the
     // childs coordinates freely
     overlap = GENEFLOWS.getValue("overlap")[active & target & source];
+
     if (!overlap) {
       set_coordinates(child, subpop.id, log = F);
       return T;
