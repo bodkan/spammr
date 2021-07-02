@@ -83,7 +83,7 @@ initialize() {
   evaluate_interactions();
 
   // schedule population size changes
-  if (!isNULL(RESIZES))
+  if (num_rows(RESIZES))
     sim.rescheduleScriptBlock(s10, generations = unique(RESIZES.getValue("time")));
   else
     sim.deregisterScriptBlock(s10);
@@ -96,7 +96,7 @@ initialize() {
     sim.deregisterScriptBlock(s1);
 
   // geneflow events
-  if (!isNULL(GENEFLOWS)) {
+  if (num_rows(GENEFLOWS)) {
     sim.rescheduleScriptBlock(s2, generations = unique(GENEFLOWS.getValue("tstart")));
     sim.rescheduleScriptBlock(s3, generations = unique(GENEFLOWS.getValue("tend")));
   } else {
@@ -451,6 +451,8 @@ function (void) log_output(s$ str) {
 // Read a TSV file as a Dictionary of pairs of the form:
 //   <column name>-<vector of column values>
 function (object<Dictionary>) read_table(s$ path) {
+	if (!fileExists(path)) return(NULL);
+
 	lines = readFile(path);
 
 	// extract column names
@@ -487,7 +489,8 @@ function (object<Dictionary>) filter(object<Dictionary> d, s$ col, ifsl$ val,
 }
 
 // Get the number of rows of the given dataframe
-function (i$) num_rows(object<Dictionary> d) {
+function (i$) num_rows(No<Dictionary>$ d) {
+  if (isNULL(d)) return(0);
   columns = d.allKeys;
   lengths = sapply(columns, 'length(d.getValue(applyValue));');
   if (length(unique(lengths)) != 1)
@@ -546,20 +549,22 @@ function (ifsl) convert_type(s$ column_name, s string_values) {
 
 // Convert times in given tables into absolute SLiM times by adding
 // the burnin length to each time point
-function (void) slim_time(object<Dictionary>$ table) {
-  // list of all possible time columns to look for
-  time_columns = c("time", "tsplit", "tremove", "tstart", "tend");
+function (void) slim_time(No<Dictionary>$ table) {
+  if (!isNULL(table)) {
+    // list of all possible time columns to look for
+    time_columns = c("time", "tsplit", "tremove", "tstart", "tend");
 
-  // get time columns present in the current table
-  columns = setIntersection(table.allKeys, time_columns + "_gen");
-  // for each time column, create a new column (without the "_gen" suffix)
-  for (col in columns) {
-    // shift the time by the burnin length
-    new_times = table.getValue(col);
-    new_times[new_times != -1] = BURNIN_LENGTH + new_times[new_times != -1];
+    // get time columns present in the current table
+    columns = setIntersection(table.allKeys, time_columns + "_gen");
+    // for each time column, create a new column (without the "_gen" suffix)
+    for (col in columns) {
+      // shift the time by the burnin length
+      new_times = table.getValue(col);
+      new_times[new_times != -1] = BURNIN_LENGTH + new_times[new_times != -1];
 
-    // add the new shifted time column to the table
-    new_col = strsplit(col, "_gen")[0]; // remove the "_gen" suffix
-    table.setValue(new_col, new_times);
+      // add the new shifted time column to the table
+      new_col = strsplit(col, "_gen")[0]; // remove the "_gen" suffix
+      table.setValue(new_col, new_times);
+    }
   }
 }
