@@ -119,7 +119,7 @@ print.slendr_model <- function(x, ...) {
   cat("time direction:", get_time_direction(tail(x$populations, 1)[[1]]), "\n")
   cat("number of spatial maps:", nrow(x$maps), "\n")
   cat("resolution:", x$resolution, "distance unit per pixel\n\n")
-  cat("configuration files in:", normalizePath(x$config$directory), "\n\n")
+  cat("configuration files in:", normalizePath(x$directory), "\n\n")
   cat(
     "A detailed model specification can be found in `$splits`, `$geneflows`,
 `$maps`, `$populations`, and other components of the model object (for

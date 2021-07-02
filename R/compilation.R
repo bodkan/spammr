@@ -57,6 +57,8 @@ compile <- function(populations, dir, generation_time, resolution,
     if (min(sapply(populations, function(x) x$time[1])) == 1 & is.null(sim_length))
       stop("Simulation length 'sim_length' must be specified for forward time direction",
         call. = FALSE)
+    else
+      direction <- "forward"
 
   map <- attr(populations[[1]], "map")
 
@@ -75,10 +77,7 @@ compile <- function(populations, dir, generation_time, resolution,
 
   # compile the result
   result <- list(
-    config = list(directory = dir,
-                  splits = file.path(dir, "populations.tsv"),
-                  maps = file.path(dir, "maps.tsv"),
-                  geneflow = file.path(dir, "geneflow.tsv")),
+    directory = dir,
     world = map,
     populations = populations,
     splits = split_table,
@@ -126,66 +125,33 @@ read <- function(dir) {
 Please make sure that populations.rds, {splits,geneflow,maps}.tsv, names.txt
 and generation_time.txt are all present", dir), call. = FALSE)
 
-  pop_names <- scan(path_names, what = "character", quiet = TRUE)
   generation_time <- scan(path_generation_time, what = integer(), quiet = TRUE)
   resolution <- scan(path_resolution, what = integer(), quiet = TRUE)
   sim_length <- scan(path_length, what = integer(), quiet = TRUE)
 
-  # load the split table from disk and re-format it to the original format
-  splits <- utils::read.table(path_splits, header = TRUE, stringsAsFactors = FALSE)
-  # add population labels and parent population labels (these are striped away
-  # during model saving because SLiM can't handle mixed types in matrices)
-  splits$pop <- pop_names[splits$pop_id + 1]
-  ancestral <- splits$parent == -1
-  splits$parent[ancestral] <- "ancestor"
-  if (any(!ancestral))
-    splits$parent[!ancestral] <- pop_names[splits$parent_id[!ancestral] + 1]
+  split_table <- utils::read.table(path_splits, header = TRUE, stringsAsFactors = FALSE)
 
-  # load and reformat the geneflows table (if present - if absent, no geneflow
-  # was specified)
   admix_table <- NULL
   if (file.exists(path_geneflow)) {
     admix_table <- read.table(path_geneflow, header = TRUE, stringsAsFactors = FALSE)
-    admix_table$from <- pop_names[admix_table$from_id + 1]
-    admix_table$to <- pop_names[admix_table$to_id + 1]
-    admix_table$rate <- admix_table$rate / 100
-    admix_table$tstart <- admix_table$tstart_gen * generation_time
-    admix_table$tend <- admix_table$tend_gen * generation_time
     admix_table$overlap <- admix_table$overlap == 1
-    admix_table <- admix_table[, c("from", "from_id", "to", "to_id", "tstart",
-                                   "tstart_gen", "tend", "tend_gen", "rate", "overlap",
-                                   "orig_tstart", "orig_tend")]
   }
 
-  # load and reformat the maps table
   map_table <- read.table(path_maps, header = TRUE, stringsAsFactors = FALSE)
-  # reconstruct the paths to each raster map (again, stripped away because SLiM
-  # can't handle strings and numbers in a single matrix/data frame)
-  map_table$path <- file.path(dir, paste0(map_table$map_number, ".png")) %>% gsub("//", "/", .)
   if (!all(file.exists(map_table$path)))
     stop(sprintf("Directory '%s' does not contain all maps required by the model
 configuration (%s)", dir, map_table$map), call. = FALSE)
-  # recreate the user-specified population labels
-  map_table$pop <- pop_names[map_table$pop_id + 1]
 
   populations <- readRDS(path_populations)
   direction <- setdiff(unique(sapply(populations, get_time_direction)), "unknown")
 
   result <- list(
-    config = list(
-      directory = dir,
-      splits = path_splits,
-      maps = path_maps,
-      geneflow = if (is.null(admix_table)) NULL else file.path(dir, "geneflow.tsv")
-    ),
+    directory = dir,
     world = attr(populations[[1]], "map"),
     populations = populations,
-    splits = splits[, c("pop", "pop_id", "parent", "parent_id", "N", "tsplit",
-                        "tsplit_gen", "tremove", "tremove_gen",
-                        "competition_dist", "mate_dist", "offspring_dist",
-                        "orig_tsplit", "orig_tremove")],
+    splits = split_table,
     geneflow = admix_table,
-    maps = map_table[, c("pop", "pop_id", "time", "time_gen", "path", "orig_time")],
+    maps = map_table,
     generation_time = generation_time,
     resolution = resolution,
     length = sim_length,
@@ -233,7 +199,7 @@ slim <- function(model, seq_length, recomb_rate,
                  keep_pedigrees = FALSE, ts_recording = FALSE,
                  method = "gui", verbose = FALSE, include = NULL, burnin = 0,
                  seed = NULL, slim_path = NULL) {
-  dir <- model$config$directory
+  dir <- model$directory
   if (!dir.exists(dir))
     stop(sprintf("Model directory '%s' does not exist", dir), call. = FALSE)
 
@@ -258,8 +224,8 @@ a non-zero integer number (number of neutral ancestry markers)", call. = FALSE)
   } else
     markers_count <- as.integer(track_ancestry)
 
-  script_path <- file.path(model$config$directory, "script.slim")
-  output_prefix <- file.path(model$config$directory, "output")
+  script_path <- file.path(model$directory, "script.slim")
+  output_prefix <- file.path(model$directory, "output")
 
   backend_script <- system.file("extdata", "backend.slim", package = "slendr")
 
@@ -347,9 +313,11 @@ script <- function(path, output = NULL, ...) {
 # Write a compiled slendr model to disk
 write_model <- function(dir, populations, admix_table, map_table, split_table,
                         resize_table, generation_time, resolution, length) {
-  if (!is.null(admix_table)) admix_table$overlap <- as.integer(admix_table$overlap)
-  utils::write.table(admix_table, file.path(dir, "geneflow.tsv"),
-                     sep = "\t", quote = FALSE, row.names = FALSE)
+  if (!is.null(admix_table)) {
+    admix_table$overlap <- as.integer(admix_table$overlap)
+    utils::write.table(admix_table, file.path(dir, "geneflow.tsv"),
+                       sep = "\t", quote = FALSE, row.names = FALSE)
+  }
 
   for (i in seq_len(nrow(map_table))) {
     map_row <- map_table[i, ]

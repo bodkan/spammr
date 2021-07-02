@@ -11,9 +11,9 @@
 #' @import ggplot2 data.table
 #' @export
 animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
-  locations <- file.path(model$config$directory, "output_ind_locations.tsv.gz")
+  locations <- file.path(model$directory, "output_ind_locations.tsv.gz")
   locs <- fread(locations, header = TRUE)
-  pop_names <- scan(file.path(model$config$directory, "names.txt"),
+  pop_names <- scan(file.path(model$directory, "names.txt"),
     what = "character", quiet = TRUE)
 
   # label populations based on their original identifiers from the user
@@ -78,7 +78,7 @@ animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
 #'
 #' @export
 ancestries <- function(model) {
-  anc_wide <- read_ancestries(model$config$directory)
+  anc_wide <- read_ancestries(model$directory)
 
   # thank god for tidyverse, base R reshaping is truly awful...  but
   # it's not worth dragging along a huge dependency if we can do this
