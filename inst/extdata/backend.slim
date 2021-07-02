@@ -179,8 +179,8 @@ s2 late() {
 
     get_pop(to_id).setMigrationRates(from_id, rate / span);
 
-    log_output("geneflow " + from + "(" + from_id + ")" +
-               " -> " + to + "(" + to_id + ")" +
+    log_output("geneflow " + from + "(p" + from_id + ")" +
+               " -> " + to + "(p" + to_id + ")" +
                " (" + rate + "% over " + span + " generations)");
   }
 }
@@ -199,8 +199,8 @@ s3 late() {
 
     get_pop(to_id).setMigrationRates(from_id, rate / span);
 
-    log_output("geneflow " + from + "(" + from_id + ")" +
-               " -> " + to + "(" + to_id + ")" + " set to 0%");
+    log_output("geneflow " + from + "(p" + from_id + ")" +
+               " -> " + to + "(p" + to_id + ")" + " set to 0%");
   }
 }
 
@@ -209,7 +209,7 @@ s4 late() {
   pops = filter(POPULATIONS, "tremove", sim.generation);
   for (i in iter(pops)) {
     pop = pops.getRowValues(i);
-    log_output("cleanup of " + pop.getValue("pop") + "(" + pop.getValue("pop_id") + ")");
+    log_output("cleanup of " + pop.getValue("pop") + "(p" + pop.getValue("pop_id") + ")");
     get_pop(pop.getValue("pop")).setSubpopulationSize(0);
   }
 }
@@ -220,7 +220,8 @@ s5 late() {
   maps = filter(MAPS, "time", sim.generation);
   for (i in iter(maps)) {
     map = maps.getRowValues(i);
-    log_output("updating map for " + map.getValue("pop") + "(" + map.getValue("pop_id") + ")");
+    log_output("updating map for " + map.getValue("pop") +
+               "(p" + map.getValue("pop_id") + ")");
     set_map(map.getValue("pop_id"), sim.generation);
   }
 }
@@ -271,7 +272,8 @@ s10 late() {
   for (e in events) {
     pop = e.getValue("pop"); N = e.getValue("N");
     get_pop(pop).setSubpopulationSize(N);
-    log_output(pop + "(" + e.getValue("pop_id") + ") resized to " + N + " individuals");
+    log_output(pop + "(p" + e.getValue("pop_id") + ") resized to " +
+               N + " individuals");
   }
 }
 
@@ -413,8 +415,8 @@ function (void) set_map(i$ id, i$ generation) {
 // Split population from the source specified in an input table
 function (void) split_pop(i$ id) {
   pop = filter(POPULATIONS, "pop_id", id);
-  log_output("split of " + pop.getValue("pop") + "(" + pop.getValue("pop_id") + ")" +
-             " from " + pop.getValue("parent") + "(" + pop.getValue("parent_id")  + ")");
+  log_output("split of " + pop.getValue("pop") + "(p" + pop.getValue("pop_id") + ")" +
+             " from " + pop.getValue("parent") + "(p" + pop.getValue("parent_id")  + ")");
   sim.addSubpopSplit(pop.getValue("pop_id"), pop.getValue("N"), pop.getValue("parent_id"));
 }
 
@@ -487,9 +489,12 @@ function (i$) num_rows(object<Dictionary> d) {
     return(unique(lengths));
 }
 
+
+// Return a vector of row indices of a given dataframe
 function (i) iter(object<Dictionary> d) {
-  return seqAlong(num_rows(d));
+  return seqLen(num_rows(d));
 }
+
 
 // Filter Dictionary/data-frame for rows where the <column> is
 // equal to <value>
@@ -504,6 +509,7 @@ function (object<Dictionary>) filter(object<Dictionary> d, s$ col, ifsl$ val,
   else
   	return d.getRowValues(values == val);
 }
+
 
 // Pretty printer for Dictionary-based dataframe objects
 function (void) print_table(object<Dictionary> d) {
