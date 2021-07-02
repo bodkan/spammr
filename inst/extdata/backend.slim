@@ -71,12 +71,8 @@ initialize() {
   }
 }
 
-//////////////////////////////////////////////////////////////////////
-// Scheduled script blocks
-//////////////////////////////////////////////////////////////////////
-
+// Create ancestral populations and schedule demographic events
 1 early() {
-  // create ancestral populations
   pops = filter(POPULATIONS, "parent", "ancestor");
   for (i in iter(pops)) {
     pop = pops.getRowValues(i);
@@ -89,13 +85,7 @@ initialize() {
   }
   evaluate_interactions();
 
-  // schedule population size changes
-  if (num_rows(RESIZES))
-    sim.rescheduleScriptBlock(s10, generations = unique(RESIZES.getValue("time")));
-  else
-    sim.deregisterScriptBlock(s10);
-
-  // schedule population splits (if any)
+  // population splits (if any)
   splits = filter(POPULATIONS, "parent", "ancestor", negate = T);
   if (num_rows(splits))
     sim.rescheduleScriptBlock(s1, generations = unique(splits.getValue("tsplit")));
@@ -111,7 +101,7 @@ initialize() {
     sim.deregisterScriptBlock(s3);
   }
 
-  // removing populations which are no longer required
+  // removing populations from the simulation
   cleanups = filter(POPULATIONS, "tremove", -1, negate = T);
   if (num_rows(cleanups))
      sim.rescheduleScriptBlock(s4, generations = unique(cleanups.getValue("tremove")));
@@ -123,6 +113,12 @@ initialize() {
      sim.rescheduleScriptBlock(s5, generations = unique(MAPS.getValue("time")));
   else
      sim.deregisterScriptBlock(s5);
+
+  // population size changes
+  if (num_rows(RESIZES))
+    sim.rescheduleScriptBlock(s10, generations = unique(RESIZES.getValue("time")));
+  else
+    sim.deregisterScriptBlock(s10);
 
   // output locations of individuals
   if (SAVE_LOCATIONS) {
@@ -147,6 +143,10 @@ initialize() {
   // stop the simulation
   sim.rescheduleScriptBlock(s9, generations = SIM_END);
 }
+
+//////////////////////////////////////////////////////////////////////
+// Scheduled script blocks
+//////////////////////////////////////////////////////////////////////
 
 // Population splits
 s1 late() {
@@ -239,16 +239,17 @@ s9 late() {
 
 s10 late() {
   events = filter(RESIZES, "time", sim.generation);
-  for (e in events) {
-    pop = e.getValue("pop"); N = e.getValue("N");
+  for (i in iter(events)) {
+    event = events.getRowValues(i);
+    pop = event.getValue("pop"); N = event.getValue("N");
     get_pop(pop).setSubpopulationSize(N);
-    log_output(pop + "(p" + e.getValue("pop_id") + ") resized to " +
+    log_output(pop + "(p" + event.getValue("pop_id") + ") resized to " +
                N + " individuals");
   }
 }
 
 //////////////////////////////////////////////////////////////////////
-// Callbacks and interaction evaluations
+// Interaction and fitness callbacks
 //////////////////////////////////////////////////////////////////////
 
 1: late() {
@@ -353,12 +354,12 @@ function (void) set_geneflow(object<Dictionary> event, f$ rate) {
 }
 
 // Add ancestry informative markers specific to the given population
-function (void) add_markers(i$ id) {
+function (void) add_markers(i$ pop_id) {
   if (TRACK_ANCESTRY) {
-    log_output("adding " + filter(POPULATIONS, "pop_id", id).getValue("pop") +
-               "(" + id + ")" + " ancestry markers");
+    log_output("adding " + filter(POPULATIONS, "pop_id", pop_id).getValue("pop") +
+               "(" + pop_id + ")" + " ancestry markers");
     positions = seq(0, 1 - 1, by = asInteger(1 / N_MARKERS));
-    get_pop(pop).genomes.addNewMutation(pop, 0.0, positions);
+    get_pop(pop_id).genomes.addNewMutation(pop_id, 0.0, positions);
   }
 }
 
@@ -416,9 +417,10 @@ function(void) write_locations(lifso<Individual>$ ind) {
 
 // Write the header of an ancestry proportion table
 function (void) write_ancestries_header(void) {
-  for (pop in pop_param("pop")) {
-    header_str = paste(c("gen", NAMES[pop_param("pop")]), sep = "\t");
-    filename = paste0(OUTPUT_PREFIX, "_ancestry_", NAMES[pop], ".tsv");
+  for (i in iter(POPULATIONS)) {
+    pop = POPULATIONS.getRowValues(i);
+    header_str = paste(c("gen", POPULATIONS.getValue("pop")), sep = "\t");
+    filename = paste0(OUTPUT_PREFIX, "_ancestry_", pop.getValue("pop"), ".tsv");
     writeFile(filename, header_str);
   }
 }
