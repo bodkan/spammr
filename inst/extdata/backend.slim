@@ -1,36 +1,36 @@
 initialize() {
+  defineConstant("SIM_SEED", {{seed}});
+  setSeed(SIM_SEED);
+
   // optional behavior switches set by the R frontend
   defineConstant("KEEP_PEDIGREES", {{keep_pedigrees}});
   defineConstant("TS_RECORDING", {{ts_recording}});
   defineConstant("SAVE_LOCATIONS", {{save_locations}});
   defineConstant("TRACK_ANCESTRY", {{track_ancestry}});
 
-  // number of ancestry-informative neutral markers
   defineConstant("N_MARKERS", {{ancestry_markers}});
-
-  defineConstant("SIM_SEED", {{seed}});
-  setSeed(SIM_SEED); catn("SEED: " + getSeed());
-
   defineConstant("OUTPUT_PREFIX", "{{output_prefix}}");
 
-  defineConstant("GEN_TIME", {{generation_time}});
-  defineConstant("T_BURNIN", {{burnin}}); catn("T_BURNIN: " + T_BURNIN);
-  defineConstant("T_LENGTH", {{length}}); catn("T_LENGTH: " + T_LENGTH);
+  defineConstant("BURNIN_LENGTH", {{burnin}});
+  defineConstant("SIM_LENGTH", {{length}});
 
-  defineConstant("SIM_START", T_BURNIN + 1); catn("SIM_START: " + SIM_START);
-  defineConstant("SIM_END", T_BURNIN + T_LENGTH + 1); catn("SIM_END: " + SIM_END);
+  defineConstant("SIM_START", BURNIN_LENGTH + 1);
+  defineConstant("SIM_END", SIM_START + SIM_LENGTH);
 
   // load model definition tables
-  defineConstant("POPULATIONS", read_dataframe(model_path("populations.tsv")));
-  defineConstant("GENEFLOWS", read_dataframe(model_path("geneflow.tsv")));
-  defineConstant("SIZE_CHANGES", read_dataframe(model_path("resizes.tsv")));
-  defineConstant("MAPS", read_dataframe(model_path("maps.tsv")));
-  // load individual spatial maps (image objects)
+  defineConstant("POPULATIONS", read_table(model_path("populations.tsv")));
+  defineConstant("GENEFLOWS", read_table(model_path("geneflow.tsv")));
+  defineConstant("SIZE_CHANGES", read_table(model_path("resizes.tsv")));
+  defineConstant("MAPS", read_table(model_path("maps.tsv")));
+  // load all spatial maps (image objects)
   MAPS.setValue("image", sapply(MAPS.getValue("path"), "Image(applyValue);"));
 
-  // convert times from generations starting at 1 into absolute SLiM times
-  // (shifted by the burnin length value)
-  slim_time(POPULATIONS); slim_time(GENEFLOWS); slim_time(MAPS); slim_time(SIZE_CHANGES);
+  // convert times from generations (starting at 1) to absolute SLiM times
+  // (shifted by the burnin length)
+  slim_time(POPULATIONS);
+  slim_time(GENEFLOWS);
+  slim_time(MAPS);
+  slim_time(SIZE_CHANGES);
 
   // world map dimensions
   defineConstant("WIDTH", MAPS.getValue("image")[0].width); catn("WIDTH: " + WIDTH);
@@ -454,7 +454,7 @@ function (lifso<Subpopulation>$) get_pop(si$ i) {
 // Data frame implementation based on Dictionary
 // Read a TSV file as a Dictionary of pairs of the form:
 //   <column name>-<vector of column values>
-function (object<Dictionary>) read_dataframe(s$ path) {
+function (object<Dictionary>) read_table(s$ path) {
 	lines = readFile(path);
 
 	// extract column names
@@ -480,7 +480,9 @@ function (i$) num_rows(object<Dictionary> d) {
   columns = d.allKeys;
   lengths = sapply(columns, 'length(d.getValue(applyValue));');
   if (length(unique(lengths)) != 1)
-    stop("Corrupted dataframe {" + paste(d.allKeys, sep = ", ") + "} with columns of unequal length (" + paste(lengths, sep = ", ") + ")");
+    stop("Corrupted dataframe {" + paste(d.allKeys, sep = ", ") +
+         "} with columns of unequal length (" +
+         paste(lengths, sep = ", ") + ")");
   else
     return(unique(lengths));
 }
@@ -491,14 +493,28 @@ function (i) iter(object<Dictionary> d) {
 
 // Filter Dictionary/data-frame for rows where the <column> is
 // equal to <value>
-function (object<Dictionary>) filter(object<Dictionary> d, s$ col, ifsl$ val, [l$ negate = F]) {
-  if (!any(col == d.allKeys)) stop("Column '" + col + "' not present in the table");
+function (object<Dictionary>) filter(object<Dictionary> d, s$ col, ifsl$ val,
+                                     [l$ negate = F]) {
+  if (!any(col == d.allKeys))
+    stop("Column '" + col + "' not present in the table");
 
 	values = d.getValue(col);
 	if (negate)
   	return d.getRowValues(values != val);
   else
   	return d.getRowValues(values == val);
+}
+
+
+function (void) print_table(object<Dictionary> d) {
+  columns = d.allKeys;
+  catn(paste(columns, sep = "\t"));
+  for (i in iter(d)) {
+    row = d.getRowValues(i);
+    for (c in columns)
+      cat(row.getValue(c) + "\t");
+    cat("\n");
+  }
 }
 
 
@@ -540,7 +556,7 @@ function (void) slim_time(object<Dictionary>$ table) {
   for (col in columns) {
     // shift the time by the burnin length
     new_times = table.getValue(col);
-    new_times[new_times != -1] = T_BURNIN + new_times[new_times != -1];
+    new_times[new_times != -1] = BURNIN_LENGTH + new_times[new_times != -1];
 
     // add the new shifted time column to the table
     new_col = strsplit(col, "_gen")[0]; // remove the "_gen" suffix
