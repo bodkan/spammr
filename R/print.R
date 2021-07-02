@@ -20,14 +20,6 @@ print.slendr_pop <- function(x, ...) {
 
   cat("name:", unique(x$pop), "\n")
 
-  # ancestor?
-  parent <- attr(x, "parent")
-  if (is.character(parent) && parent == "ancestor")
-    cat("ancestral population\n")
-  else {
-    cat("split from", parent$pop[1], "at time", x$time[1], "\n")
-  }
-
   # removal time of the population
   if (attr(x, "remove") == -1)
     cat("stays until the end of the simulation\n")
@@ -40,7 +32,9 @@ print.slendr_pop <- function(x, ...) {
   else
     cat("habitat: aquatic\n")
 
-  cat("number of spatial maps:", nrow(x), "\n\n")
+  print_pop_history(x)
+
+  cat("\nnumber of spatial maps:", nrow(x), "\n")
 
   print_map_info(x)
 }
@@ -125,7 +119,7 @@ print.slendr_model <- function(x, ...) {
   cat("time direction:", get_time_direction(tail(x$populations, 1)[[1]]), "\n")
   cat("number of spatial maps:", nrow(x$maps), "\n")
   cat("resolution:", x$resolution, "distance unit per pixel\n\n")
-  cat("configuration files in:", normalizePath(x$config$directory), "\n\n")
+  cat("configuration files in:", normalizePath(x$directory), "\n\n")
   cat(
     "A detailed model specification can be found in `$splits`, `$geneflows`,
 `$maps`, `$populations`, and other components of the model object (for
@@ -177,4 +171,41 @@ print_map_info <- function(x) {
                 units, xrange[1], xrange[2], yrange[1], yrange[2]))
   } else
     cat("[no map defined]\n")
+}
+
+print_pop_history <- function(x) {
+  cat("\npopulation history overview:\n")
+  history <- attr(x, "history")
+  for (event in history) {
+    cat("  - time ")
+
+    # population split
+    if (event$event == "split") {
+      cat(event$time, ": ", sep = "")
+      parent <- attr(x, "parent")
+      if (is.character(parent) && parent == "ancestor")
+        cat("created as an ancestral population")
+      else {
+        cat("split from", parent$pop[1])
+      }
+    }
+
+    # spatial dynamics events
+    else if (event$event == "move") {
+      cat(sprintf("%d-%d: movement across a landscape", event$start, event$end))
+    } else if (event$event == "expand") {
+      cat(sprintf("%d-%d: range expansion", event$start, event$end))
+    } else if (event$event == "range") {
+      cat(sprintf("%d: change of the spatial boundary", event$time))
+    }
+
+    # population size change
+    else if (event$event == "resize" & event$how == "step") {
+      cat(sprintf("%d: resize from %d to %d individuals",
+                  event$time, event$prev_N, event$N))
+    } else
+      stop("Unknown event type", call. = FALSE)
+
+    cat("\n")
+  }
 }

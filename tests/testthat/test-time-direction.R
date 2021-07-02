@@ -36,10 +36,12 @@ test_that("forward and backward time model objects are equivalent", {
     competition_dist = 1, mate_dist = 1, offspring_dist = 1
   )
 
-  expect_true(all.equal(forward$splits[, 1:12], backward$splits[, 1:12]))
-  expect_true(all.equal(forward$geneflow[, 1:10], backward$geneflow[, 1:10]))
-  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "time", "time_gen")],
-                        backward$maps[, c("pop", "pop_id", "time", "time_gen")]))
+  expect_true(all.equal(forward$splits[, grep("_orig", colnames(forward$splits), value = TRUE, invert = TRUE)],
+                        backward$splits[, grep("_orig", colnames(backward$splits), value = TRUE, invert = TRUE)]))
+  expect_true(all.equal(forward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)],
+                        backward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)]))
+  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "time_gen")],
+                        backward$maps[, c("pop", "pop_id","time_gen")]))
 
   components <- c("generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(forward[[i]], backward[[i]]))))
@@ -98,11 +100,12 @@ test_that("forward and backward models yield the same simulation result", {
     competition_dist = 100e3, mate_dist = 100e3, offspring_dist = 100e3
   )
 
-  # model objects are the same
-  expect_true(all.equal(forward$splits[, 1:12], backward$splits[, 1:12]))
-  expect_true(all.equal(forward$geneflow[, 1:10], backward$geneflow[, 1:10]))
-  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "time", "time_gen")],
-                        backward$maps[, c("pop", "pop_id", "time", "time_gen")]))
+  expect_true(all.equal(forward$splits[, grep("_orig", colnames(forward$splits), value = TRUE, invert = TRUE)],
+                        backward$splits[, grep("_orig", colnames(backward$splits), value = TRUE, invert = TRUE)]))
+  expect_true(all.equal(forward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)],
+                        backward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)]))
+  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "time_gen")],
+                        backward$maps[, c("pop", "pop_id","time_gen")]))
 
   components <- c("generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(forward[[i]], backward[[i]]))))
@@ -112,15 +115,15 @@ test_that("forward and backward models yield the same simulation result", {
   slim(backward, seq_length = 1, recomb_rate = 0, save_locations = TRUE, method = "batch", seed = 123)
 
   # make sure the scripts are the same
-  f_script <- file.path(forward$config$directory, "script.slim") %>%
+  f_script <- file.path(forward$directory, "script.slim") %>%
     readLines %>% grep("MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
-  b_script <- file.path(backward$config$directory, "script.slim") %>%
+  b_script <- file.path(backward$directory, "script.slim") %>%
     readLines %>% grep("MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
   expect_equal(f_script, b_script)
 
   # make sure that the simulated location data is the same
-  f_loc <- data.table::fread(file.path(forward$config$directory, "output_ind_locations.tsv.gz"))
-  b_loc <- data.table::fread(file.path(backward$config$directory, "output_ind_locations.tsv.gz"))
+  f_loc <- data.table::fread(file.path(forward$directory, "output_ind_locations.tsv.gz"))
+  b_loc <- data.table::fread(file.path(backward$directory, "output_ind_locations.tsv.gz"))
 
   expect_equal(f_loc, b_loc)
 })
@@ -130,8 +133,7 @@ test_that("move preceding population split results in an error", {
   p1 <- population(name = "p1", time = 1, N = 1, center = c(1, 1), radius = 10, map = map)
   p2 <- population(name = "p2", parent = p1, time = 10, N = 1, center = c(20, 50), radius = 20)
   expect_error(move(p2, trajectory = c(100, 100), start = 3, end = 20, snapshots = 5),
-    "The model implies forward time direction but the specified event time"
-  )
+               "The specified event time")
 })
 
 test_that("overlaps in time result in an error (forward time)", {
@@ -140,20 +142,17 @@ test_that("overlaps in time result in an error (forward time)", {
   p2 <- population(name = "p2", parent = p1, time = 10, N = 1, center = c(20, 50), radius = 20) %>%
     move(trajectory = c(100, 100), start = 10, end = 20, snapshots = 5)
   # repeating the same move
-  expect_error(
-    move(p2, trajectory = c(100, 100), start = 10, end = 20, snapshots = 5),
-    "The model implies forward time direction but the specified event time"
-  )
+  expect_error(move(p2, trajectory = c(100, 100), start = 10, end = 20, snapshots = 5),
+               "The specified event time")
   # overlapping time window of the second move
-  expect_error(
-    move(p2, trajectory = c(100, 100), start = 5, end = 30, snapshots = 5),
-    "The model implies forward time direction but the specified event time"
-  )
+  expect_error(move(p2, trajectory = c(100, 100), start = 5, end = 30, snapshots = 5),
+               "The specified event time")
   # overlapping time window of the following range expansion
-  expect_error(
-    expand(p2, by = 20, start = 5, end = 30, snapshots = 5),
-    "The model implies forward time direction but the specified event time"
-  )
+  expect_error(expand(p2, by = 20, start = 5, end = 30, snapshots = 5),
+               "The specified event time" )
+  # overlapping time window of the following range change
+  expect_error(boundary(p2, time = 8, center = c(50, 10), radius = 8),
+               "The specified event time")
 })
 
 test_that("overlaps in time result in an error (backward time)", {
@@ -162,18 +161,40 @@ test_that("overlaps in time result in an error (backward time)", {
   p2 <- population(name = "p2", parent = p1, time = 40, N = 1, center = c(20, 50), radius = 20) %>%
     move(trajectory = c(100, 100), start = 30, end = 10, snapshots = 5)
   # repeating the same move
-  expect_error(
-    move(p2, trajectory = c(100, 100), start = 30, end = 10, snapshots = 5),
-    "The model implies forward time direction but the specified event time"
-  )
+  expect_error(move(p2, trajectory = c(100, 100), start = 30, end = 10, snapshots = 5),
+               "The specified event time")
   # overlapping time window of the second move
-  expect_error(
-    move(p2, trajectory = c(100, 100), start = 25, end = 5, snapshots = 5),
-    "The model implies forward time direction but the specified event time"
-  )
+  expect_error(move(p2, trajectory = c(100, 100), start = 25, end = 5, snapshots = 5),
+              "The specified event time")
   # overlapping time window of the following range expansion
-  expect_error(
-    expand(p2, by = 20, start = 25, end = 5, snapshots = 5),
-    "The model implies forward time direction but the specified event time"
-  )
+  expect_error(expand(p2, by = 20, start = 25, end = 5, snapshots = 5),
+               "The specified event time")
+  # overlapping time window of the following range change
+  expect_error(boundary(p2, time = 15, center = c(50, 10), radius = 8),
+               "The specified event time")
+})
+
+test_that("times are correctly specified for different population size change methods", {
+  map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+  p <- population(name = "pop", map = map, time = 30000, N = 500, center = c(10, 25), radius = 300000)
+  expect_error(resize(p, N = 10, how = "step"), "Timing of the population change needs to be specified")
+  expect_silent(resize(p, N = 10, how = "step", time = 123))
+  expect_error(resize(p, N = 10, how = "linear"), "Timing of the population change needs to be specified")
+  expect_silent(resize(p, N = 10, how = "linear", start = 123, end = 10))
+  expect_error(resize(p, N = 10, how = "exponential"), "Timing of the population change needs to be specified")
+  expect_silent(resize(p, N = 10, how = "exponential", start = 123, end = 10))
+})
+
+test_that("resizing of populations is consistent with established population dynamics (forward time)", {
+  map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+  p1 <- population(name = "pop1", map = map, time = 1, N = 500, center = c(10, 25), radius = 300000)
+  p2 <- population(name = "pop2", parent = p1, time = 10, N = 500, center = c(10, 25), radius = 300000)
+  expect_error(resize(p2, N = 10, how = "step", time = 5), "The specified event time")
+})
+
+test_that("resizing of populations is consistent with established population dynamics (backward time)", {
+  map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
+  p1 <- population(name = "pop1", map = map, time = 30000, N = 500, center = c(10, 25), radius = 300000)
+  p2 <- population(name = "pop2", parent = p1, time = 25000, N = 500, center = c(10, 25), radius = 300000)
+  expect_error(resize(p2, N = 10, how = "step", time = 28000), "The specified event time")
 })

@@ -37,7 +37,7 @@
 population <- function(name, time, N, parent = "ancestor", map = NULL,
                        center = NULL, radius = NULL, polygon = NULL,
                        remove = NULL, intersect = TRUE,
-                       competition_dist = NULL, mate_dist = NULL, offspring_dist = NULL,
+                       competition_dist = NA, mate_dist = NA, offspring_dist = NA,
                        aquatic = FALSE) {
   # is this the first population defined in the model?
   if (is.character(parent) && parent == "ancestor") {
@@ -58,7 +58,7 @@ population <- function(name, time, N, parent = "ancestor", map = NULL,
     geometry <- define_boundary(map, center, radius, polygon)
 
   pop <- sf::st_sf(
-    data.frame(pop = name, time = time, N = N, stringsAsFactors = FALSE),
+    data.frame(pop = name, time = time, stringsAsFactors = FALSE),
     geometry = geometry
   )
   sf::st_agr(pop) <- "constant"
@@ -78,167 +78,22 @@ population <- function(name, time, N, parent = "ancestor", map = NULL,
     stop("Suspicious parent population", call. = FALSE)
 
   attr(pop, "intersect") <- intersect
-
-  attr(pop, "competition_dist") <- competition_dist
-  attr(pop, "mate_dist") <- mate_dist
-  attr(pop, "offspring_dist") <- offspring_dist
-
   attr(pop, "aquatic") <- aquatic
+
+  # create the first population history event - population split
+  attr(pop, "history") <- list(data.frame(
+    pop =  name,
+    event = "split",
+    time = time,
+    N = N,
+    competition_dist = competition_dist,
+    mate_dist = mate_dist,
+    offspring_dist = offspring_dist
+  ))
 
   class(pop) <- set_class(pop, "pop")
 
   pop
-}
-
-
-#' Update the population map or one of its parameters
-#'
-#' This function allows a more manual control of spatial map changes
-#' in addition to the \code{expand} and \code{move} functions
-#'
-#' @param pop Object of the class \code{slendr_pop}
-#' @param time Time of the change
-#' @param N Number of individuals
-#' @param center Two-dimensional vector specifying the center of the
-#'   circular range
-#' @param radius Radius of the circular range
-#' @param polygon List of vector pairs, defining corners of the
-#'   polygon range (see also the \code{region} argument) or a
-#'   geographic region of the class \code{slendr_region} from which
-#'   the polygon coordinates will be extracted
-#'
-#' @return Object of the class \code{slendr_pop}
-#'
-#' @export
-change <- function(pop, time, N = NULL,
-                   center = NULL, radius = NULL, polygon = NULL) {
-  check_event_time(start, pop)
-  check_removal_time(start, pop)
-
-  map <- attr(pop, "map")
-
-  # define the population range as a simple geometry object
-  #or reuse the old one
-  if (!is.null(polygon) & inherits(polygon, "slendr_region"))
-      polygon <- sf::st_geometry(polygon)
-
-  if ((!is.null(center) & !is.null(radius)) | !is.null(polygon))
-    boundary <- define_boundary(map, center, radius, NULL)
-  else
-    boundary <- sf::st_geometry(pop[nrow(pop), ])
-
-  if (is.null(N)) N <- pop[nrow(pop), ]$N
-
-  updated <- sf::st_sf(
-    data.frame(pop = unique(pop$pop), time = time, N = N, stringsAsFactors = FALSE),
-    geometry = boundary
-  )
-
-  combined <- rbind(pop, updated)
-  sf::st_agr(combined) <- "constant"
-
-  result <- copy_attributes(
-    combined, pop,
-    c("map", "parent", "remove", "intersect", "competition_dist",
-      "mate_dist", "offspring_dist", "aquatic")
-  )
-
-  result
-}
-
-
-#' Expand the population range
-#'
-#' Expands the spatial population range by a specified distance in a given
-#' time-window
-#'
-#' @param pop Object of the class \code{slendr_pop}
-#' @param by How many units of distance to expand by?
-#' @param start,end When does the expansion start/end?
-#' @param overlap Minimum overlap between subsequent spatial boundaries
-#' @param snapshots The number of intermediate snapshots (overrides the
-#'   \code{overlap} parameter)
-#' @param polygon Geographic region to restrict the expansion to
-#'
-#' @return Object of the class \code{slendr_pop}
-#'
-#' @export
-expand <- function(pop, by, end, start, overlap = 0.8, snapshots = NULL,
-                   polygon = NULL, verbose = TRUE) {
-  check_event_time(c(start, end), pop)
-  check_removal_time(start, pop)
-
-  map <- attr(pop, "map")
-
-  # get the last available population boundary
-  region_start <- pop[nrow(pop), ]
-  sf::st_agr(region_start) <- "constant"
-
-  if (is.null(snapshots)) {
-    n <- 1
-    message("Iterative search for the minimum sufficient number of intermediate
-spatial snapshots, starting at ", n, ". This should only take a couple of
-seconds but if you don't want to wait, you can set `snapshots = N` manually.")
-  } else
-    n <- snapshots
-
-  # iterate through the number of intermediate spatial boundaries to reach
-  # the required overlap between subsequent spatial maps
-  repeat {
-    times <- seq(start, end, length.out = n + 1)[-1]
-
-    # generate intermediate spatial maps, starting from the last one
-    inter_regions <- list()
-    inter_regions[[1]] <- region_start
-    for (i in seq_along(times)) {
-      exp_region <- sf::st_buffer(inter_regions[[1]], dist = i * (by / n))
-      exp_region$time <- times[i]
-      sf::st_agr(exp_region) <- "constant"
-
-      # restrict the next spatial boundary to the region of interest
-      if (!is.null(polygon)) {
-        if (!inherits(polygon, "slendr_region"))
-          polygon <- region(polygon = polygon, map = map)
-        exp_region <- sf::st_intersection(exp_region, polygon)
-        exp_region$region <- NULL
-        sf::st_agr(exp_region) <- "constant"
-      }
-
-      inter_regions[[i + 1]] <- exp_region
-    }
-
-    if (!is.null(snapshots)) break
-
-    # calculate the overlap between subsequent spatial snapshots
-    overlaps <- sapply(
-      seq_along(inter_regions)[-1], function(i) {
-        a <- inter_regions[[i - 1]]
-        b <- inter_regions[[i]]
-        sf::st_area(sf::st_intersection(a, b)) / sf::st_area(b)
-      }
-    )
-
-    if (all(overlaps >= overlap)) {
-      message("The required ", sprintf("%.1f%%", 100 * overlap),
-              " overlap between subsequent spatial maps has been met")
-      break
-    } else {
-      n <- n + 1
-      if (verbose)
-        message("- Increasing to ", n, " snapshots")
-    }
-  }
-
-  all_maps <- do.call(rbind, inter_regions) %>% rbind(pop, .)
-  sf::st_agr(all_maps) <- "constant"
-
-  result <- copy_attributes(
-    all_maps, pop,
-    c("map", "parent", "remove", "intersect", "competition_dist",
-      "mate_dist", "offspring_dist", "aquatic")
-  )
-
-  result
 }
 
 
@@ -270,8 +125,8 @@ move <- function(pop, trajectory, end, start, overlap = 0.8, snapshots = NULL,
       stop("The number of snapshots must be a non-negative integer", call. = FALSE)
 
   if (!(overlap > 0 & overlap < 1))
-    stop("The required overlap between subsequent spatial maps must be a number
-between 0 and 1", call. = FALSE)
+    stop("The required overlap between subsequent spatial maps must be a number between 0 and 1",
+         call. = FALSE)
 
   map <- attr(pop, "map")
 
@@ -308,9 +163,9 @@ between 0 and 1", call. = FALSE)
 
   if (is.null(snapshots)) {
     n <- 1
-    message("Iterative search for the minimum sufficient number of intermediate
-spatial snapshots, starting at ", n, ". This should only take a couple of
-seconds but if you don't want to wait, you can set `snapshots = N` manually.")
+    message("Iterative search for the minimum sufficient number of intermediate ",
+            "spatial snapshots, starting at ", n, ". This should only take a couple of ",
+            "seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
   } else
     n <- snapshots
 
@@ -334,7 +189,6 @@ seconds but if you don't want to wait, you can set `snapshots = N` manually.")
         data.frame(
           pop = region_start$pop,
           time = traj_diffs[i, "time"],
-          N = region_start$N,
           stringsAsFactors = FALSE
         ),
         geometry = shifted_region,
@@ -346,15 +200,7 @@ seconds but if you don't want to wait, you can set `snapshots = N` manually.")
     if (!is.null(snapshots)) break
 
     # calculate the overlap between subsequent spatial snapshots
-    overlaps <- sapply(
-      seq_along(inter_regions)[-1], function(i) {
-        a <- inter_regions[[i - 1]]
-        b <- inter_regions[[i]]
-        intersection <- sf::st_intersection(a, b)
-        if (nrow(intersection) == 0) return(0)
-        sf::st_area(intersection) / sf::st_area(b)
-      }
-    )
+    overlaps <- compute_overlaps(do.call(rbind, inter_regions))
 
     if (all(overlaps >= overlap)) {
       message("The required ", sprintf("%.1f%%", 100 * overlap),
@@ -372,48 +218,295 @@ seconds but if you don't want to wait, you can set `snapshots = N` manually.")
 
   result <- copy_attributes(
     inter_regions, pop,
-    c("map", "parent", "remove", "intersect", "competition_dist",
-      "mate_dist", "offspring_dist", "aquatic")
+    c("map", "parent", "remove", "intersect", "aquatic", "history")
   )
+
+  attr(result, "history") <- append(attr(result, "history"), list(data.frame(
+    pop =  unique(region_start$pop),
+    event = "move",
+    start = start,
+    end = end
+  )))
 
   result
 }
 
 
-#' Define a geographic region
+#' Expand the population range
 #'
-#' Creates a geographic region (a polygon) on a given map and gives it
-#' a name. This can be used to define objects which can be reused in
-#' multiple places in a slendr script (such as \code{region} arguments
-#' of \code{population}) without having to repeatedly define polygon
-#' coordinates.
+#' Expands the spatial population range by a specified distance in a given
+#' time-window
 #'
-#' @param name Name of the geographic region
-#' @param map Object of the type \code{sf} which defines the map
-#' @param center Two-dimensional vector specifying the center of the
-#'   circular range
-#' @param radius Radius of the circular range
-#' @param polygon List of vector pairs, defining corners of the
-#'   polygon range or a geographic region of the class
-#'   \code{slendr_region} from which the polygon coordinates will be
-#'   extracted (see the \code{region() function})
+#' @param pop Object of the class \code{slendr_pop}
+#' @param by How many units of distance to expand by?
+#' @param start,end When does the expansion start/end?
+#' @param overlap Minimum overlap between subsequent spatial boundaries
+#' @param snapshots The number of intermediate snapshots (overrides the
+#'   \code{overlap} parameter)
+#' @param polygon Geographic region to restrict the expansion to
 #'
-#' @return Object of the class \code{slendr_region}
+#' @return Object of the class \code{slendr_pop}
 #'
 #' @export
-region <- function(name = NULL, map = NULL, center = NULL, radius = NULL, polygon = NULL) {
-  if (is.null(name)) name <- "unnamed region"
-  region <- sf::st_sf(
-    region = name,
-    geometry = define_boundary(map, center, radius, polygon)
+expand <- function(pop, by, end, start, overlap = 0.8, snapshots = NULL,
+                   polygon = NULL, verbose = TRUE) {
+  check_event_time(c(start, end), pop)
+  check_removal_time(start, pop)
+
+  map <- attr(pop, "map")
+
+  # get the last available population boundary
+  region_start <- pop[nrow(pop), ]
+  sf::st_agr(region_start) <- "constant"
+
+  if (is.null(snapshots)) {
+    n <- 1
+    message("Iterative search for the minimum sufficient number of intermediate
+spatial snapshots, starting at ", n, ". This should only take a couple of
+seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
+  } else
+    n <- snapshots
+
+  # iterate through the number of intermediate spatial boundaries to reach
+  # the required overlap between subsequent spatial maps
+  repeat {
+    times <- seq(start, end, length.out = n + 1)[-1]
+
+    # generate intermediate spatial maps, starting from the last one
+    inter_regions <- list()
+    inter_regions[[1]] <- region_start
+    for (i in seq_along(times)) {
+      exp_region <- sf::st_buffer(inter_regions[[1]], dist = i * (by / n))
+      exp_region$time <- times[i]
+      sf::st_agr(exp_region) <- "constant"
+
+      # restrict the next spatial boundary to the region of interest
+      if (!is.null(polygon)) {
+        if (!inherits(polygon, "slendr_region"))
+          polygon <- region(polygon = polygon, map = map)
+        exp_region <- sf::st_intersection(exp_region, polygon)
+        exp_region$region <- NULL
+        sf::st_agr(exp_region) <- "constant"
+      }
+
+      inter_regions[[i + 1]] <- exp_region
+    }
+
+    if (!is.null(snapshots)) break
+
+    overlaps <- compute_overlaps(do.call(rbind, inter_regions))
+
+    if (all(overlaps >= overlap)) {
+      message("The required ", sprintf("%.1f%%", 100 * overlap),
+              " overlap between subsequent spatial maps has been met")
+      break
+    } else {
+      n <- n + 1
+      if (verbose)
+        message("- Increasing to ", n, " snapshots")
+    }
+  }
+
+  all_maps <- do.call(rbind, inter_regions) %>% rbind(pop, .)
+  sf::st_agr(all_maps) <- "constant"
+
+  result <- copy_attributes(
+    all_maps, pop,
+    c("map", "parent", "remove", "intersect", "aquatic", "history")
   )
-  sf::st_agr(region) <- "constant"
 
-  # keep the map as an internal attribute
-  attr(region, "map") <- map
+  attr(result, "history") <- append(attr(result, "history"), list(data.frame(
+    pop =  unique(region_start$pop),
+    event = "expand",
+    start = start,
+    end = end
+  )))
 
-  class(region) <- set_class(region, "region")
-  region
+  result
+}
+
+
+#' Update the population range
+#'
+#' This function allows a more manual control of spatial map changes in addition to the
+#' \code{expand} and \code{move} functions
+#'
+#' @param pop Object of the class \code{slendr_pop}
+#' @param time Time of the change
+#' @param center Two-dimensional vector specifying the center of the circular range
+#' @param radius Radius of the circular range
+#' @param polygon List of vector pairs, defining corners of the polygon range (see also the
+#'   \code{region} argument) or a geographic region of the class \code{slendr_region} from which the
+#'   polygon coordinates will be extracted
+#' @param overlap Minimum required overlap with the previous active population boundary (set to 0 to
+#'   disable the check)
+#'
+#' @return Object of the class \code{slendr_pop}
+#'
+#' @export
+boundary <- function(pop, time, center = NULL, radius = NULL,
+                  polygon = NULL, overlap = 0.8) {
+  check_event_time(time, pop)
+  check_removal_time(time, pop)
+
+  map <- attr(pop, "map")
+
+  # define the population range as a simple geometry object
+  # and bind it with the annotation info into an sf object
+  if (!is.null(polygon) & inherits(polygon, "slendr_region"))
+    geometry <- sf::st_geometry(polygon)
+  else
+    geometry <- define_boundary(map, center, radius, polygon)
+
+  updated <- sf::st_sf(
+    data.frame(pop = unique(pop$pop), time = time, stringsAsFactors = FALSE),
+    geometry = geometry
+  )
+
+  if (compute_overlaps(rbind(updated, pop[nrow(pop), ])) < overlap)
+    stop("Insufficient overlap with the last active spatial boundary (",
+         "please adjust the new spatial boundary or adjust the `overlap = `",
+         "parameter for less stringent checking)", call. = FALSE)
+
+  combined <- rbind(pop, updated)
+  sf::st_agr(combined) <- "constant"
+
+  result <- copy_attributes(
+    combined, pop,
+    c("map", "parent", "remove", "intersect", "aquatic", "history")
+  )
+
+  attr(result, "history") <- append(attr(result, "history"), list(data.frame(
+    event = "range",
+    time = time
+  )))
+
+  result
+}
+
+
+#' Resize the population size
+#'
+#' @param pop Object of the class \code{slendr_pop}
+#' @param N Population size after the change
+#' @param how How to change the population size (options are \code{"step"}, \code{"exponential"},
+#'   \code{"linear"})
+#' @param time Time of the population size change
+#' @param start,end Time-window for the population size change (used for exponential or linear
+#'   change)
+resize <- function(pop, N, how = "step", time = NULL, start = NULL, end = NULL) {
+  if (N < 1) stop("Only positive population sizes allowed", call. = FALSE)
+
+  if (!how %in% c("step", "exponential", "linear"))
+    stop("Only 'step', 'exponential' and 'linear' are allowed as arguments
+for the 'how' parameter", call. = FALSE)
+
+  if ((how == "step" & is.null(time)) |
+      (how %in% c("exponential", "linear") & is.null(c(start, end))))
+    stop("Timing of the population change needs to be specified", call. = FALSE)
+
+  # get the last active population size
+  prev_N <- sapply(attr(pop, "history"), function(event) event$N) %>%
+    Filter(Negate(is.null), .) %>%
+    unlist %>%
+    tail(1)
+
+  change <- data.frame(
+    pop =  unique(pop$pop),
+    event = "resize",
+    resize_how = how,
+    N = N,
+    prev_N = prev_N
+  )
+
+  if (how == "step") {
+    check_event_time(time, pop)
+    check_removal_time(time, pop)
+    change$time <- time
+  } else {
+    check_event_time(c(start, end), pop)
+    check_removal_time(start, pop)
+    change$start <- start
+    change$end <- end
+  }
+
+  attr(pop, "history") <- append(attr(pop, "history"), list(change))
+
+  pop
+}
+
+
+#' Define a geneflow event
+#'
+#' @param from,to Objects of the class \code{slendr_pop}
+#' @param rate Scalar value in the range (0, 1] specifying the
+#'   proportion of migration over given time period
+#' @param start,end Start and end of the geneflow event
+#' @param overlap Require spatial overlap between admixing
+#'   populations?  (default \code{TRUE})
+#'
+#' @return Object of the class data.frame
+#'
+#' @export
+geneflow <- function(from, to, rate, start, end, overlap = TRUE) {
+  # make sure the population is not removed during the the admixture period
+  check_removal_time(start, from)
+  check_removal_time(end, from)
+  check_removal_time(start, to)
+  check_removal_time(end, to)
+
+  from_name <- unique(from$pop)
+  to_name <- unique(to$pop)
+
+  if (from$time[1] <= start & from$time[1] <= end &
+      to$time[1] <= start & to$time[1] <= end)
+    comp <- `<=`
+  else if (from$time[1] >= start & from$time[1] >= end &
+           to$time[1] >= start & to$time[1] >= end)
+    comp <- `>=`
+  else
+    stop(sprintf("Specified times are not consistent with the assumed direction of time (geneflow %s -> %s in the time window %s-%s)",
+                 from_name, to_name, start, end),
+         call. = FALSE)
+
+  # get the last specified spatial maps before the geneflow time
+  region_from <- intersect_features(from[comp(from$time, start), ] %>% .[nrow(.), ])
+  region_to <- intersect_features(to[comp(to$time, start), ] %>% .[nrow(.), ])
+
+  if (nrow(region_from) == 0)
+    stop(sprintf("No spatial map defined for %s at/before the time %d",
+                 from_name, start),
+         call. = FALSE)
+  if (nrow(region_to) == 0)
+    stop(sprintf("No spatial map defined for %s at/before the time %d",
+                 to_name, start),
+         call. = FALSE)
+
+  # calculate the overlap of spatial ranges between source and target
+  region_overlap <- sf::st_intersection(region_from, region_to)
+  area_overlap <- as.numeric(sum(sf::st_area(region_overlap)))
+
+  if (overlap & area_overlap == 0) {
+    stop(sprintf("No overlap between population ranges of %s and %s at time %d.
+
+Please check the spatial maps of both populations by running
+`plot(%s, %s)` and adjust them accordingly. Alternatively, in case
+this makes sense for your model, you can add `overlap = F` which
+will instruct slendr to simulate geneflow without spatial overlap
+between populations.",
+from_name, to_name, start, deparse(substitute(from)),
+deparse(substitute(to))), call. = FALSE)
+  }
+
+  data.frame(
+    from_name = from_name,
+    to_name = to_name,
+    tstart = start,
+    tend = end,
+    rate = rate,
+    overlap = overlap,
+    stringsAsFactors = FALSE
+  )
 }
 
 
@@ -492,77 +585,41 @@ world <- function(xrange, yrange, landscape = "naturalearth", crs = NULL, ne_dir
 }
 
 
-#' Define a geneflow event
+
+#' Define a geographic region
 #'
-#' @param from,to Objects of the class \code{slendr_pop}
-#' @param rate Scalar value in the range (0, 1] specifying the
-#'   proportion of migration over given time period
-#' @param start,end Start and end of the geneflow event
-#' @param overlap Require spatial overlap between admixing
-#'   populations?  (default \code{TRUE})
+#' Creates a geographic region (a polygon) on a given map and gives it
+#' a name. This can be used to define objects which can be reused in
+#' multiple places in a slendr script (such as \code{region} arguments
+#' of \code{population}) without having to repeatedly define polygon
+#' coordinates.
 #'
-#' @return Object of the class data.frame
+#' @param name Name of the geographic region
+#' @param map Object of the type \code{sf} which defines the map
+#' @param center Two-dimensional vector specifying the center of the
+#'   circular range
+#' @param radius Radius of the circular range
+#' @param polygon List of vector pairs, defining corners of the
+#'   polygon range or a geographic region of the class
+#'   \code{slendr_region} from which the polygon coordinates will be
+#'   extracted (see the \code{region() function})
+#'
+#' @return Object of the class \code{slendr_region}
 #'
 #' @export
-geneflow <- function(from, to, rate, start, end, overlap = TRUE) {
-  # make sure the population is not removed during the the admixture period
-  check_removal_time(start, from)
-  check_removal_time(end, from)
-  check_removal_time(start, to)
-  check_removal_time(end, to)
-
-  from_name <- unique(from$pop)
-  to_name <- unique(to$pop)
-
-  if (from$time[1] <= start & from$time[1] <= end &
-      to$time[1] <= start & to$time[1] <= end)
-    comp <- `<=`
-  else if (from$time[1] >= start & from$time[1] >= end &
-             to$time[1] >= start & to$time[1] >= end)
-    comp <- `>=`
-  else
-    stop(sprintf("Specified times are not consistent with the assumed direction of
-time (geneflow %s -> %s in the time window %s-%s)", from_name, to_name, start, end),
-call. = FALSE)
-
-  # get the last specified spatial maps before the geneflow time
-  region_from <- intersect_features(from[comp(from$time, start), ] %>% .[nrow(.), ])
-  region_to <- intersect_features(to[comp(to$time, start), ] %>% .[nrow(.), ])
-
-  if (nrow(region_from) == 0)
-    stop(sprintf("No spatial map defined for %s at/before the time %d",
-                 from_name, start),
-         call. = FALSE)
-  if (nrow(region_to) == 0)
-    stop(sprintf("No spatial map defined for %s at/before the time %d",
-                 to_name, start),
-         call. = FALSE)
-
-  # calculate the overlap of spatial ranges between source and target
-  region_overlap <- sf::st_intersection(region_from, region_to)
-  area_overlap <- as.numeric(sum(sf::st_area(region_overlap)))
-
-  if (overlap & area_overlap == 0) {
-    stop(sprintf("No overlap between population ranges of %s and %s at time %d.
-
-Please check the spatial maps of both populations by running
-`plot(%s, %s)` and adjust them accordingly. Alternatively, in case
-this makes sense for your model, you can add `overlap = F` which
-will instruct slendr to simulate geneflow without spatial overlap
-between populations.",
-      from_name, to_name, start, deparse(substitute(from)),
-      deparse(substitute(to))), call. = FALSE)
-  }
-
-  data.frame(
-    from_name = from_name,
-    to_name = to_name,
-    tstart = start,
-    tend = end,
-    rate = rate,
-    overlap = overlap,
-    stringsAsFactors = FALSE
+region <- function(name = NULL, map = NULL, center = NULL, radius = NULL, polygon = NULL) {
+  if (is.null(name)) name <- "unnamed region"
+  region <- sf::st_sf(
+    region = name,
+    geometry = define_boundary(map, center, radius, polygon)
   )
+  sf::st_agr(region) <- "constant"
+
+  # keep the map as an internal attribute
+  attr(region, "map") <- map
+
+  class(region) <- set_class(region, "region")
+  region
 }
 
 

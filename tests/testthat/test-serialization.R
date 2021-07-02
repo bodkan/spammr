@@ -8,13 +8,12 @@ test_that("read() restores a single-map model object", {
   model_dir <- file.path(tempdir(), "tmp-single-map-model-serialization")
   model1 <- compile(pop, dir = model_dir, resolution = 10000, generation_time = 1, overwrite = TRUE,
                     competition_dist = 100e3, mate_dist = 100e3, offspring_dist = 10e3)
-  model2 <- read(model1$config$directory)
+  model2 <- read(model1$directory)
 
   # make sure that all components of the model list object before and after
   # serialization are equal
   components <- c("splits", "geneflow", "maps", "generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
-  expect_true(all(unlist(model1$config) == unlist(model2$config)))
   expect_true(all(sapply(seq_along(model1$populations), function(i) all(model1$populations[[i]] == model2$populations[[i]]))))
 })
 
@@ -45,10 +44,9 @@ test_that("read() restores a complex model object", {
     overwrite = TRUE,
     competition_dist = 100e3, mate_dist = 100e3, offspring_dist = 10e3
   )
-  model2 <- read(model1$config$directory)
+  model2 <- read(model1$directory)
 
   components <- c("splits", "geneflow", "maps", "generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
-  expect_true(all(unlist(model1$config) == unlist(model2$config)))
   expect_true(all(sapply(seq_along(model1$populations), function(i) all(model1$populations[[i]] == model2$populations[[i]]))))
 })

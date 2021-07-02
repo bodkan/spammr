@@ -2,13 +2,14 @@ url: https://bodkan.net/slendr
 
 reference:
 
-  - title: Spatial population dynamics
+  - title: Population dynamics
     contents:
     - population
-    - expand
     - move
+    - expand
+    - boundary
+    - resize
     - geneflow
-    - change
 
   - title: Defining spatial features
     contents:

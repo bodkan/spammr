@@ -15,9 +15,9 @@ population(
   polygon = NULL,
   remove = NULL,
   intersect = TRUE,
-  competition_dist = NULL,
-  mate_dist = NULL,
-  offspring_dist = NULL,
+  competition_dist = NA,
+  mate_dist = NA,
+  offspring_dist = NA,
   aquatic = FALSE
 )
 }

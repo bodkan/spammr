@@ -1,146 +1,124 @@
 initialize() {
+  defineConstant("SIM_SEED", {{seed}});
+  setSeed(SIM_SEED); catn("SEED: " + SIM_SEED);
+
+  // optional behavior switches set by the R frontend
   defineConstant("KEEP_PEDIGREES", {{keep_pedigrees}});
   defineConstant("TS_RECORDING", {{ts_recording}});
+  defineConstant("SAVE_LOCATIONS", {{save_locations}});
+  defineConstant("TRACK_ANCESTRY", {{track_ancestry}});
 
-  initializeSLiMOptions(keepPedigrees = KEEP_PEDIGREES, dimensionality = "xy");
-  if (TS_RECORDING) initializeTreeSeq();
-
-  defineConstant("SIM_SEED", {{seed}});
-  setSeed(SIM_SEED); catn("SEED: " + getSeed());
+  defineConstant("N_MARKERS", {{ancestry_markers}});
 
   defineConstant("MODEL_DIR", "{{model_dir}}");
   defineConstant("OUTPUT_PREFIX", "{{output_prefix}}");
 
-  // load model definition tables
-  defineConstant("POP_TABLE", read_table(paste0(MODEL_DIR, "/populations.tsv")));
-  defineConstant("NAMES", readFile(paste0(MODEL_DIR, "/names.txt")));
-  defineConstant("GENEFLOW_TABLE", read_table(paste0(MODEL_DIR, "/geneflow.tsv")));
-  defineConstant("MAP_TABLE", read_table(paste0(MODEL_DIR, "/maps.tsv")));
+  defineConstant("BURNIN_LENGTH", {{burnin}});
+  defineConstant("SIM_LENGTH", {{length}});
 
-  // load all spatial maps
-  defineConstant("MAPS", sapply(map_param("map_number"), "Image(paste0(MODEL_DIR, '/', applyValue, '.png'));"));
+  defineConstant("SIM_START", BURNIN_LENGTH + 1);
+  defineConstant("SIM_END", SIM_START + SIM_LENGTH);
+
+  // load model definition tables
+  defineConstant("POPULATIONS", read_table(config_path("populations.tsv")));
+  defineConstant("GENEFLOWS", read_table(config_path("geneflow.tsv")));
+  defineConstant("RESIZES", read_table(config_path("resizes.tsv")));
+  defineConstant("MAPS", read_table(config_path("maps.tsv")));
+  // load all spatial maps (image objects)
+  MAPS.setValue("image", sapply(MAPS.getValue("path"), "Image(applyValue);"));
+
+  // convert times from generations (starting at 1) to absolute SLiM times
+  // (shifted by the burnin length)
+  slim_time(POPULATIONS);
+  slim_time(GENEFLOWS);
+  slim_time(MAPS);
+  slim_time(RESIZES);
 
   // world map dimensions
-  defineConstant("WIDTH", MAPS[0].width); catn("WIDTH: " + WIDTH);
-  defineConstant("HEIGHT", MAPS[0].height); catn("HEIGHT: " + HEIGHT);
+  defineConstant("WIDTH", MAPS.getValue("image")[0].width);
+  defineConstant("HEIGHT", MAPS.getValue("image")[0].height);
 
-  defineConstant("GEN_TIME", {{generation_time}});
-  defineConstant("T_BURNIN", {{burnin}}); catn("T_BURNIN: " + T_BURNIN);
-  defineConstant("T_LENGTH", {{length}}); catn("T_LENGTH: " + T_LENGTH);
+  initializeSLiMOptions(keepPedigrees = KEEP_PEDIGREES, dimensionality = "xy");
+  if (TS_RECORDING) initializeTreeSeq();
 
-  // number of ancestry-informative neutral markers
-  defineConstant("N_MARKERS", {{ancestry_markers}});
-  defineConstant("TRACK_ANCESTRY", N_MARKERS > 0);
+  // mutation types of neutral ancestry-informative markers
+  // (one for each population)
+  mut_types = POPULATIONS.getValue("pop_id");
+  for (i in mut_types)
+    initializeMutationType(i, 0.5, "f", 0.0);
 
-  defineConstant("SAVE_LOCATIONS", {{save_locations}});
-
-  defineConstant("SIM_START", T_BURNIN + 1); catn("SIM_START: " + SIM_START);
-  defineConstant("SIM_END", T_BURNIN + T_LENGTH + 1); catn("SIM_END: " + SIM_END);
-
-  // calculate times for scheduling various simulation events (but only if
-  // those events are specified in the configuation tables)
-
-  // ancestral population creation times
-  defineConstant("T_ANC", T_BURNIN + drop(POP_TABLE[drop(POP_TABLE[, 2]) == -1, 4]));
-  catn("T_ANC: " + paste(T_ANC));
-
-  if (!isNULL(pop_param("tsplit_gen", present = "source"))) {
-    // split times
-    defineConstant("T_SPLITS", T_BURNIN + drop(POP_TABLE[drop(POP_TABLE[, 2]) != -1, 4]));
-    catn("T_SPLITS: " + paste(T_SPLITS));
-  }
-
-  if (!isNULL(GENEFLOW_TABLE)) {
-    // geneflow start/end times
-    defineConstant("T_GENEFLOW_START", T_BURNIN + admix_param("tstart_gen"));
-    defineConstant("T_GENEFLOW_END", T_BURNIN + admix_param("tend_gen"));
-    catn("T_GENEFLOW_START: " + paste(T_GENEFLOW_START));
-    catn("T_GENEFLOW_END: " + paste(T_GENEFLOW_END));
-  }
-
-  if (length(pop_param("tremove_gen"))) {
-    // times of population cleanups
-    defineConstant("T_CLEANUPS", T_BURNIN + pop_param("tremove_gen"));
-    catn("T_CLEANUPS: " + paste(T_CLEANUPS));
-  }
-
-  // times of spatial map changes
-  ancestral_maps = map_param("time_gen")[map_param("time_gen") == 1];
-  later_maps = map_param("time_gen")[map_param("time_gen") > 1];
-  defineConstant("T_MAPS", c(ancestral_maps, T_BURNIN + later_maps));
-  catn("T_MAPS: " + paste(T_MAPS));
-
-  // mutation types of neutral ancestry-informative markers for each population
-  mut_ids = pop_param("pop");
-  for (i in mut_ids) initializeMutationType(i, 0.5, "f", 0.0);
-  initializeGenomicElementType("g1", mut_ids, rep(1.0, length(mut_ids)));
+  initializeGenomicElementType("g1", mut_types, rep(1.0, length(mut_types)));
 
   // all ancestry markers have to be prevented from stacking and from
   // disappearing once they become fixed in a population
-  g1.mutationTypes[mut_ids].convertToSubstitution = F;
-  g1.mutationTypes[mut_ids].mutationStackPolicy = "l";
-  g1.mutationTypes[mut_ids].mutationStackGroup = 0;
+  g1.mutationTypes[mut_types].convertToSubstitution = F;
+  g1.mutationTypes[mut_types].mutationStackPolicy = "l";
+  g1.mutationTypes[mut_types].mutationStackGroup = 0;
 
   defineConstant("SEQ_LENGTH", asInteger({{seq_length}}));
   initializeGenomicElement(g1, 0, SEQ_LENGTH - 1);
 
   initializeRecombinationRate({{recomb_rate}});
-  // TODO: this is only meaningful for purely demographic simulations - make
-  // this flexible in run() after other issues are sorted out
   initializeMutationRate(0.0);
 
   // generate interaction types (two for each population)
-  // TODO: add a more realistic kernel
-  for (i in pop_param("pop")) {
-    // spatial competition distance
-    initializeInteractionType(2 * i, "xy", reciprocal = T, maxDistance = pop_param("competition_dist", pop_i = i));
-    // mate choice distance
-    initializeInteractionType(2 * i + 1, "xy", reciprocal = T, maxDistance = pop_param("mate_dist", pop_i = i));
+  for (i in POPULATIONS.getValue("pop_id")) {
+    max_distance = filter(POPULATIONS, "pop_id", i).getValue("competition_dist");
+    mate_distance = filter(POPULATIONS, "pop_id", i).getValue("mate_dist");
+
+    initializeInteractionType(2*i, "xy", reciprocal = T, maxDistance = max_distance);
+    initializeInteractionType(2*i+1, "xy", reciprocal = T, maxDistance = mate_distance);
   }
 }
 
+// Create ancestral populations and schedule demographic events
 1 early() {
-  // schedule all script blocks (unique() is called in case multiple events
-  // are scheduled at once)
+  pops = filter(POPULATIONS, "parent", "ancestor");
+  for (i in iter(pops)) {
+    pop = pops.getRowValues(i);
+    id = pop.getValue("pop_id"); N = pop.getValue("N");
 
-  // creating ancestral populations
-  pop_ids = drop(POP_TABLE[drop(POP_TABLE[, 2] == -1), 0]);
-  for (i in pop_ids) {
-    sim.addSubpop(i, pop_param("N", i));
-    set_map(i, sim.generation);
-    set_coordinates(get_pop(i).individuals, i);
-    add_markers(i);
+    sim.addSubpop(id, N);
+    set_map(id, sim.generation);
+    set_coordinates(get_pop(id).individuals, id);
+    add_markers(id);
   }
   evaluate_interactions();
 
-  sim.rescheduleScriptBlock(s0, generations = SIM_START);
-
-  // population splits
-  if (exists("T_SPLITS"))
-    sim.rescheduleScriptBlock(s1, generations = unique(T_SPLITS));
+  // population splits (if any)
+  splits = filter(POPULATIONS, "parent", "ancestor", negate = T);
+  if (num_rows(splits))
+    sim.rescheduleScriptBlock(s1, generations = unique(splits.getValue("tsplit")));
   else
     sim.deregisterScriptBlock(s1);
 
   // geneflow events
-  if (exists("T_GENEFLOW_START")) {
-    sim.rescheduleScriptBlock(s2, generations = unique(T_GENEFLOW_START));
-    sim.rescheduleScriptBlock(s3, generations = unique(T_GENEFLOW_END));
+  if (num_rows(GENEFLOWS)) {
+    sim.rescheduleScriptBlock(s2, generations = unique(GENEFLOWS.getValue("tstart")));
+    sim.rescheduleScriptBlock(s3, generations = unique(GENEFLOWS.getValue("tend")));
   } else {
     sim.deregisterScriptBlock(s2);
     sim.deregisterScriptBlock(s3);
   }
 
-  // removing populations which are no longer required
-  if (exists("T_CLEANUPS"))
-     sim.rescheduleScriptBlock(s4, generations = unique(T_CLEANUPS + 1));
+  // removing populations from the simulation
+  cleanups = filter(POPULATIONS, "tremove", -1, negate = T);
+  if (num_rows(cleanups))
+     sim.rescheduleScriptBlock(s4, generations = unique(cleanups.getValue("tremove")));
   else
      sim.deregisterScriptBlock(s4);
 
   // spatial map changes
-  if (exists("T_MAPS"))
-     sim.rescheduleScriptBlock(s5, generations = unique(T_MAPS));
+  if (any(MAPS.getValue("time_gen") > 1))
+     sim.rescheduleScriptBlock(s5, generations = unique(MAPS.getValue("time")));
   else
      sim.deregisterScriptBlock(s5);
+
+  // population size changes
+  if (num_rows(RESIZES))
+    sim.rescheduleScriptBlock(s10, generations = unique(RESIZES.getValue("time")));
+  else
+    sim.deregisterScriptBlock(s10);
 
   // output locations of individuals
   if (SAVE_LOCATIONS) {
@@ -150,85 +128,78 @@ initialize() {
     sim.deregisterScriptBlock(s6);
 
   // output tree sequence data
-  sim.rescheduleScriptBlock(s7, generations = SIM_END);
+  if (TS_RECORDING) {
+    sim.rescheduleScriptBlock(s7, generations = SIM_END);
+  } else
+    sim.deregisterScriptBlock(s7);
 
   // output ancestry proportions
   if (TRACK_ANCESTRY) {
-     sim.rescheduleScriptBlock(s8, generations = SIM_START:SIM_END);
+     sim.rescheduleScriptBlock(s8, generations = SIM_START : SIM_END);
      write_ancestries_header();
   } else
      sim.deregisterScriptBlock(s8);
+
+  // stop the simulation
+  sim.rescheduleScriptBlock(s9, generations = SIM_END);
 }
 
 //////////////////////////////////////////////////////////////////////
-// Demography script blocks
+// Scheduled script blocks
 //////////////////////////////////////////////////////////////////////
-
-s0 late() {
-  log_output("burnin ends");
-}
 
 // Population splits
 s1 late() {
-  // get the populations splitting in the current generation
-  pop_ids = pop_param("pop", present = "tsplit_gen")[sim.generation == T_SPLITS];
-  for (i in pop_ids) {
-    split_pop(i);
-    set_map(i, sim.generation);
-    set_coordinates(get_pop(i).individuals, i);
-    add_markers(i);
+  pops = filter(POPULATIONS, "tsplit", sim.generation);
+  for (i in iter(pops)) {
+    pop_id = pops.getRowValues(i).getValue("pop_id");
+    split_pop(pop_id);
+    set_map(pop_id, sim.generation);
+    set_coordinates(get_pop(pop_id).individuals, pop_id);
+    add_markers(pop_id);
     evaluate_interactions();
   }
 }
 
-// Admixture events
+// Geneflow events
 s2 late() {
-  // iterate over all geneflow events scheduled for this generation
-  // and set them accordingly
-  for (i in which(sim.generation == T_GENEFLOW_START)) {
-    from = admix_param("source", i);
-    to = admix_param("target", i);
-    rate = admix_param("rate", i);
-    span = T_GENEFLOW_END[i] - T_GENEFLOW_START[i];
-    set_geneflow(from, to, rate, span);
+  events = filter(GENEFLOWS, "tstart", sim.generation);
+  for (i in iter(events)) {
+    event = events.getRowValues(i);
+    set_geneflow(event, event.getValue("rate"));
   }
 }
 
 // Stopping geneflow
 s3 late() {
-  // iterate over all geneflow events scheduled for this generation
-  // and set them back to 0.0
-  for (i in which(sim.generation == T_GENEFLOW_END)) {
-    from = admix_param("source", i);
-    to = admix_param("target", i);
-    set_geneflow(from, to, 0.0);
+  events = filter(GENEFLOWS, "tend", sim.generation);
+  for (i in iter(events)) {
+    event = events.getRowValues(i);
+    set_geneflow(event, 0.0);
   }
 }
 
 // Remove populations which are no longer necessary
 s4 late() {
-  // get the ID of the target population from the table
-  // of geneflow events and remove them
-  pop_ids = pop_param("pop", present = "tremove_gen")[sim.generation == T_CLEANUPS + 1];
-  for (i in pop_ids) {
-    log_output("cleanup of " + NAMES[i] + "(" + i + ")");
-    get_pop(i).setSubpopulationSize(0);
+  pops = filter(POPULATIONS, "tremove", sim.generation);
+  for (i in iter(pops)) {
+    pop = pops.getRowValues(i);
+    log_output("cleanup of " + pop.getValue("pop") +
+               "(p" + pop.getValue("pop_id") + ")");
+    get_pop(pop.getValue("pop")).setSubpopulationSize(0);
   }
 }
 
 // Update population spatial maps
 s5 late() {
-  // get populations whose spatial maps should be updated
-  pop_ids = map_param("pop")[sim.generation == T_MAPS];
-  for (i in pop_ids) {
-    log_output("updating map for " + NAMES[i] + "(" + i + ")");
-    set_map(i, sim.generation);
+  maps = filter(MAPS, "time", sim.generation);
+  for (i in iter(maps)) {
+    map = maps.getRowValues(i);
+    log_output("updating map for " + map.getValue("pop") +
+               "(p" + map.getValue("pop_id") + ")");
+    set_map(map.getValue("pop_id"), sim.generation);
   }
 }
-
-//////////////////////////////////////////////////////////////////////
-// Output script blocks
-//////////////////////////////////////////////////////////////////////
 
 // Save locations and remember ancient individuals
 s6 late() {
@@ -237,7 +208,7 @@ s6 late() {
   // TODO: make this programmable by the user on the R side
   if (sim.generation % 10 == 0) {
     inds = sapply(sim.subpopulations, "sample(applyValue.individuals, 1);");
-    inds.setValue("sampled", 1);
+    if (length(inds)) inds.setValue("sampled", 1);
     if (TS_RECORDING) sim.treeSeqRememberIndividuals(inds);
   }
   // save location of each individual present
@@ -248,24 +219,37 @@ s6 late() {
 
 // Save tree sequences at the end of the simulation
 s7 late() {
-  catn("--------------------------------------------------");
-  log_output("simulation finished");
+  log_output("saving tree-sequence data");
 
   if (TS_RECORDING) {
      filename = paste0(OUTPUT_PREFIX, "_tree_seq.trees");
      sim.treeSeqOutput(filename);
   }
-
-  sim.simulationFinished();
 }
 
+// Write ancestry proportions in the current generation
 s8 late() {
   write_ancestries();
 }
 
+s9 late() {
+  log_output("simulation finished");
+  sim.simulationFinished();
+}
+
+s10 late() {
+  events = filter(RESIZES, "time", sim.generation);
+  for (i in iter(events)) {
+    event = events.getRowValues(i);
+    pop = event.getValue("pop"); N = event.getValue("N");
+    get_pop(pop).setSubpopulationSize(N);
+    log_output(pop + "(p" + event.getValue("pop_id") + ") resized to " +
+               N + " individuals");
+  }
+}
 
 //////////////////////////////////////////////////////////////////////
-// Callbacks and interaction evaluations
+// Interaction and fitness callbacks
 //////////////////////////////////////////////////////////////////////
 
 1: late() {
@@ -286,15 +270,20 @@ modifyChild() {
   // assign locations uniformly in spatially non-overlapping geneflow
   if (child.migrant) {
     // get indices of the currently active geneflow events
-    active = T_GENEFLOW_START <= sim.generation & sim.generation <= T_GENEFLOW_END;
-    // get population of the offspring's parents (i.e. the source of geneflow)
-    source = sourceSubpop.id == admix_param("source");
-    // get the offspring's new population(i.e. the target of geneflow)
-    target = subpop.id == admix_param("target");
-    // get the index of the single matching geneflow event
-    index = admix_param("overlap", which(active & target & source));
+    active = GENEFLOWS.getValue("tstart") <= sim.generation &
+             sim.generation <= GENEFLOWS.getValue("tend");
 
-    if (!admix_param("overlap", index)) {
+    // get population of the offspring's parents
+    source = sourceSubpop.id == GENEFLOWS.getValue("from_id");
+
+    // get the offspring's new population
+    target = subpop.id == GENEFLOWS.getValue("to_id");
+
+    // if the current admixture event is non-overlapping, set the
+    // childs coordinates freely
+    overlap = GENEFLOWS.getValue("overlap")[active & target & source];
+
+    if (!overlap) {
       set_coordinates(child, subpop.id, log = F);
       return T;
     }
@@ -302,7 +291,8 @@ modifyChild() {
 
   // for spatially overlapping geneflow and non-migrant offspring,
   // propose location in the neighborhood of one of its parents
-  jitter = rnorm(2, 0, pop_param("offspring_dist", pop_i = subpop.id));
+  sigma_dist = filter(POPULATIONS, "pop_id", subpop.id).getValue("offspring_dist");
+  jitter = rnorm(2, 0, sigma_dist);
   pos = parent1.spatialPosition + jitter;
 
   // make sure that offspring is generated in allowed locations on the map
@@ -316,75 +306,6 @@ modifyChild() {
 }
 
 //////////////////////////////////////////////////////////////////////
-// Input/output utility functions
-//////////////////////////////////////////////////////////////////////
-
-// Read table of population splits, migrations, etc.
-function (i) read_table(s$ path) {
-  if (!fileExists(path)) return(NULL);
-
-  lines = readFile(path);
-  matrix = sapply(
-    lines[1 : (size(lines) - 1)], "asInteger(strsplit(applyValue, '\t'));",
-    simplify="matrix"
-  );
-  return t(matrix);
-}
-
-// Write a header of a locations table to a locations file
-function (void) write_locations_header(void) {
-  filename = paste0(OUTPUT_PREFIX, "_ind_locations.tsv.gz");
-  header_str = "t\tpop\tind\tx\ty\tsampled";
-  writeFile(filename, header_str, compress = T);
-}
-
-// Write information about a given individual to a locations file
-function(void) write_locations(lifso<Individual>$ ind) {
-  filename = paste0(OUTPUT_PREFIX, "_ind_locations.tsv.gz");
-  if (KEEP_PEDIGREES) id = ind.pedigreeID;
-  else id = -1;
-  ind_str = paste(
-    SIM_END - sim.generation,
-    ind.subpopulation.id,
-    id,
-    ind.spatialPosition,
-    asInteger(!isNULL(ind.getValue("sampled"))),
-    sep = "\t"
-  );
-  writeFile(filename, ind_str, append = T, compress = T);
-}
-
-// Write the headers of ancestry tables
-function (void) write_ancestries_header(void) {
-  for (pop in pop_param("pop")) {
-    header_str = paste(c("gen", NAMES[pop_param("pop")]), sep = "\t");
-    filename = paste0(OUTPUT_PREFIX, "_ancestry_", NAMES[pop], ".tsv");
-    writeFile(filename, header_str);
-  }
-}
-
-// Write information about a given individual to a locations file
-function (void) write_ancestries(void) {
-  for (pop in sim.subpopulations) {
-    line = paste(SIM_END - sim.generation, calc_ancestry(pop), sep = "\t");
-    filename = paste0(OUTPUT_PREFIX, "_ancestry_", NAMES[pop.id], ".tsv");
-    writeFile(filename, line, append = T);
-  }
-}
-
-// Calculate a vector of ancestry proportions in a given population
-function (float) calc_ancestry(lifso<Subpopulation>$ pop) {
-  // mutation IDs of all populations' ancestry markers
-  mut_ids = pop_param("pop");
-  return sapply(mut_ids, "mean(pop.genomes.countOfMutationsOfType(applyValue) / N_MARKERS);");
-}
-
-// Write the given output string with the time stamp
-function (void) log_output(s$ str) {
-  catn("Generation " + sim.generation + ": " + str);
-}
-
-//////////////////////////////////////////////////////////////////////
 // Simulation utility functions
 //////////////////////////////////////////////////////////////////////
 
@@ -393,39 +314,52 @@ function (void) evaluate_interactions(void) {
 }
 
 // Assign a spatial map to a given population
-function (void) set_map(i$ i, i$ generation) {
-  img = MAPS[map_param("pop") == i & T_MAPS == generation];
-  get_pop(i).defineSpatialMap("world", "xy", 1.0 - img.floatK,
+function (void) set_map(i$ id, i$ generation) {
+  map = filter(filter(MAPS, "pop_id", id), "time", generation);
+  img = map.getValue("image");
+  pop = get_pop(map.getValue("pop"));
+  pop.defineSpatialMap("world", "xy", 1.0 - img.floatK,
     valueRange=c(min(img.floatK), max(img.floatK)), colors=c("#000000", "#FFFFFF"));
-  get_pop(i).setSpatialBounds(c(0.0, 0.0, asFloat(WIDTH) - 1, asFloat(HEIGHT) - 1));
+  pop.setSpatialBounds(c(0.0, 0.0, asFloat(WIDTH) - 1, asFloat(HEIGHT) - 1));
 }
 
 // Split population from the source specified in an input table
-function (void) split_pop(i$ i) {
-  source = pop_param("source", i);
-  N = pop_param("N", i);
-  log_output("split of " + NAMES[i] + "(" + i + ")" + " from " + NAMES[source] + "(" + source + ")");
-  sim.addSubpopSplit(i, N, get_pop(source));
+function (void) split_pop(i$ id) {
+  pop = filter(POPULATIONS, "pop_id", id);
+  log_output("split of " + pop.getValue("pop") + "(p" + pop.getValue("pop_id") + ")" +
+             " from " + pop.getValue("parent") + "(p" + pop.getValue("parent_id")  + ")");
+  sim.addSubpopSplit(
+    pop.getValue("pop_id"),
+    pop.getValue("N"),
+    pop.getValue("parent_id")
+  );
 }
 
-// Set the migration rate from a populaion 'from' to a population 'to'
-// (also used for resetting the migration back to zero)
-function (void) set_geneflow(i$ from, i$ to, f$ rate, [i$ span = 1]) {
-  if (rate == 0)
-    rate_str = " set to 0%";
-  else
-    rate_str = " (" + rate * 100 + "% over " + span + " generations)";
-  log_output("geneflow " + NAMES[from] + "(" + from + ")" + " -> " + NAMES[to] + "(" + to + ")" + rate_str);
-  source = get_pop(from);
-  target = get_pop(to);
-  target.setMigrationRates(source, rate / span);
+// Initiate or terminate geneflow
+function (void) set_geneflow(object<Dictionary> event, f$ rate) {
+  from = event.getValue("from"); to = event.getValue("to");
+  from_id = event.getValue("from_id"); to_id = event.getValue("to_id");
+
+  if (rate > 0) {
+    span = event.getValue("tend") - event.getValue("tstart");
+    rate = rate / span;
+    log_output("geneflow " + from + "(p" + from_id + ")" +
+               " -> " + to + "(p" + to_id + ")" +
+               " (" + rate + "% over " + span + " generations)");
+  } else
+    log_output("geneflow " + from + "(p" + from_id + ")" +
+               " -> " + to + "(p" + to_id + ")" + " set to 0%");
+
+  get_pop(to_id).setMigrationRates(from_id, rate);
 }
 
 // Add ancestry informative markers specific to the given population
-function (void) add_markers(i$ pop) {
+function (void) add_markers(i$ pop_id) {
   if (TRACK_ANCESTRY) {
-    log_output("adding " + NAMES[pop] + "(" + pop + ")" + " ancestry markers");
-    get_pop(pop).genomes.addNewMutation(pop, 0.0, seq(0, {{seq_length}} - 1, by = asInteger({{seq_length}} / N_MARKERS)));
+    log_output("adding " + filter(POPULATIONS, "pop_id", pop_id).getValue("pop") +
+               "(" + pop_id + ")" + " ancestry markers");
+    positions = seq(0, 1 - 1, by = asInteger(1 / N_MARKERS));
+    get_pop(pop_id).genomes.addNewMutation(pop_id, 0.0, positions);
   }
 }
 
@@ -442,96 +376,199 @@ function (void) set_coordinates(lifso<Individual> inds, i$ pop, [l$ log = T]) {
 // Get subpopulation object based on a given identifier
 // (SLiM-based numerber or a user-defined string name)
 function (lifso<Subpopulation>$) get_pop(si$ i) {
-  if (isString(i)) i = which(NAMES == i);
+  if (isString(i)) i = filter(POPULATIONS, "pop", i).getValue("pop_id");
   if (!any(i == sim.subpopulations.id))
-    stop("Population " + NAMES[i] + " not present in the simulation in generation " + sim.generation);
+    stop("Population " + filter(POPULATIONS, "pop_id", i).getValue("pop") +
+         " not present in the simulation in generation " + sim.generation);
   return sim.subpopulations[i == sim.subpopulations.id];
 }
 
 //////////////////////////////////////////////////////////////////////
-// Acessing parameter tables
-// This is basically an implementation of a very basic dataframe
+// Input/output utility functions
 //////////////////////////////////////////////////////////////////////
 
-// Get a value of a column from a populations table belonging
-// to the i-th population
-function (numeric) pop_param(s$ col, [Ni$ pop_i = NULL], [Ns$ present = NULL]) {
-  if (!isNULL(pop_i) & !isNULL(present))
-    stop("Both population ID and filtering criterion cannot be specified.");
-
-  // column names allowed
-  columns = c("pop", "N", "source", "tsplit", "tsplit_gen", "tremove",
-              "tremove_gen", "competition_dist", "mate_dist",
-              "offspring_dist", "orig_tsplit", "orig_tremove");
-
-  // lookup column name number for indexing into a populations matrix
-  col_i = which(columns == col) ;
-  if (length(col_i) != 1)
-    stop("Incorrect specification of a column in a populations table");
-
-  // in some cases we want all values, even the NA ones
-  if (!isNULL(present)) {
-    // lookup column name number for indexing into a populations matrix
-    present_i = which(columns == present);
-    if (length(present_i) != 1)
-      stop("Incorrect specification of a column in the splits table");
-    table = POP_TABLE[drop(POP_TABLE[, present_i]) != -1, ];
-    // ugly hack to get around the new way that splits are defined for
-    // all populations, including the ancestral ones (i.e. explicit "sim_length"
-    // parameter has now been removed)
-    if (present == "tsplit_gen") table = table[drop(table[, 2]) != -1, ];
-  } else {
-    table = POP_TABLE;
-  }
-	if (length(table) == 0) return NULL;
-  if (isNULL(pop_i)) pop_i = seqLen(nrow(table));
-  val = drop(table[pop_i, col_i]);
-
-  return val[which(val != -1)];
+// Compose path to the given file in the current model directory
+function (s$) config_path(s$ file) {
+  return paste0(MODEL_DIR, "/", file);
 }
 
-// Get a value of a column from the table of geneflow events
-function (numeric) admix_param(s$ col, [Ni admix_i = NULL]) {
-  if (isNULL(GENEFLOW_TABLE)) return(NULL);
-  // column names allowed
-  columns = c("source", "target", "tstart", "tstart_gen",
-              "tend", "tend_gen", "rate", "overlap",
-              "orig_tstart", "orig_tend");
-
-  // lookup column name number for indexing into a populations matrix
-  col_i = which(columns == col) ;
-  if (length(col_i) != 1)
-    stop("Incorrect specification of a column in the table of geneflow events");
-
-  if (!isNULL(admix_i)) indices = which(seqAlong(nrow(GENEFLOW_TABLE)) == admix_i);
-
-  // extract the value
-  val = drop(GENEFLOW_TABLE[admix_i, col_i]);
-
-  // rate needs to be convered to float
-  if (col == "rate") val = val / 100;
-
-  return val;
+// Write the locations file header line
+function (void) write_locations_header(void) {
+  filename = paste0(OUTPUT_PREFIX, "_ind_locations.tsv.gz");
+  header_str = "t\tpop\tind\tx\ty\tsampled";
+  writeFile(filename, header_str, compress = T);
 }
 
-// Get a value of a column from the table of geneflow events
-function (numeric) map_param(s$ col, [Ni$ pop_i = NULL], [Ni$ time = NULL]) {
-  // column names allowed
-  columns = c("pop", "time", "time_gen", "map_number", "orig_time");
+// Write information about a given individual to the locations file
+function(void) write_locations(lifso<Individual>$ ind) {
+  filename = paste0(OUTPUT_PREFIX, "_ind_locations.tsv.gz");
+  if (KEEP_PEDIGREES) id = ind.pedigreeID;
+  else id = -1;
+  ind_str = paste(
+    SIM_END - sim.generation,
+    ind.subpopulation.id,
+    id,
+    ind.spatialPosition,
+    asInteger(!isNULL(ind.getValue("sampled"))),
+    sep = "\t"
+  );
+  writeFile(filename, ind_str, append = T, compress = T);
+}
 
-  // lookup column name number for indexing into a populations matrix
-  col_i = which(columns == col) ;
-  if (length(col_i) != 1)
-    stop("Incorrect specification of a column in the spatial maps table");
-
-  indices = rep(T, nrow(MAP_TABLE));
-  if (!isNULL(pop_i)) {
-    indices = indices & (drop(MAP_TABLE[, 0]) == pop_i);
+// Write the header of an ancestry proportion table
+function (void) write_ancestries_header(void) {
+  for (i in iter(POPULATIONS)) {
+    pop = POPULATIONS.getRowValues(i);
+    header_str = paste(c("gen", POPULATIONS.getValue("pop")), sep = "\t");
+    filename = paste0(OUTPUT_PREFIX, "_ancestry_", pop.getValue("pop"), ".tsv");
+    writeFile(filename, header_str);
   }
-  if (!isNULL(time)) {
-    indices = indices & (T_MAPS == time);
-  }
-  val = drop(MAP_TABLE[indices, col_i]);
+}
 
-  return val[which(val != -1)];
+// Write ancestry proportions in all populations in the current generation
+function (void) write_ancestries(void) {
+  for (pop in sim.subpopulations) {
+    pop_name = filter(POPULATIONS, "pop_id", pop.id).getValue("pop");
+    line = paste(SIM_END - sim.generation, calc_ancestry(pop), sep = "\t");
+    filename = paste0(OUTPUT_PREFIX, "_ancestry_", pop_name, ".tsv");
+    writeFile(filename, line, append = T);
+  }
+}
+
+// Calculate a vector of ancestry proportions in a given population
+function (float) calc_ancestry(lifso<Subpopulation>$ pop) {
+  // mutation IDs of all populations' ancestry markers
+  mut_ids = POPULATIONS.getValue("pop_id");
+  return sapply(mut_ids, "mean(pop.genomes.countOfMutationsOfType(applyValue) / N_MARKERS);");
+}
+
+// Write the given output string with the time stamp
+function (void) log_output(s$ str) {
+  catn("Generation " + sim.generation + ": " + str);
+}
+
+//////////////////////////////////////////////////////////////////////
+// Implementation of Dictionary-based dataframes
+//////////////////////////////////////////////////////////////////////
+
+// Data frame implementation based on Dictionary
+// Read a TSV file as a Dictionary of pairs of the form:
+//   <column name>-<vector of column values>
+function (object<Dictionary>) read_table(s$ path) {
+	if (!fileExists(path)) return(NULL);
+
+	lines = readFile(path);
+
+	// extract column names
+	columns = strsplit(lines[0], "\t");
+	// parse the body of the table into individual elements
+	body = lines[1 : (length(lines) - 1)];
+	body_elements = sapply(body, "strsplit(applyValue, '\t');");
+
+	// generate a dictionary of key-vector (pairs column-column values)
+	dict = Dictionary();
+	for (i in seqAlong(columns)) {
+		// extract values of the i-th column
+		indices = seq(i, length(body_elements) - 1, by = length(columns));
+		column_values = convert_type(columns[i], body_elements[indices]);
+
+		dict.setValue(columns[i], column_values);
+	}
+
+	return dict;
+}
+
+// Filter Dictionary/data-frame for rows where the <column> is
+// equal to <value>
+function (object<Dictionary>) filter(object<Dictionary> d, s$ col, ifsl$ val,
+                                     [l$ negate = F]) {
+  if (!any(col == d.allKeys))
+    stop("Column '" + col + "' not present in the table");
+
+	values = d.getValue(col);
+	if (negate)
+  	return d.getRowValues(values != val);
+  else
+  	return d.getRowValues(values == val);
+}
+
+// Get the number of rows of the given dataframe
+function (i$) num_rows(No<Dictionary>$ d) {
+  if (isNULL(d)) return(0);
+  columns = d.allKeys;
+  lengths = sapply(columns, 'length(d.getValue(applyValue));');
+  if (length(unique(lengths)) != 1)
+    stop("Corrupted dataframe {" + paste(d.allKeys, sep = ", ") +
+         "} with columns of unequal length (" +
+         paste(lengths, sep = ", ") + ")");
+  else
+    return(unique(lengths));
+}
+
+// Return a vector of row indices of a given dataframe
+function (i) iter(object<Dictionary> d) {
+  return seqLen(num_rows(d));
+}
+
+// Pretty printer for Dictionary-based dataframe objects
+function (void) print_table(object<Dictionary> d) {
+  for (i in iter(d)) {
+    row = d.getRowValues(i);
+    cat("row #" + i + "\n-------\n| ");
+    for (c in d.allKeys) {
+      val = row.getValue(c);
+      if (!isFloat(val) & !isInteger(val) & !isString(val) & !isLogical(val))
+        next;
+      cat(c + ": " + val + " | ");
+    }
+    cat("\n\n");
+  }
+}
+
+// Convert column vector values to a required type (this is hardcoded
+// for every column among all slendr-generated TSV files)
+function (ifsl) convert_type(s$ column_name, s string_values) {
+  // vectors of all possible column names in tables defined by slendr `compile()`
+	string = c("pop", "parent", "resize_how", "path", "from", "to", "how");
+	integer = c("pop_id", "parent_id", "from_id", "to_id", "N",
+	            "time_orig", "time_gen", "tsplit_orig", "tsplit_gen",
+	            "tremove_orig", "tremove_gen", "tstart_orig", "tstart_gen",
+	            "tend_orig", "tend_gen");
+	float = c("rate", "competition_dist", "mate_dist", "offspring_dist");
+	logical = c("overlap");
+
+	if (any(column_name == integer))
+		values = asInteger(string_values);
+	else if (any(column_name == float))
+		values = asFloat(string_values);
+	else if (any(column_name == logical))
+		values = asLogical(string_values);
+	else if (any(column_name == string))
+		values = asString(string_values);
+	else
+	  stop("Unknown column '" + column_name + "' in a dataframe");
+
+	return values;
+}
+
+// Convert times in given tables into absolute SLiM times by adding
+// the burnin length to each time point
+function (void) slim_time(No<Dictionary>$ table) {
+  if (!isNULL(table)) {
+    // list of all possible time columns to look for
+    time_columns = c("time", "tsplit", "tremove", "tstart", "tend");
+
+    // get time columns present in the current table
+    columns = setIntersection(table.allKeys, time_columns + "_gen");
+    // for each time column, create a new column (without the "_gen" suffix)
+    for (col in columns) {
+      // shift the time by the burnin length
+      new_times = table.getValue(col);
+      new_times[new_times != -1] = BURNIN_LENGTH + new_times[new_times != -1];
+
+      // add the new shifted time column to the table
+      new_col = strsplit(col, "_gen")[0]; // remove the "_gen" suffix
+      table.setValue(new_col, new_times);
+    }
+  }
 }

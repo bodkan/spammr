@@ -83,7 +83,7 @@ get_geneflows <- function(model, time) {
   if (is.null(model$geneflow)) return(NULL)
   pop_names <- unique(unlist(sapply(model$populations, `[[`, "pop")))
 
-  geneflows <- subset(model$geneflow, orig_tstart >= time & orig_tend <= time)
+  geneflows <- subset(model$geneflow, tstart_orig >= time & tend_orig <= time)
   geneflows$from <- factor(geneflows$from, levels = pop_names)
   geneflows$to <- factor(geneflows$to, levels = pop_names)
 
@@ -160,23 +160,35 @@ time (%s) is higher than the parent's (%s)",
 }
 
 
+# Get time of the very last event currently specified
+get_previous_time <- function(pop) {
+  sapply(attr(pop, "history"), function(event) {
+    c(event$time, event$start, event$end)
+  }) %>%
+    Filter(Negate(is.null), .) %>%
+    unlist %>%
+    tail(1)
+}
+
+
 check_event_time <- function(time, pop) {
   direction <- get_time_direction(pop)
 
-  previous_time <- pop$time[nrow(pop)]
+  previous_time <- get_previous_time(pop)
 
   comp <- if (direction == "forward") `<` else `>`
 
   # test if all times are consistent with the assumed time direction
   if (length(time) > 1 & all(comp(diff(time), 0)))
-      stop(sprintf("Specified start-end time window is inconsistent with the %s time
-direction assumed by the model", direction), call. = FALSE)
+      stop(sprintf("Specified start-end time window is inconsistent with the %s time direction assumed by the model", direction),
+           call. = FALSE)
 
   # check consistency of times with the last specified time event for
   # this population
   if (any(comp(time, previous_time)))
-    stop(sprintf("The model implies forward time direction but the specified event time
-(%s) is lower than last active time (%s). ", paste(time, collapse = "-"), previous_time), call. = FALSE)
+    stop(sprintf("The specified event time (%s) is inconsistent with last active time (%s) given the assumed %s time direction",
+                 paste(time, collapse = "-"), previous_time, direction),
+         call. = FALSE)
 }
 
 
@@ -185,31 +197,67 @@ check_removal_time <- function(time, pop) {
 
   removal_time <- attr(pop, "remove")
   if (removal_time != -1 & direction == "forward" & any(time > removal_time)) {
-    stop(sprintf("The specified event time (%d) is not consistent with the scheduled
-removal of %s (%s). ",
+    stop(sprintf("The specified event time (%d) is not consistent with the scheduled removal of %s (%s). ",
                  time, pop$pop[1], removal_time),
          call. = FALSE)
   }
   if (removal_time != -1 & direction == "backward" & any(time < removal_time)) {
-    stop(sprintf("The specified event time (%d) is not consistent with the scheduled
-removal of %s (%s). ",
+    stop(sprintf("The specified event time (%d) is not consistent with the scheduled removal of %s (%s). ",
                  time, pop$pop[1], removal_time),
          call. = FALSE)
   }
 }
 
 
-# Convert time from backward to forward direction
-convert_time <- function(df, direction, columns, max_time, generation_time) {
-  if (direction == "backward") {
-    for (column in columns) {
-      df[[paste0("orig_", column)]] <- df[[column]]
-      times <- df[[column]]
-      times[times != -1] <- max_time - times[times != -1] + generation_time
-      df[[column]] <- times
+# Calculate overlap between subsequent spatial maps
+compute_overlaps <- function(x) {
+  sf::st_agr(x) <- "constant"
+  sapply(
+    (1:nrow(x))[-1], function(i) {
+      a <- x[i - 1, ]
+      b <- x[i, ]
+      intersection <- sf::st_intersection(a, b)
+      if (nrow(intersection) == 0) return(0)
+      sf::st_area(intersection) / sf::st_area(b)
     }
+  )
+}
+
+
+# Take care of missing interactions and offspring distances
+set_distances <- function(split_table, resolution,
+                          competition_dist, mate_dist, offspring_dist) {
+  if (any(is.na(split_table$competition_dist))) {
+    if (is.null(competition_dist)) {
+      pop_names <- paste(split_table[is.na(split_table$competition_dist), ]$pop, collapse = ", ")
+      stop("Parameter 'competition_dist' missing for ", pop_names, " and a general
+  value of this parameter was not provided to the compile() function", call. = FALSE)
+    } else
+      split_table$competition_dist[is.na(split_table$competition_dist)] <- competition_dist
   }
-  df
+
+  if (any(is.na(split_table$mate_dist))) {
+    if (is.null(mate_dist)) {
+      pop_names <- paste(split_table[is.na(split_table$mate_dist), ]$pop, collapse = ", ")
+      stop("Parameter 'mate_dist' missing for ", pop_names, " and a general
+  value of this parameter was not provided to the compile() function", call. = FALSE)
+    } else
+      split_table$mate_dist[is.na(split_table$mate_dist)] <- mate_dist
+  }
+
+  if (any(is.na(split_table$offspring_dist))) {
+    if (is.null(offspring_dist)) {
+      pop_names <- paste(split_table[is.na(split_table$offspring_dist), ]$pop, collapse = ", ")
+      stop("Parameter 'offspring_dist' missing for ", pop_names, " and a general
+  value of this parameter was not provided to the compile() function", call. = FALSE)
+    } else
+      split_table$offspring_dist[is.na(split_table$offspring_dist)] <- offspring_dist
+  }
+
+  split_table[, c("competition_dist", "mate_dist", "offspring_dist")] <-
+    split_table[, c("competition_dist", "mate_dist", "offspring_dist")] / resolution
+
+  split_table
 }
 
 
@@ -227,7 +275,7 @@ NULL
 
 utils::globalVariables(
   names = c("time", "prop", "ancestry", "newx", "newy", "pop",
-  "tblock", "start", ".", "orig_tstart", "orig_tend", "type", "rate",
+  "tblock", "start", ".", "tstart_orig", "tend_orig", "type", "rate",
   "node1.name", "node2.name", "from_x", "from_y", "from", "to_x", "to_y",
   "to"), package = "slendr"
 )

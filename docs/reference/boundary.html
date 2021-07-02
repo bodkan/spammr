@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compile the spatial demographic model — compile • slendr</title>
+<title>Update the population range — boundary • slendr</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -46,12 +46,9 @@
 
 
 
-<meta property="og:title" content="Compile the spatial demographic model — compile" />
-<meta property="og:description" content="First, compiles the vectorized population spatial maps into a series of binary raster PNG files,
-which is the format that SLiM understands and uses it to define population boundaries. Then
-extracts the demographic model defined by the user (i.e. population divergences and gene flow
-events) into a series of tables which are later used by the built-in SLiM script to program the
-timing of simulation events." />
+<meta property="og:title" content="Update the population range — boundary" />
+<meta property="og:description" content="This function allows a more manual control of spatial map changes in addition to the
+expand and move functions" />
 <meta property="og:image" content="https://bodkan.net/slendr/logo.png" />
 
 
@@ -126,81 +123,60 @@ timing of simulation events." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compile the spatial demographic model</h1>
-    <small class="dont-index">Source: <a href='https://github.com/bodkan/slendr/blob/master/R/compilation.R'><code>R/compilation.R</code></a></small>
-    <div class="hidden name"><code>compile.Rd</code></div>
+    <h1>Update the population range</h1>
+    <small class="dont-index">Source: <a href='https://github.com/bodkan/slendr/blob/master/R/interface.R'><code>R/interface.R</code></a></small>
+    <div class="hidden name"><code>boundary.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>First, compiles the vectorized population spatial maps into a series of binary raster PNG files,
-which is the format that SLiM understands and uses it to define population boundaries. Then
-extracts the demographic model defined by the user (i.e. population divergences and gene flow
-events) into a series of tables which are later used by the built-in SLiM script to program the
-timing of simulation events.</p>
+    <p>This function allows a more manual control of spatial map changes in addition to the
+<code>expand</code> and <code>move</code> functions</p>
     </div>
 
-    <pre class="usage"><span class='fu'>compile</span><span class='op'>(</span>
-  <span class='va'>populations</span>,
-  <span class='va'>dir</span>,
-  <span class='va'>generation_time</span>,
-  <span class='va'>resolution</span>,
-  competition_dist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  mate_dist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  offspring_dist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  geneflow <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='op'>)</span>,
-  overwrite <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  sim_length <span class='op'>=</span> <span class='cn'>NULL</span>
+    <pre class="usage"><span class='fu'>boundary</span><span class='op'>(</span>
+  <span class='va'>pop</span>,
+  <span class='va'>time</span>,
+  center <span class='op'>=</span> <span class='cn'>NULL</span>,
+  radius <span class='op'>=</span> <span class='cn'>NULL</span>,
+  polygon <span class='op'>=</span> <span class='cn'>NULL</span>,
+  overlap <span class='op'>=</span> <span class='fl'>0.8</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>populations</th>
-      <td><p>Object(s) of the <code>slendr_pop</code> class (multiple objects need to be
-specified in a <code>list</code>)</p></td>
+      <th>pop</th>
+      <td><p>Object of the class <code>slendr_pop</code></p></td>
     </tr>
     <tr>
-      <th>dir</th>
-      <td><p>Output directory for the model configuration files which will be loaded by the backend
-SLiM script</p></td>
+      <th>time</th>
+      <td><p>Time of the change</p></td>
     </tr>
     <tr>
-      <th>generation_time</th>
-      <td><p>Generation time (in model time units)</p></td>
+      <th>center</th>
+      <td><p>Two-dimensional vector specifying the center of the circular range</p></td>
     </tr>
     <tr>
-      <th>resolution</th>
-      <td><p>How many distance units per pixel?</p></td>
+      <th>radius</th>
+      <td><p>Radius of the circular range</p></td>
     </tr>
     <tr>
-      <th>competition_dist, mate_dist</th>
-      <td><p>Maximum spatial competition and mating choice distance</p></td>
+      <th>polygon</th>
+      <td><p>List of vector pairs, defining corners of the polygon range (see also the
+<code>region</code> argument) or a geographic region of the class <code>slendr_region</code> from which the
+polygon coordinates will be extracted</p></td>
     </tr>
     <tr>
-      <th>offspring_dist</th>
-      <td><p>Standard deviation of the normal distribution of the parent-offspring
-distance</p></td>
-    </tr>
-    <tr>
-      <th>geneflow</th>
-      <td><p>Geneflow events generated by the <code>geneflow</code> function (either a list of
-data.frame objects in the format defined by the <code>geneflow</code> function, or a single
-data.frame)</p></td>
-    </tr>
-    <tr>
-      <th>overwrite</th>
-      <td><p>Overwrite the contents of the output directory in case it already exists?</p></td>
-    </tr>
-    <tr>
-      <th>sim_length</th>
-      <td><p>Total length of the simulation (if time is specified in a forward direction)</p></td>
+      <th>overlap</th>
+      <td><p>Minimum required overlap with the previous active population boundary (set to 0 to
+disable the check)</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Compiled <code>slendr_model</code> model object</p>
+    <p>Object of the class <code>slendr_pop</code></p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

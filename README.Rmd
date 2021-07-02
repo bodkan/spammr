@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 
 
 
-## Spatio-temporal Population Genetics Simulations in SLiM
+## Spatio-temporal Population Genetics Simulations in R & SLiM
 
 **This software is still under development!** <a href='https://bodkan.net/slendr'>
 <img src="man/figures/logo.png" align="right" height="139"/></a>

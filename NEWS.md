@@ -24,6 +24,10 @@
 
 - Spatial interaction distances (translated to `maxDistance` on the SLiM side) as well as offspring distances from parents (i.e. the standard deviations of their normal distributions) can now be specified for each population individually. The users can still provide default values for all populations (or just those which did not have their own dedicated parameter values) in the main `compile()` call.
 
+## Changes to the SLiM backend
+
+- Significant overhaul of the entire [SLiM layer](https://github.com/bodkan/slendr/blob/main/inst/extdata/backend.slim). Most importantly, complex hacks approximating dataframe behavior using SLiM matrices and other data were completely replaced by Dictionary-based dataframe implementation. The intention of the SLiM backend is to be as easy to understand as possible and as transparent as possible for the users to be able to easily build on top of it. If something could be written more elegantly or in a simpler way, please file a GitHub issue as I considered this a bug.
+
 ## Other changes
 
 - Many new unit tests. All new features have been developed along with their unit tests. More tests are coming.

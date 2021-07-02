@@ -11,9 +11,9 @@
 #' @import ggplot2 data.table
 #' @export
 animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
-  locations <- file.path(model$config$directory, "output_ind_locations.tsv.gz")
+  locations <- file.path(model$directory, "output_ind_locations.tsv.gz")
   locs <- fread(locations, header = TRUE)
-  pop_names <- scan(file.path(model$config$directory, "names.txt"),
+  pop_names <- scan(file.path(model$directory, "names.txt"),
     what = "character", quiet = TRUE)
 
   # label populations based on their original identifiers from the user
@@ -78,7 +78,7 @@ animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
 #'
 #' @export
 ancestries <- function(model) {
-  anc_wide <- read_ancestries(model$config$directory)
+  anc_wide <- read_ancestries(model$directory)
 
   # thank god for tidyverse, base R reshaping is truly awful...  but
   # it's not worth dragging along a huge dependency if we can do this
@@ -124,9 +124,9 @@ ancestries <- function(model) {
 graph <- function(model, show_cleanups = TRUE) {
   # plot times in their original direction
   split_table <- model$splits
-  split_table[, c("tsplit", "tremove")] <-   split_table[, c("orig_tsplit", "orig_tremove")]
+  split_table[, c("tsplit", "tremove")] <-   split_table[, c("tsplit_orig", "tremove_orig")]
   geneflow_table <- model$geneflow
-  geneflow_table[, c("tstart", "tend")] <-   geneflow_table[, c("orig_tstart", "orig_tend")]
+  geneflow_table[, c("tstart", "tend")] <-   geneflow_table[, c("tstart_orig", "tend_orig")]
 
   split_edges <- get_split_edges(split_table)
   geneflow_edges <- get_geneflow_edges(geneflow_table)
@@ -185,7 +185,7 @@ graph <- function(model, show_cleanups = TRUE) {
                                         "continuation" = "solid",
                                         "geneflow" = "solid")) +
 
-  guides(fill = guide_legend(""), edge_linetype = FALSE) +
+  guides(fill = guide_legend(""), edge_linetype = "none") +
 
   theme_void() +
   theme(legend.position = "right",
@@ -459,7 +459,7 @@ objects are specified", call. = FALSE)
       all_times <- sort(unique(unlist(lapply(pops, `[[`, "time"))))
 
       # get split and removal times of all specified populations
-      split_times <- sapply(sapply(pops, `[[`, "time"), `[`, 1)
+      split_times <- sapply(pops, function(p) { attr(p, "history")[[1]]$time })
       removal_times <- sapply(pops, attr, "remove")
 
       previous_time <- min(all_times[all_times >= time])
@@ -511,7 +511,7 @@ interactively.", call. = FALSE)
             lineend = "round", size = 0.5, arrow.fill = "black"
           ) +
           scale_color_discrete(drop = FALSE) +
-          guides(color = FALSE)
+          guides(color = "none")
     }
   }
 
@@ -520,7 +520,7 @@ interactively.", call. = FALSE)
     p <- p +
       geom_sf(data = region_maps, aes(fill = region), linetype = 2, alpha = 0.5) +
       geom_sf_label(data = region_maps, aes(label = region, color = region)) +
-      guides(color = FALSE, fill = FALSE)
+      guides(color = "none", fill = "none")
   }
 
   if (!is.null(title)) p <- p + ggtitle(title)
