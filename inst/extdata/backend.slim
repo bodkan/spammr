@@ -505,15 +505,18 @@ function (object<Dictionary>) filter(object<Dictionary> d, s$ col, ifsl$ val,
   	return d.getRowValues(values == val);
 }
 
-
+// Pretty printer for Dictionary-based dataframe objects
 function (void) print_table(object<Dictionary> d) {
-  columns = d.allKeys;
-  catn(paste(columns, sep = "\t"));
   for (i in iter(d)) {
     row = d.getRowValues(i);
-    for (c in columns)
-      cat(row.getValue(c) + "\t");
-    cat("\n");
+    cat("row #" + i + "\n-------\n| ");
+    for (c in d.allKeys) {
+      val = row.getValue(c);
+      if (!isFloat(val) & !isInteger(val) & !isString(val) & !isLogical(val))
+        next;
+      cat(c + ": " + val + " | ");
+    }
+    cat("\n\n");
   }
 }
 
