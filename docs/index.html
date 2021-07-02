@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spatio-temporal Population Genetics Simulations in R & SLiM • slendr</title>
+<title>Spatio-temporal Population Genetics Simulations Using SLiM • slendr</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="apple-touch-icon.png">
@@ -86,9 +86,9 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div id="spatio-temporal-population-genetics-simulations-in-slim" class="section level2">
+<div id="spatio-temporal-population-genetics-simulations-in-r--slim" class="section level2">
 <h2 class="hasAnchor">
-<a href="#spatio-temporal-population-genetics-simulations-in-slim" class="anchor"></a>Spatio-temporal Population Genetics Simulations in R & SLiM</h2>
+<a href="#spatio-temporal-population-genetics-simulations-in-r--slim" class="anchor"></a>Spatio-temporal Population Genetics Simulations in R &amp; SLiM</h2>
 <p><strong>This software is still under development!</strong> <a href="https://bodkan.net/slendr"> <img src="reference/figures/logo.png" align="right" height="139"></a> I have been making a good progress towards the first beta version, but the package still has some way to go before being production ready. If you are interested, you can see the list of changes between versions <a href="https://bodkan.net/slendr/news/index.html">here</a>.</p>
 <p>That said, if you would like to learn more, or if you’re feeling brave and would like to test the package yourself, take a look at the <a href="https://bodkan.net/slendr/articles/tutorial.html">tutorial</a>. Note that getting it installed with all the geospatial dependencies can be a little bit tricky at this point (see the relevant section in the tutorial). If loading the package fails, check the error messages for missing software and install it using the package manager of your choice (on a Mac I recommend <em>homebrew</em>).</p>
 <p>If you would like to stay updated with the developments:</p>
@@ -149,9 +149,7 @@
 <span class="op">)</span></code></pre></div>
 <p>Again, we can use the generic <code>plot</code> function to visualize the objects:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">africa</span>, <span class="va">europe</span>, <span class="va">anatolia</span><span class="op">)</span>
-<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use</span>
-<span class="co">#&gt; `guides(&lt;scale&gt; = "none")` instead.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">africa</span>, <span class="va">europe</span>, <span class="va">anatolia</span><span class="op">)</span></code></pre></div>
 <p><img src="reference/figures/README-plot_regions-1.png" alt="plot of chunk plot_regions"></p>
 </div>
 <div id="3-define-demographic-history-and-population-boundaries" class="section level4">

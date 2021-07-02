@@ -160,7 +160,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpb7MlKc", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpE9ejCC", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -222,9 +222,7 @@
 <p>Furthermore, note that in all <code><a href="../reference/region.html">region()</a></code> calls we specified the <code>map</code> object defined at the very beginning. This object is added as a hidden attribute to each <code>slendr</code> object and represents the context for all geospatial transformations, expansions, and plotting.</p>
 <p>Again, we can use the generic <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function to plot both geographic regions in the context of the defined section of the world map:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">africa</span>, <span class="va">europe</span>, <span class="va">anatolia</span>, title <span class="op">=</span> <span class="st">"Geographic regions"</span><span class="op">)</span>
-<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =</span>
-<span class="co">#&gt; "none")` instead.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">africa</span>, <span class="va">europe</span>, <span class="va">anatolia</span>, title <span class="op">=</span> <span class="st">"Geographic regions"</span><span class="op">)</span></code></pre></div>
 <p><img src="slendr_files/figure-html/plot_europe_anatolia-1.png" width="480"></p>
 <p>Note that the <code>map</code> object is no longer explicitly specified. It is not needed, because each other class of objects provided to the <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function must carry it as a “map” attribute. In fact, each such object must carry the same map context - <code>slendr</code> complains whenever this is not the case.</p>
 <p>We can check that the component is really there, although hidden, using the built-in <code>attr</code> function and verify that it is the same as the map object we created at the beginning:</p>
@@ -351,6 +349,7 @@
 <span class="co">#&gt; </span>
 <span class="co">#&gt; population history overview:</span>
 <span class="co">#&gt;   - time 28000: split from OOA</span>
+<span class="co">#&gt;   - time 10000-7000: range expansion</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; number of spatial maps: 17 </span>
 <span class="co">#&gt; map: internal coordinate reference system: EPSG 3035</span></code></pre></div>
@@ -490,45 +489,41 @@ between populations.</code></pre>
 </ul>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"/tmp/test-model/populations.tsv"</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="co">#&gt;   pop_id    N parent_id tsplit tsplit_gen tremove tremove_gen competition_dist</span>
-<span class="co">#&gt; 1      0 3000        -1     30    1.00000      -1      -1.000               13</span>
-<span class="co">#&gt; 2      1  500         0   1030   34.33333   27030     901.000               13</span>
-<span class="co">#&gt; 3      2 1000         1  24030  801.00000   46030    1534.333               13</span>
-<span class="co">#&gt; 4      3 3000         1  24030  801.00000   48030    1601.000               13</span>
-<span class="co">#&gt; 5      4 2000         2  27030  901.00000      -1      -1.000               13</span>
-<span class="co">#&gt; 6      5  500         2  45030 1501.00000   49530    1651.000               13</span>
-<span class="co">#&gt;   mate_dist offspring_dist orig_tsplit orig_tremove</span>
-<span class="co">#&gt; 1        10              7       52000           -1</span>
-<span class="co">#&gt; 2        10              7       51000        25000</span>
-<span class="co">#&gt; 3        10              7       28000         6000</span>
-<span class="co">#&gt; 4        10              7       28000         4000</span>
-<span class="co">#&gt; 5        10              7       25000           -1</span>
-<span class="co">#&gt; 6        10              7        7000         2500</span></code></pre></div>
+<span class="co">#&gt;   pop   parent    N competition_dist mate_dist offspring_dist tsplit_gen</span>
+<span class="co">#&gt; 1 AFR ancestor 3000               13        10              7          1</span>
+<span class="co">#&gt; 2 OOA      AFR  500               13        10              7         34</span>
+<span class="co">#&gt; 3 EHG      OOA 1000               13        10              7        801</span>
+<span class="co">#&gt; 4 ANA      OOA 3000               13        10              7        801</span>
+<span class="co">#&gt; 5 EUR      EHG 2000               13        10              7        901</span>
+<span class="co">#&gt; 6 YAM      EHG  500               13        10              7       1501</span>
+<span class="co">#&gt;   tsplit_orig tremove_gen tremove_orig pop_id parent_id</span>
+<span class="co">#&gt; 1       52000          -1           -1      0        -1</span>
+<span class="co">#&gt; 2       51000         901        25000      1         0</span>
+<span class="co">#&gt; 3       28000        1534         6000      2         1</span>
+<span class="co">#&gt; 4       28000        1601         4000      3         1</span>
+<span class="co">#&gt; 5       25000          -1           -1      4         2</span>
+<span class="co">#&gt; 6        7000        1651         2500      5         2</span></code></pre></div>
 <ul>
 <li>the table of geneflow events:</li>
 </ul>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"/tmp/test-model/geneflow.tsv"</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="co">#&gt;   from_id to_id tstart tstart_gen  tend tend_gen rate overlap orig_tstart</span>
-<span class="co">#&gt; 1       3     5  45530   1517.667 45630 1521.000   50       0        6500</span>
-<span class="co">#&gt; 2       3     4  44030   1467.667 46030 1534.333   50       1        8000</span>
-<span class="co">#&gt; 3       5     4  48030   1601.000 49030 1634.333   75       1        4000</span>
-<span class="co">#&gt;   orig_tend</span>
-<span class="co">#&gt; 1      6400</span>
-<span class="co">#&gt; 2      6000</span>
-<span class="co">#&gt; 3      3000</span></code></pre></div>
+<span class="co">#&gt;   from  to rate overlap tstart_gen tstart_orig tend_gen tend_orig from_id to_id</span>
+<span class="co">#&gt; 1  ANA YAM 0.50       0       1518        6500     1521      6400       3     5</span>
+<span class="co">#&gt; 2  ANA EUR 0.50       1       1468        8000     1534      6000       3     4</span>
+<span class="co">#&gt; 3  YAM EUR 0.75       1       1601        4000     1634      3000       5     4</span></code></pre></div>
 <ul>
 <li>and finally, the table of populations whose spatial maps will be updated throughout the simulation, as well as the times of those updates (this table is rather long, so we’re taking a peek at only the first couple of lines):</li>
 </ul>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"/tmp/test-model/maps.tsv"</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt;   pop_id time  time_gen map_number orig_time</span>
-<span class="co">#&gt; 1      0   30   1.00000          1        30</span>
-<span class="co">#&gt; 2      1 1030  34.33333          2      1030</span>
-<span class="co">#&gt; 3      1 2030  67.66667          3      2030</span>
-<span class="co">#&gt; 4      1 2415  80.50000          4      2415</span>
-<span class="co">#&gt; 5      1 2799  93.30000          5      2799</span>
-<span class="co">#&gt; 6      1 3184 106.13333          6      3184</span></code></pre></div>
+<span class="co">#&gt;   pop pop_id time_orig time_gen                  path</span>
+<span class="co">#&gt; 1 AFR      0  52000.00        1 /tmp/test-model/1.png</span>
+<span class="co">#&gt; 2 OOA      1  51000.00       34 /tmp/test-model/2.png</span>
+<span class="co">#&gt; 3 OOA      1  50000.00       68 /tmp/test-model/3.png</span>
+<span class="co">#&gt; 4 OOA      1  49615.38       80 /tmp/test-model/4.png</span>
+<span class="co">#&gt; 5 OOA      1  49230.77       93 /tmp/test-model/5.png</span>
+<span class="co">#&gt; 6 OOA      1  48846.15      106 /tmp/test-model/6.png</span></code></pre></div>
 <p>The object returned by the <code><a href="../reference/compile.html">compile()</a></code> function (called <code>model</code> here) binds all of this information together. In fact, for easier debugging and sanity checks, it carries the locations of these tables (as well as other important information) in it as elements of a list <code>model$splits</code>, <code>model$geneflows</code>, etc.</p>
 <p>In case you’d want to separate model specification and running into different scripts, <em>slendr</em> includes a function <code><a href="../reference/read.html">read()</a></code> just for this purpose:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
@@ -541,9 +536,7 @@ between populations.</code></pre>
 <p>For this purpose, the package includes a function <code><a href="../reference/graph.html">graph()</a></code> which takes in all the information about the relationships between populations (i.e., the population and geneflow objects we defined above) and plots it all in the form of a so-called <em>admixture graph</em> (see <a href="https://academic.oup.com/genetics/article/192/3/1065/5935193">here</a> for a discussion of the admixture graph concept).</p>
 <p>One important thing to note here is that unlike traditional admixture graphs where each node/population is present only once, in the full <em>slendr</em> graph, a single population can participate in many geneflow events over the course of history. This is visualized by assigning a color to each population, and different nodes of the same color representing snapshots in time when a demographic event affecting that population happens.</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span>, show_cleanups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
-<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =</span>
-<span class="co">#&gt; "none")` instead.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span>, show_cleanups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
 <p><img src="slendr_files/figure-html/plot_graph-1.png" width="960"></p>
 </div>
 <div id="interactive-exploration-of-spatio-temporal-models" class="section level2">

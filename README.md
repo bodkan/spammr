@@ -124,8 +124,6 @@ Again, we can use the generic `plot` function to visualize the objects:
 
 ```r
 plot(africa, europe, anatolia)
-#> Warning: `guides(<scale> = FALSE)` is deprecated. Please use
-#> `guides(<scale> = "none")` instead.
 ```
 
 ![plot of chunk plot_regions](man/figures/README-plot_regions-1.png)
