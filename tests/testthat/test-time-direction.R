@@ -36,10 +36,12 @@ test_that("forward and backward time model objects are equivalent", {
     competition_dist = 1, mate_dist = 1, offspring_dist = 1
   )
 
-  expect_true(all.equal(forward$splits[, 1:12], backward$splits[, 1:12]))
-  expect_true(all.equal(forward$geneflow[, 1:10], backward$geneflow[, 1:10]))
-  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "time", "time_gen")],
-                        backward$maps[, c("pop", "pop_id", "time", "time_gen")]))
+  expect_true(all.equal(forward$splits[, grep("_orig", colnames(forward$splits), value = TRUE, invert = TRUE)],
+                        backward$splits[, grep("_orig", colnames(backward$splits), value = TRUE, invert = TRUE)]))
+  expect_true(all.equal(forward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)],
+                        backward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)]))
+  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "time_gen")],
+                        backward$maps[, c("pop", "pop_id","time_gen")]))
 
   components <- c("generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(forward[[i]], backward[[i]]))))
@@ -98,11 +100,12 @@ test_that("forward and backward models yield the same simulation result", {
     competition_dist = 100e3, mate_dist = 100e3, offspring_dist = 100e3
   )
 
-  # model objects are the same
-  expect_true(all.equal(forward$splits[, 1:12], backward$splits[, 1:12]))
-  expect_true(all.equal(forward$geneflow[, 1:10], backward$geneflow[, 1:10]))
-  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "time", "time_gen")],
-                        backward$maps[, c("pop", "pop_id", "time", "time_gen")]))
+  expect_true(all.equal(forward$splits[, grep("_orig", colnames(forward$splits), value = TRUE, invert = TRUE)],
+                        backward$splits[, grep("_orig", colnames(backward$splits), value = TRUE, invert = TRUE)]))
+  expect_true(all.equal(forward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)],
+                        backward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)]))
+  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "time_gen")],
+                        backward$maps[, c("pop", "pop_id","time_gen")]))
 
   components <- c("generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(forward[[i]], backward[[i]]))))
@@ -112,15 +115,15 @@ test_that("forward and backward models yield the same simulation result", {
   slim(backward, seq_length = 1, recomb_rate = 0, save_locations = TRUE, method = "batch", seed = 123)
 
   # make sure the scripts are the same
-  f_script <- file.path(forward$config$directory, "script.slim") %>%
+  f_script <- file.path(forward$directory, "script.slim") %>%
     readLines %>% grep("MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
-  b_script <- file.path(backward$config$directory, "script.slim") %>%
+  b_script <- file.path(backward$directory, "script.slim") %>%
     readLines %>% grep("MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
   expect_equal(f_script, b_script)
 
   # make sure that the simulated location data is the same
-  f_loc <- data.table::fread(file.path(forward$config$directory, "output_ind_locations.tsv.gz"))
-  b_loc <- data.table::fread(file.path(backward$config$directory, "output_ind_locations.tsv.gz"))
+  f_loc <- data.table::fread(file.path(forward$directory, "output_ind_locations.tsv.gz"))
+  b_loc <- data.table::fread(file.path(backward$directory, "output_ind_locations.tsv.gz"))
 
   expect_equal(f_loc, b_loc)
 })

@@ -9,6 +9,8 @@ initialize() {
   defineConstant("TRACK_ANCESTRY", {{track_ancestry}});
 
   defineConstant("N_MARKERS", {{ancestry_markers}});
+
+  defineConstant("MODEL_DIR", "{{model_dir}}");
   defineConstant("OUTPUT_PREFIX", "{{output_prefix}}");
 
   defineConstant("BURNIN_LENGTH", {{burnin}});
@@ -386,7 +388,7 @@ function (lifso<Subpopulation>$) get_pop(si$ i) {
 
 // Compose path to the given file in the current model directory
 function (s$) config_path(s$ file) {
-  return paste0("{{model_dir}}", "/", file);
+  return paste0(MODEL_DIR, "/", file);
 }
 
 // Write the locations file header line
