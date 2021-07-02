@@ -1,6 +1,6 @@
 initialize() {
   defineConstant("SIM_SEED", {{seed}});
-  setSeed(SIM_SEED);
+  setSeed(SIM_SEED); catn("SEED: " + SIM_SEED);
 
   // optional behavior switches set by the R frontend
   defineConstant("KEEP_PEDIGREES", {{keep_pedigrees}});
@@ -18,10 +18,10 @@ initialize() {
   defineConstant("SIM_END", SIM_START + SIM_LENGTH);
 
   // load model definition tables
-  defineConstant("POPULATIONS", read_table(model_path("populations.tsv")));
-  defineConstant("GENEFLOWS", read_table(model_path("geneflow.tsv")));
-  defineConstant("RESIZES", read_table(model_path("resizes.tsv")));
-  defineConstant("MAPS", read_table(model_path("maps.tsv")));
+  defineConstant("POPULATIONS", read_table(config_path("populations.tsv")));
+  defineConstant("GENEFLOWS", read_table(config_path("geneflow.tsv")));
+  defineConstant("RESIZES", read_table(config_path("resizes.tsv")));
+  defineConstant("MAPS", read_table(config_path("maps.tsv")));
   // load all spatial maps (image objects)
   MAPS.setValue("image", sapply(MAPS.getValue("path"), "Image(applyValue);"));
 
@@ -33,13 +33,14 @@ initialize() {
   slim_time(RESIZES);
 
   // world map dimensions
-  defineConstant("WIDTH", MAPS.getValue("image")[0].width); catn("WIDTH: " + WIDTH);
-  defineConstant("HEIGHT", MAPS.getValue("image")[0].height); catn("HEIGHT: " + HEIGHT);
+  defineConstant("WIDTH", MAPS.getValue("image")[0].width);
+  defineConstant("HEIGHT", MAPS.getValue("image")[0].height);
 
   initializeSLiMOptions(keepPedigrees = KEEP_PEDIGREES, dimensionality = "xy");
   if (TS_RECORDING) initializeTreeSeq();
 
-  // mutation types of neutral ancestry-informative markers (one for each population)
+  // mutation types of neutral ancestry-informative markers
+  // (one for each population)
   mut_types = POPULATIONS.getValue("pop_id");
   for (i in mut_types)
     initializeMutationType(i, 0.5, "f", 0.0);
@@ -67,6 +68,10 @@ initialize() {
     initializeInteractionType(2*i+1, "xy", reciprocal = T, maxDistance = mate_distance);
   }
 }
+
+//////////////////////////////////////////////////////////////////////
+// Scheduled script blocks
+//////////////////////////////////////////////////////////////////////
 
 1 early() {
   // create ancestral populations
@@ -194,12 +199,6 @@ s5 late() {
   }
 }
 
-
-
-//////////////////////////////////////////////////////////////////////
-// Output script blocks
-//////////////////////////////////////////////////////////////////////
-
 // Save locations and remember ancient individuals
 s6 late() {
   // explicitly sample individuals for later tree sequence analysis
@@ -218,7 +217,6 @@ s6 late() {
 
 // Save tree sequences at the end of the simulation
 s7 late() {
-  catn("--------------------------------------------------");
   log_output("saving tree-sequence data");
 
   if (TS_RECORDING) {
@@ -227,12 +225,12 @@ s7 late() {
   }
 }
 
+// Write ancestry proportions in the current generation
 s8 late() {
   write_ancestries();
 }
 
 s9 late() {
-  catn("--------------------------------------------------");
   log_output("simulation finished");
   sim.simulationFinished();
 }
@@ -386,18 +384,19 @@ function (lifso<Subpopulation>$) get_pop(si$ i) {
 // Input/output utility functions
 //////////////////////////////////////////////////////////////////////
 
-function (s$) model_path(s$ file) {
+// Compose path to the given file in the current model directory
+function (s$) config_path(s$ file) {
   return paste0("{{model_dir}}", "/", file);
 }
 
-// Write a header of a locations table to a locations file
+// Write the locations file header line
 function (void) write_locations_header(void) {
   filename = paste0(OUTPUT_PREFIX, "_ind_locations.tsv.gz");
   header_str = "t\tpop\tind\tx\ty\tsampled";
   writeFile(filename, header_str, compress = T);
 }
 
-// Write information about a given individual to a locations file
+// Write information about a given individual to the locations file
 function(void) write_locations(lifso<Individual>$ ind) {
   filename = paste0(OUTPUT_PREFIX, "_ind_locations.tsv.gz");
   if (KEEP_PEDIGREES) id = ind.pedigreeID;
@@ -413,7 +412,7 @@ function(void) write_locations(lifso<Individual>$ ind) {
   writeFile(filename, ind_str, append = T, compress = T);
 }
 
-// Write the headers of ancestry tables
+// Write the header of an ancestry proportion table
 function (void) write_ancestries_header(void) {
   for (pop in pop_param("pop")) {
     header_str = paste(c("gen", NAMES[pop_param("pop")]), sep = "\t");
@@ -422,11 +421,12 @@ function (void) write_ancestries_header(void) {
   }
 }
 
-// Write information about a given individual to a locations file
+// Write ancestry proportions in all populations in the current generation
 function (void) write_ancestries(void) {
   for (pop in sim.subpopulations) {
+    pop_name = filter(POPULATIONS, "pop_id", pop.id).getValue("pop");
     line = paste(SIM_END - sim.generation, calc_ancestry(pop), sep = "\t");
-    filename = paste0(OUTPUT_PREFIX, "_ancestry_", NAMES[pop.id], ".tsv");
+    filename = paste0(OUTPUT_PREFIX, "_ancestry_", pop_name, ".tsv");
     writeFile(filename, line, append = T);
   }
 }
@@ -434,7 +434,7 @@ function (void) write_ancestries(void) {
 // Calculate a vector of ancestry proportions in a given population
 function (float) calc_ancestry(lifso<Subpopulation>$ pop) {
   // mutation IDs of all populations' ancestry markers
-  mut_ids = pop_param("pop");
+  mut_ids = POPULATIONS.getValue("pop_id");
   return sapply(mut_ids, "mean(pop.genomes.countOfMutationsOfType(applyValue) / N_MARKERS);");
 }
 
