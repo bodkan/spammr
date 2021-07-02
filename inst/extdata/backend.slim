@@ -71,9 +71,10 @@ initialize() {
 1 early() {
   // creating ancestral populations (i.e. those without parents)
   pops = filter(POPULATIONS, "parent", "ancestor");
-  for (p in pops) {
-    id = p.getValue("pop_id");
-    sim.addSubpop(id, p.getValue("N"));
+  for (i in iter(pops)) {
+    id = pops.getRowValues(i).getValue("pop_id");
+    N = pops.getRowValues(i).getValue("N");
+    sim.addSubpop(id, N);
     set_map(id, sim.generation);
     set_coordinates(get_pop(id).individuals, id);
     add_markers(id);
@@ -85,7 +86,7 @@ initialize() {
 
   // schedule population size changes
   if (!isNULL(SIZE_CHANGES))
-    sim.rescheduleScriptBlock(s10, generations = SIZE_CHANGES.getValue("time"));
+    sim.rescheduleScriptBlock(s10, generations = unique(SIZE_CHANGES.getValue("time")));
   else
     sim.deregisterScriptBlock(s10);
 
@@ -154,8 +155,8 @@ s0 late() {
 s1 late() {
   // get the populations splitting in the current generation
   pops = filter(POPULATIONS, "tsplit", sim.generation);
-  for (p in pops) {
-    id = p.getValue("pop_id");
+  for (i in iter(pops)) {
+    id = pops.getRowValues(i).getValue("pop_id");
     split_pop(id);
     set_map(id, sim.generation);
     set_coordinates(get_pop(id).individuals, id);
@@ -168,7 +169,9 @@ s1 late() {
 s2 late() {
   // iterate over all geneflow events scheduled for this generation
   // and set them accordingly
-  for (event in filter(GENEFLOWS, "tstart", sim.generation)) {
+  events = filter(GENEFLOWS, "tsplit", sim.generation);
+  for (i in events.getValue("row")) {
+    event = events.getRowValues(i);
     from = event.getValue("from"); to = event.getValue("to");
     from_id = event.getValue("from_id"); to_id = event.getValue("to_id");
     rate = event.getValue("rate");
@@ -185,8 +188,10 @@ s2 late() {
 // Stopping geneflow
 s3 late() {
   // iterate over all geneflow events scheduled for this generation
-  // and set them back to 0.0
-  for (event in filter(GENEFLOWS, "tstart", sim.generation)) {
+  // and set them accordingly
+  events = filter(GENEFLOWS, "tsplit", sim.generation);
+  for (i in events.getValue("row")) {
+    event = events.getRowValues(i);
     from = event.getValue("from"); to = event.getValue("to");
     from_id = event.getValue("from_id"); to_id = event.getValue("to_id");
     rate = event.getValue("rate");
@@ -202,19 +207,21 @@ s3 late() {
 // Remove populations which are no longer necessary
 s4 late() {
   pops = filter(POPULATIONS, "tremove", sim.generation);
-  for (p in pops) {
-    log_output("cleanup of " + p.getValue("pop") + "(" + p.getValue("pop_id") + ")");
-    get_pop(p.getValue("pop")).setSubpopulationSize(0);
+  for (i in iter(pops)) {
+    pop = pops.getRowValues(i);
+    log_output("cleanup of " + pop.getValue("pop") + "(" + pop.getValue("pop_id") + ")");
+    get_pop(pop.getValue("pop")).setSubpopulationSize(0);
   }
 }
 
 // Update population spatial maps
 s5 late() {
   // get populations whose spatial maps should be updated
-  pops = filter(MAPS, "time", sim.generation);
-  for (p in pops) {
-    log_output("updating map for " + p.getValue("pop") + "(" + p.getValue("pop_id") + ")");
-    set_map(p.getValue("pop_id"), sim.generation);
+  maps = filter(MAPS, "time", sim.generation);
+  for (i in iter(maps)) {
+    map = maps.getRowValues(i);
+    log_output("updating map for " + map.getValue("pop") + "(" + map.getValue("pop_id") + ")");
+    set_map(map.getValue("pop_id"), sim.generation);
   }
 }
 
@@ -332,18 +339,6 @@ function (s$) model_path(s$ file) {
   return paste0("{{model_dir}}", "/", file);
 }
 
-// Read table of population splits, migrations, etc.
-function (i) read_table(s$ path) {
-  if (!fileExists(path)) return(NULL);
-
-  lines = readFile(path);
-  matrix = sapply(
-    lines[1 : (size(lines) - 1)], "asInteger(strsplit(applyValue, '\t'));",
-    simplify="matrix"
-  );
-  return t(matrix);
-}
-
 // Write a header of a locations table to a locations file
 function (void) write_locations_header(void) {
   filename = paste0(OUTPUT_PREFIX, "_ind_locations.tsv.gz");
@@ -406,39 +401,33 @@ function (void) evaluate_interactions(void) {
 }
 
 // Assign a spatial map to a given population
-function (void) set_map(i$ i, i$ generation) {
-  img = filter(filter(MAPS, "pop_id", i), "time", generation).getValue("image");
-  get_pop(i).defineSpatialMap("world", "xy", 1.0 - img.floatK,
+function (void) set_map(i$ id, i$ generation) {
+  map = filter(filter(MAPS, "pop_id", id), "time", generation);
+  img = map.getValue("image");
+  pop = get_pop(map.getValue("pop"));
+  pop.defineSpatialMap("world", "xy", 1.0 - img.floatK,
     valueRange=c(min(img.floatK), max(img.floatK)), colors=c("#000000", "#FFFFFF"));
-  get_pop(i).setSpatialBounds(c(0.0, 0.0, asFloat(WIDTH) - 1, asFloat(HEIGHT) - 1));
+  pop.setSpatialBounds(c(0.0, 0.0, asFloat(WIDTH) - 1, asFloat(HEIGHT) - 1));
 }
 
 // Split population from the source specified in an input table
-function (void) split_pop(i$ i) {
-  pop = filter(POPULATIONS, "pop_id", i);
+function (void) split_pop(i$ id) {
+  pop = filter(POPULATIONS, "pop_id", id);
   log_output("split of " + pop.getValue("pop") + "(" + pop.getValue("pop_id") + ")" +
              " from " + pop.getValue("parent") + "(" + pop.getValue("parent_id")  + ")");
-  sim.addSubpopSplit(i, pop.getValue("N"), pop.getValue("parent_id"));
+  sim.addSubpopSplit(pop.getValue("pop_id"), pop.getValue("N"), pop.getValue("parent_id"));
 }
 
 // Set the migration rate from a populaion 'from' to a population 'to'
 // (also used for resetting the migration back to zero)
-function (void) set_geneflow(i$ from, i$ to, f$ rate, [i$ span = 1]) {
-  if (rate == 0)
-    rate_str = " set to 0%";
-  else
-    rate_str = " (" + rate + "% over " + span + " generations)";
-  log_output("geneflow " + NAMES[from] + "(" + from + ")" + " -> " + NAMES[to] + "(" + to + ")" + rate_str);
-  source = get_pop(from);
-  target = get_pop(to);
-  target.setMigrationRates(source, rate / span);
-}
+// function (void) set_geneflow() {}
 
 // Add ancestry informative markers specific to the given population
-function (void) add_markers(i$ pop) {
+function (void) add_markers(i$ id) {
   if (TRACK_ANCESTRY) {
-    log_output("adding " + NAMES[pop] + "(" + pop + ")" + " ancestry markers");
-    get_pop(pop).genomes.addNewMutation(pop, 0.0, seq(0, {{seq_length}} - 1, by = asInteger({{seq_length}} / N_MARKERS)));
+    log_output("adding " + filter(POPULATIONS, "pop_id", id).getValue("pop") +
+               "(" + id + ")" + " ancestry markers");
+    get_pop(pop).genomes.addNewMutation(pop, 0.0, seq(0, 1 - 1, by = asInteger(1 / N_MARKERS)));
   }
 }
 
@@ -487,6 +476,18 @@ function (object<Dictionary>) read_dataframe(s$ path) {
 	return dict;
 }
 
+function (i$) num_rows(object<Dictionary> d) {
+  columns = d.allKeys;
+  lengths = sapply(columns, 'length(d.getValue(applyValue));');
+  if (length(unique(lengths)) != 1)
+    stop("Corrupted dataframe {" + paste(d.allKeys, sep = ", ") + "} with columns of unequal length (" + paste(lengths, sep = ", ") + ")");
+  else
+    return(unique(lengths));
+}
+
+function (i) iter(object<Dictionary> d) {
+  return seqAlong(num_rows(d));
+}
 
 // Filter Dictionary/data-frame for rows where the <column> is
 // equal to <value>
