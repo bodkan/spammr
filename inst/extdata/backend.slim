@@ -141,10 +141,6 @@ initialize() {
   sim.rescheduleScriptBlock(s9, generations = SIM_END);
 }
 
-//////////////////////////////////////////////////////////////////////
-// Scheduled event script blocks
-//////////////////////////////////////////////////////////////////////
-
 // Population splits
 s1 late() {
   pops = filter(POPULATIONS, "tsplit", sim.generation);
@@ -163,17 +159,7 @@ s2 late() {
   events = filter(GENEFLOWS, "tstart", sim.generation);
   for (i in iter(events)) {
     event = events.getRowValues(i);
-
-    from = event.getValue("from"); to = event.getValue("to");
-    from_id = event.getValue("from_id"); to_id = event.getValue("to_id");
-    rate = event.getValue("rate");
-    span = event.getValue("tend") - event.getValue("tstart");
-
-    get_pop(to_id).setMigrationRates(from_id, rate / span);
-
-    log_output("geneflow " + from + "(p" + from_id + ")" +
-               " -> " + to + "(p" + to_id + ")" +
-               " (" + rate + "% over " + span + " generations)");
+    set_geneflow(event, event.getValue("rate"));
   }
 }
 
@@ -182,16 +168,7 @@ s3 late() {
   events = filter(GENEFLOWS, "tend", sim.generation);
   for (i in iter(events)) {
     event = events.getRowValues(i);
-
-    from = event.getValue("from"); to = event.getValue("to");
-    from_id = event.getValue("from_id"); to_id = event.getValue("to_id");
-    rate = event.getValue("rate");
-    span = event.getValue("tend") - event.getValue("tstart");
-
-    get_pop(to_id).setMigrationRates(from_id, 0.0);
-
-    log_output("geneflow " + from + "(p" + from_id + ")" +
-               " -> " + to + "(p" + to_id + ")" + " set to 0%");
+    set_geneflow(event, 0.0);
   }
 }
 
@@ -216,6 +193,8 @@ s5 late() {
     set_map(map.getValue("pop_id"), sim.generation);
   }
 }
+
+
 
 //////////////////////////////////////////////////////////////////////
 // Output script blocks
@@ -268,7 +247,6 @@ s10 late() {
   }
 }
 
-
 //////////////////////////////////////////////////////////////////////
 // Callbacks and interaction evaluations
 //////////////////////////////////////////////////////////////////////
@@ -312,7 +290,8 @@ modifyChild() {
 
   // for spatially overlapping geneflow and non-migrant offspring,
   // propose location in the neighborhood of one of its parents
-  jitter = rnorm(2, 0, filter(POPULATIONS, "pop_id", subpop.id).getValue("offspring_dist"));
+  sigma_dist = filter(POPULATIONS, "pop_id", subpop.id).getValue("offspring_dist");
+  jitter = rnorm(2, 0, sigma_dist);
   pos = parent1.spatialPosition + jitter;
 
   // make sure that offspring is generated in allowed locations on the map
@@ -323,6 +302,84 @@ modifyChild() {
     child.setSpatialPosition(pos);
     return T;
   }
+}
+
+//////////////////////////////////////////////////////////////////////
+// Simulation utility functions
+//////////////////////////////////////////////////////////////////////
+
+function (void) evaluate_interactions(void) {
+  sim.interactionTypes.evaluate();
+}
+
+// Assign a spatial map to a given population
+function (void) set_map(i$ id, i$ generation) {
+  map = filter(filter(MAPS, "pop_id", id), "time", generation);
+  img = map.getValue("image");
+  pop = get_pop(map.getValue("pop"));
+  pop.defineSpatialMap("world", "xy", 1.0 - img.floatK,
+    valueRange=c(min(img.floatK), max(img.floatK)), colors=c("#000000", "#FFFFFF"));
+  pop.setSpatialBounds(c(0.0, 0.0, asFloat(WIDTH) - 1, asFloat(HEIGHT) - 1));
+}
+
+// Split population from the source specified in an input table
+function (void) split_pop(i$ id) {
+  pop = filter(POPULATIONS, "pop_id", id);
+  log_output("split of " + pop.getValue("pop") + "(p" + pop.getValue("pop_id") + ")" +
+             " from " + pop.getValue("parent") + "(p" + pop.getValue("parent_id")  + ")");
+  sim.addSubpopSplit(
+    pop.getValue("pop_id"),
+    pop.getValue("N"),
+    pop.getValue("parent_id")
+  );
+}
+
+// Initiate or terminate geneflow
+function (void) set_geneflow(object<Dictionary> event, f$ rate) {
+  from = event.getValue("from"); to = event.getValue("to");
+  from_id = event.getValue("from_id"); to_id = event.getValue("to_id");
+
+  if (rate > 0) {
+    span = event.getValue("tend") - event.getValue("tstart");
+    rate = rate / span;
+    log_output("geneflow " + from + "(p" + from_id + ")" +
+               " -> " + to + "(p" + to_id + ")" +
+               " (" + rate + "% over " + span + " generations)");
+  } else
+    log_output("geneflow " + from + "(p" + from_id + ")" +
+               " -> " + to + "(p" + to_id + ")" + " set to 0%");
+
+  get_pop(to_id).setMigrationRates(from_id, rate);
+}
+
+// Add ancestry informative markers specific to the given population
+function (void) add_markers(i$ id) {
+  if (TRACK_ANCESTRY) {
+    log_output("adding " + filter(POPULATIONS, "pop_id", id).getValue("pop") +
+               "(" + id + ")" + " ancestry markers");
+    positions = seq(0, 1 - 1, by = asInteger(1 / N_MARKERS));
+    get_pop(pop).genomes.addNewMutation(pop, 0.0, positions);
+  }
+}
+
+// Distribute individuals uniformly within the boundary of the given population
+function (void) set_coordinates(lifso<Individual> inds, i$ pop, [l$ log = T]) {
+  if (log) log_output("distributing individuals");
+  for (ind in inds) {
+    do pos = c(runif(1, 0, WIDTH), runif(1, 0, HEIGHT));
+    while (get_pop(pop).spatialMapValue("world", pos) == 1.0);
+    ind.setSpatialPosition(pos);
+  }
+}
+
+// Get subpopulation object based on a given identifier
+// (SLiM-based numerber or a user-defined string name)
+function (lifso<Subpopulation>$) get_pop(si$ i) {
+  if (isString(i)) i = filter(POPULATIONS, "pop", i).getValue("pop_id");
+  if (!any(i == sim.subpopulations.id))
+    stop("Population " + filter(POPULATIONS, "pop_id", i).getValue("pop") +
+         " not present in the simulation in generation " + sim.generation);
+  return sim.subpopulations[i == sim.subpopulations.id];
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -387,63 +444,8 @@ function (void) log_output(s$ str) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// Simulation utility functions
+// Implementation of Dictionary-based dataframes
 //////////////////////////////////////////////////////////////////////
-
-function (void) evaluate_interactions(void) {
-  sim.interactionTypes.evaluate();
-}
-
-// Assign a spatial map to a given population
-function (void) set_map(i$ id, i$ generation) {
-  map = filter(filter(MAPS, "pop_id", id), "time", generation);
-  img = map.getValue("image");
-  pop = get_pop(map.getValue("pop"));
-  pop.defineSpatialMap("world", "xy", 1.0 - img.floatK,
-    valueRange=c(min(img.floatK), max(img.floatK)), colors=c("#000000", "#FFFFFF"));
-  pop.setSpatialBounds(c(0.0, 0.0, asFloat(WIDTH) - 1, asFloat(HEIGHT) - 1));
-}
-
-// Split population from the source specified in an input table
-function (void) split_pop(i$ id) {
-  pop = filter(POPULATIONS, "pop_id", id);
-  log_output("split of " + pop.getValue("pop") + "(p" + pop.getValue("pop_id") + ")" +
-             " from " + pop.getValue("parent") + "(p" + pop.getValue("parent_id")  + ")");
-  sim.addSubpopSplit(pop.getValue("pop_id"), pop.getValue("N"), pop.getValue("parent_id"));
-}
-
-// Set the migration rate from a populaion 'from' to a population 'to'
-// (also used for resetting the migration back to zero)
-// function (void) set_geneflow() {}
-
-// Add ancestry informative markers specific to the given population
-function (void) add_markers(i$ id) {
-  if (TRACK_ANCESTRY) {
-    log_output("adding " + filter(POPULATIONS, "pop_id", id).getValue("pop") +
-               "(" + id + ")" + " ancestry markers");
-    get_pop(pop).genomes.addNewMutation(pop, 0.0, seq(0, 1 - 1, by = asInteger(1 / N_MARKERS)));
-  }
-}
-
-// Distribute individuals uniformly within the boundary of the given population
-function (void) set_coordinates(lifso<Individual> inds, i$ pop, [l$ log = T]) {
-  if (log) log_output("distributing individuals");
-  for (ind in inds) {
-    do pos = c(runif(1, 0, WIDTH), runif(1, 0, HEIGHT));
-    while (get_pop(pop).spatialMapValue("world", pos) == 1.0);
-    ind.setSpatialPosition(pos);
-  }
-}
-
-// Get subpopulation object based on a given identifier
-// (SLiM-based numerber or a user-defined string name)
-function (lifso<Subpopulation>$) get_pop(si$ i) {
-  if (isString(i)) i = filter(POPULATIONS, "pop", i).getValue("pop_id");
-  if (!any(i == sim.subpopulations.id))
-    stop("Population " + filter(POPULATIONS, "pop_id", i).getValue("pop") +
-         " not present in the simulation in generation " + sim.generation);
-  return sim.subpopulations[i == sim.subpopulations.id];
-}
 
 // Data frame implementation based on Dictionary
 // Read a TSV file as a Dictionary of pairs of the form:
@@ -470,24 +472,6 @@ function (object<Dictionary>) read_table(s$ path) {
 	return dict;
 }
 
-function (i$) num_rows(object<Dictionary> d) {
-  columns = d.allKeys;
-  lengths = sapply(columns, 'length(d.getValue(applyValue));');
-  if (length(unique(lengths)) != 1)
-    stop("Corrupted dataframe {" + paste(d.allKeys, sep = ", ") +
-         "} with columns of unequal length (" +
-         paste(lengths, sep = ", ") + ")");
-  else
-    return(unique(lengths));
-}
-
-
-// Return a vector of row indices of a given dataframe
-function (i) iter(object<Dictionary> d) {
-  return seqLen(num_rows(d));
-}
-
-
 // Filter Dictionary/data-frame for rows where the <column> is
 // equal to <value>
 function (object<Dictionary>) filter(object<Dictionary> d, s$ col, ifsl$ val,
@@ -502,6 +486,22 @@ function (object<Dictionary>) filter(object<Dictionary> d, s$ col, ifsl$ val,
   	return d.getRowValues(values == val);
 }
 
+// Get the number of rows of the given dataframe
+function (i$) num_rows(object<Dictionary> d) {
+  columns = d.allKeys;
+  lengths = sapply(columns, 'length(d.getValue(applyValue));');
+  if (length(unique(lengths)) != 1)
+    stop("Corrupted dataframe {" + paste(d.allKeys, sep = ", ") +
+         "} with columns of unequal length (" +
+         paste(lengths, sep = ", ") + ")");
+  else
+    return(unique(lengths));
+}
+
+// Return a vector of row indices of a given dataframe
+function (i) iter(object<Dictionary> d) {
+  return seqLen(num_rows(d));
+}
 
 // Pretty printer for Dictionary-based dataframe objects
 function (void) print_table(object<Dictionary> d) {
@@ -517,7 +517,6 @@ function (void) print_table(object<Dictionary> d) {
     cat("\n\n");
   }
 }
-
 
 // Convert column vector values to a required type (this is hardcoded
 // for every column among all slendr-generated TSV files)
