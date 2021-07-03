@@ -22,10 +22,10 @@
 #'   loaded by the backend SLiM script
 #' @param overwrite Overwrite the contents of the output directory in case it
 #'   already exists?
-#' @param sim_length Total length of the simulation (if time is specified in a
-#'   forward direction)
-#' @param direction Intended direction of time. Under normal circumstances, this
-#'   parameter is inferred from the model.
+#' @param sim_length Total length of the simulation for the models with time
+#'   specified in a forward direction
+#' @param direction Intended direction of time. Under normal circumstances this
+#'   parameter is inferred from the model and does not neet to be set manually.
 #'
 #' @return Compiled \code{slendr_model} model object
 #' @export

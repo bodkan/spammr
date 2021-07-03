@@ -11,13 +11,13 @@ resize(pop, N, how = "step", time = NULL, start = NULL, end = NULL)
 
 \item{N}{Population size after the change}
 
-\item{how}{How to change the population size (options are \code{"step"}, \code{"exponential"},
-\code{"linear"})}
+\item{how}{How to change the population size (options are \code{"step"},
+\code{"exponential"}, \code{"linear"})}
 
 \item{time}{Time of the population size change}
 
-\item{start, end}{Time-window for the population size change (used for exponential or linear
-change)}
+\item{start, end}{Time-window for the population size change (used for
+exponential or linear change)}
 }
 \description{
 Resize the population size
