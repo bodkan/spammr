@@ -71,7 +71,7 @@ initialize() {
   }
 }
 
-// Create ancestral populations and schedule demographic events
+// Create ancestral populations and schedule script block events
 1 early() {
   pops = filter(POPULATIONS, "parent", "ancestor");
   for (i in iter(pops)) {
@@ -85,7 +85,7 @@ initialize() {
   }
   evaluate_interactions();
 
-  // population splits (if any)
+  // population splits
   splits = filter(POPULATIONS, "parent", "ancestor", negate = T);
   if (num_rows(splits))
     sim.rescheduleScriptBlock(s1, generations = unique(splits.getValue("tsplit")));
@@ -114,11 +114,19 @@ initialize() {
   else
      sim.deregisterScriptBlock(s5);
 
-  // population size changes
-  if (num_rows(RESIZES))
-    sim.rescheduleScriptBlock(s10, generations = unique(RESIZES.getValue("time")));
+  // step population size changes
+  step_changes = filter(RESIZES, "resize_how", "step");
+  if (num_rows(step_changes))
+    sim.rescheduleScriptBlock(s10, generations = unique(step_changes.getValue("time")));
   else
     sim.deregisterScriptBlock(s10);
+
+  // exponential population size changes
+  // exp_changes = filter(RESIZES, "resize_how", "exponential");
+  // if (num_rows(exp_changes))
+  //   sim.rescheduleScriptBlock(s11, generations = unique(exp_changes.getValue("time")));
+  // else
+  //   sim.deregisterScriptBlock(s11);
 
   // output locations of individuals
   if (SAVE_LOCATIONS) {
