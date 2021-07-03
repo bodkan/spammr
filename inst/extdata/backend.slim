@@ -49,8 +49,8 @@ initialize() {
 
   initializeGenomicElementType("g1", mut_types, rep(1.0, length(mut_types)));
 
-  // all ancestry markers have to be prevented from stacking and from
-  // disappearing once they become fixed in a population
+  // all ancestry informative neutral markers have to be prevented
+  // from stacking and from being removed after fixation
   g1.mutationTypes[mut_types].convertToSubstitution = F;
   g1.mutationTypes[mut_types].mutationStackPolicy = "l";
   g1.mutationTypes[mut_types].mutationStackGroup = 0;
@@ -61,13 +61,13 @@ initialize() {
   initializeRecombinationRate({{recomb_rate}});
   initializeMutationRate(0.0);
 
-  // generate interaction types (two for each population)
+  // generate interaction types (two for each population - competition and mating)
   for (i in POPULATIONS.getValue("pop_id")) {
-    max_distance = filter(POPULATIONS, "pop_id", i).getValue("competition_dist");
-    mate_distance = filter(POPULATIONS, "pop_id", i).getValue("mate_dist");
+    competition = filter(POPULATIONS, "pop_id", i).getValue("competition_dist");
+    mating = filter(POPULATIONS, "pop_id", i).getValue("mate_dist");
 
-    initializeInteractionType(2*i, "xy", reciprocal = T, maxDistance = max_distance);
-    initializeInteractionType(2*i+1, "xy", reciprocal = T, maxDistance = mate_distance);
+    initializeInteractionType(2*i, "xy", reciprocal = T, maxDistance = competition);
+    initializeInteractionType(2*i+1, "xy", reciprocal = T, maxDistance = mating);
   }
 }
 
@@ -237,6 +237,7 @@ s9 late() {
   sim.simulationFinished();
 }
 
+// Step population size changes
 s10 late() {
   events = filter(RESIZES, "time", sim.generation);
   for (i in iter(events)) {
@@ -384,7 +385,7 @@ function (lifso<Subpopulation>$) get_pop(si$ i) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// Input/output utility functions
+// Output functions
 //////////////////////////////////////////////////////////////////////
 
 // Compose path to the given file in the current model directory
@@ -397,6 +398,16 @@ function (void) write_locations_header(void) {
   filename = paste0(OUTPUT_PREFIX, "_ind_locations.tsv.gz");
   header_str = "t\tpop\tind\tx\ty\tsampled";
   writeFile(filename, header_str, compress = T);
+}
+
+// Write the header of an ancestry proportion table
+function (void) write_ancestries_header(void) {
+  for (i in iter(POPULATIONS)) {
+    pop = POPULATIONS.getRowValues(i);
+    header_str = paste(c("gen", POPULATIONS.getValue("pop")), sep = "\t");
+    filename = paste0(OUTPUT_PREFIX, "_ancestry_", pop.getValue("pop"), ".tsv");
+    writeFile(filename, header_str);
+  }
 }
 
 // Write information about a given individual to the locations file
@@ -413,16 +424,6 @@ function(void) write_locations(lifso<Individual>$ ind) {
     sep = "\t"
   );
   writeFile(filename, ind_str, append = T, compress = T);
-}
-
-// Write the header of an ancestry proportion table
-function (void) write_ancestries_header(void) {
-  for (i in iter(POPULATIONS)) {
-    pop = POPULATIONS.getRowValues(i);
-    header_str = paste(c("gen", POPULATIONS.getValue("pop")), sep = "\t");
-    filename = paste0(OUTPUT_PREFIX, "_ancestry_", pop.getValue("pop"), ".tsv");
-    writeFile(filename, header_str);
-  }
 }
 
 // Write ancestry proportions in all populations in the current generation
@@ -468,7 +469,8 @@ function (object<Dictionary>) read_table(s$ path) {
 	// generate a dictionary of key-vector (pairs column-column values)
 	dict = Dictionary();
 	for (i in seqAlong(columns)) {
-		// extract values of the i-th column
+		// extract values of the i-th column by offseting into a one dimensional
+		// vector of dataframe cells
 		indices = seq(i, length(body_elements) - 1, by = length(columns));
 		column_values = convert_type(columns[i], body_elements[indices]);
 

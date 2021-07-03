@@ -389,11 +389,11 @@ boundary <- function(pop, time, center = NULL, radius = NULL,
 #'
 #' @param pop Object of the class \code{slendr_pop}
 #' @param N Population size after the change
-#' @param how How to change the population size (options are \code{"step"}, \code{"exponential"},
-#'   \code{"linear"})
+#' @param how How to change the population size (options are \code{"step"},
+#'   \code{"exponential"}, \code{"linear"})
 #' @param time Time of the population size change
-#' @param start,end Time-window for the population size change (used for exponential or linear
-#'   change)
+#' @param start,end Time-window for the population size change (used for
+#'   exponential or linear change)
 resize <- function(pop, N, how = "step", time = NULL, start = NULL, end = NULL) {
   if (N < 1) stop("Only positive population sizes allowed", call. = FALSE)
 
@@ -426,8 +426,8 @@ for the 'how' parameter", call. = FALSE)
   } else {
     check_event_time(c(start, end), pop)
     check_removal_time(start, pop)
-    change$start <- start
-    change$end <- end
+    change$tstart <- start
+    change$tend <- end
   }
 
   attr(pop, "history") <- append(attr(pop, "history"), list(change))
