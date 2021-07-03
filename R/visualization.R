@@ -38,7 +38,7 @@ animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
   )
 
   p <- plot(model$world) +
-    geom_point(data = locs, aes(newx, newy, color = pop), alpha = 0.5) +
+    geom_point(data = locs, aes(newx, newy, color = pop), alpha = 0.5, size = 0.5) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           legend.title = element_blank())
