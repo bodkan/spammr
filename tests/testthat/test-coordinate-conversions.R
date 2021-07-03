@@ -3,7 +3,8 @@ pop <- population("pop1", parent = "ancestor", N = 100, time = 100,
                   center = c(0, 25), radius = 100000, map = map, intersect = FALSE)
 model <- compile(
   pop, dir = tempfile(), generation_time = 1, resolution = 100000,
-  competition_dist = 100e3, mate_dist = 100e3, offspring_dist = 10e3
+  competition_dist = 100e3, mate_dist = 100e3, offspring_dist = 10e3,
+  direction = "backward"
 )
 
 ######################################################################

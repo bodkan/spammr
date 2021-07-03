@@ -136,7 +136,8 @@ get_time_direction <- function(pop) {
 
   if (length(split_times) == 1) {
     event_times <- attr(pop, "history") %>%
-      sapply(function(event) c(event$time, event$start, event$end))
+      sapply(function(event) c(event$time, event$start, event$end)) %>%
+      unlist
     if (length(event_times) == 1)
         "unknown"
     else if (all(diff(event_times) < 0))
@@ -187,13 +188,13 @@ check_event_time <- function(time, pop) {
   comp <- if (direction == "backward") `>` else `<`
 
   # test if all times are consistent with the assumed time direction
-  if (length(time) > 1 & all(comp(diff(time), 0)))
-      stop(sprintf("Specified start-end time window is inconsistent with the %s time direction assumed by the model", direction),
+  if (direction != "unknown" & length(time) > 1 & all(comp(diff(time), 0)))
+      stop(sprintf("The specified start-end time window is inconsistent with the %s time direction assumed by the model", direction),
            call. = FALSE)
 
   # check consistency of times with the last specified time event for
   # this population
-  if (any(comp(time, previous_time)))
+  if (direction != "unknown" & !all(comp(previous_time, time)))
     stop(sprintf("The specified event time (%s) is inconsistent with last active time (%s) given the assumed %s time direction",
                  paste(time, collapse = "-"), previous_time, direction),
          call. = FALSE)

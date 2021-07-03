@@ -54,11 +54,11 @@ test_that("forward and backward models yield the same simulation result", {
   # forward simulation ------------------------------------------------------
   p1 <- population(name = "pop1", parent = "ancestor", N = 100, time = 1, radius = 600000, center = c(10, 25), map = map)
   p2 <- population(name = "pop2", parent = p1, time = 10, N = 100, center = c(10, 25), radius = 300000) %>%
-    move(trajectory = list(c(25, 25), c(40, 30), c(40, 40), c(50, 50)), start = 10, end = 200, snapshots = 30)
+    move(trajectory = list(c(25, 25), c(40, 30), c(40, 40), c(50, 50)), start = 11, end = 200, snapshots = 30)
   p3 <- population(name = "pop3", parent = p2, time = 200, N = 100, polygon = list(c(-10, 50), c(10, 50), c(20, 53), c(40, 60), c(40, 70), c(-10, 65)))
   p4 <- population(name = "pop4", parent = p2, time = 200, N = 100, polygon = list(c(-10, 35), c(20, 37), c(25, 40), c(30, 45), c(10, 50), c(-10, 45)))
   p5 <- population(name = "pop5", parent = p1, time = 300, N = 100, center = c(10, 25), radius = 300000) %>%
-    move(trajectory = list(c(-5, 33), c(-5, 40)), start = 300, end = 400, snapshots = 20)
+    move(trajectory = list(c(-5, 33), c(-5, 40)), start = 301, end = 400, snapshots = 20)
 
   geneflow <- list(
     geneflow(from = p5, to = p4, rate = 0.2, start = 310, end = 350, overlap = F),
@@ -79,11 +79,11 @@ test_that("forward and backward models yield the same simulation result", {
   # backward simulation -----------------------------------------------------
   p1 <- population(name = "pop1", parent = "ancestor", N = 100, time = 480, radius = 600000, center = c(10, 25), map = map)
   p2 <- population(name = "pop2", parent = p1, time = 471, N = 100, center = c(10, 25), radius = 300000) %>%
-    move(trajectory = list(c(25, 25), c(40, 30), c(40, 40), c(50, 50)), start = 471, end = 281, snapshots = 30)
+    move(trajectory = list(c(25, 25), c(40, 30), c(40, 40), c(50, 50)), start = 470, end = 281, snapshots = 30)
   p3 <- population(name = "pop3", parent = p2, time = 281, N = 100, polygon = list(c(-10, 50), c(10, 50), c(20, 53), c(40, 60), c(40, 70), c(-10, 65)))
   p4 <- population(name = "pop4", parent = p2, time = 281, N = 100, polygon = list(c(-10, 35), c(20, 37), c(25, 40), c(30, 45), c(10, 50), c(-10, 45)))
   p5 <- population(name = "pop5", parent = p1, time = 181, N = 100, center = c(10, 25), radius = 300000) %>%
-    move(trajectory = list(c(-5, 33), c(-5, 40)), start = 181, end = 81, snapshots = 20)
+    move(trajectory = list(c(-5, 33), c(-5, 40)), start = 180, end = 81, snapshots = 20)
 
   geneflow <- list(
     geneflow(from = p5, to = p4, rate = 0.2, start = 171, end = 131, overlap = F),
@@ -140,7 +140,7 @@ test_that("overlaps in time result in an error (forward time)", {
   map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
   p1 <- population(name = "p1", time = 1, N = 1, center = c(1, 1), radius = 10, map = map)
   p2 <- population(name = "p2", parent = p1, time = 10, N = 1, center = c(20, 50), radius = 20) %>%
-    move(trajectory = c(100, 100), start = 10, end = 20, snapshots = 5)
+    move(trajectory = c(100, 100), start = 11, end = 20, snapshots = 5)
   # repeating the same move
   expect_error(move(p2, trajectory = c(100, 100), start = 10, end = 20, snapshots = 5),
                "The specified event time")

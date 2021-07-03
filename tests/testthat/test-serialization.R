@@ -7,7 +7,7 @@ test_that("read() restores a single-map model object", {
 
   model_dir <- file.path(tempdir(), "tmp-single-map-model-serialization")
   model1 <- compile(pop, dir = model_dir, resolution = 10000, generation_time = 1, overwrite = TRUE,
-                    competition_dist = 100e3, mate_dist = 100e3, offspring_dist = 10e3)
+                    competition_dist = 100e3, mate_dist = 100e3, offspring_dist = 10e3, direction = "backward")
   model2 <- read(model1$directory)
 
   # make sure that all components of the model list object before and after

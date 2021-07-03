@@ -56,11 +56,11 @@ compile <- function(populations, dir, generation_time, resolution,
     max_time <- sim_length
 
   # make sure all populations share the same direction of time
-  time_dir <- unique(sapply(populations, get_time_direction))
+  time_dir <- setdiff(unique(sapply(populations, get_time_direction)), "unknown")
   if (length(time_dir) > 1)
     stop("Inconsistent direction of time among the specified populations", call. = FALSE)
 
-  if (time_dir == "unknown") {
+  if (length(time_dir) == 0) {
     if (!is.null(direction) & all(direction == "backward"))
       time_dir <- "backward"
     else if (is.null(sim_length))
