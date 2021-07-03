@@ -132,10 +132,18 @@ get_lineage_splits <- function(x) {
 
 # Get direction of time implied by the model
 get_time_direction <- function(pop) {
-  times <- get_lineage_splits(pop)
-  if (length(times) == 1)
-    "unknown"
-  else if (all(diff(times) > 0))
+  split_times <- get_lineage_splits(pop)
+
+  if (length(split_times) == 1) {
+    event_times <- attr(pop, "history") %>%
+      sapply(function(event) c(event$time, event$start, event$end))
+    if (length(event_times) == 1)
+        "unknown"
+    else if (all(diff(event_times) < 0))
+      "backward"
+    else
+      "forward"
+  } else if (all(diff(split_times) > 0))
     "backward"
   else
     "forward"
@@ -176,7 +184,7 @@ check_event_time <- function(time, pop) {
 
   previous_time <- get_previous_time(pop)
 
-  comp <- if (direction == "forward") `<` else `>`
+  comp <- if (direction == "backward") `>` else `<`
 
   # test if all times are consistent with the assumed time direction
   if (length(time) > 1 & all(comp(diff(time), 0)))

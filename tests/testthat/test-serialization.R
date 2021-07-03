@@ -12,7 +12,7 @@ test_that("read() restores a single-map model object", {
 
   # make sure that all components of the model list object before and after
   # serialization are equal
-  components <- c("splits", "geneflow", "maps", "generation_time", "resolution", "world")
+  components <- c("splits", "geneflow", "maps", "direction", "generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
   expect_true(all(sapply(seq_along(model1$populations), function(i) all(model1$populations[[i]] == model2$populations[[i]]))))
 })
@@ -46,7 +46,7 @@ test_that("read() restores a complex model object", {
   )
   model2 <- read(model1$directory)
 
-  components <- c("splits", "geneflow", "maps", "generation_time", "resolution", "world")
+  components <- c("splits", "geneflow", "maps", "direction", "generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
   expect_true(all(sapply(seq_along(model1$populations), function(i) all(model1$populations[[i]] == model2$populations[[i]]))))
 })

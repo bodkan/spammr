@@ -16,9 +16,6 @@ initialize() {
   defineConstant("BURNIN_LENGTH", {{burnin}});
   defineConstant("SIM_LENGTH", {{length}});
 
-  defineConstant("SIM_START", BURNIN_LENGTH + 1);
-  defineConstant("SIM_END", SIM_START + SIM_LENGTH);
-
   // load model definition tables
   defineConstant("POPULATIONS", read_table(config_path("populations.tsv")));
   defineConstant("GENEFLOWS", read_table(config_path("geneflow.tsv")));
@@ -33,6 +30,9 @@ initialize() {
   slim_time(GENEFLOWS);
   slim_time(MAPS);
   slim_time(RESIZES);
+
+  defineConstant("SIM_START", BURNIN_LENGTH + min(POPULATIONS.getValue("tsplit_gen")));
+  defineConstant("SIM_END", SIM_START + SIM_LENGTH);
 
   // world map dimensions
   defineConstant("WIDTH", MAPS.getValue("image")[0].width);
@@ -71,26 +71,10 @@ initialize() {
   }
 }
 
-// Create ancestral populations and schedule script block events
+// Schedule script block events
 1 early() {
-  pops = filter(POPULATIONS, "parent", "ancestor");
-  for (i in iter(pops)) {
-    pop = pops.getRowValues(i);
-    id = pop.getValue("pop_id"); N = pop.getValue("N");
-
-    sim.addSubpop(id, N);
-    set_map(id, sim.generation);
-    set_coordinates(get_pop(id).individuals, id);
-    add_markers(id);
-  }
-  evaluate_interactions();
-
   // population splits
-  splits = filter(POPULATIONS, "parent", "ancestor", negate = T);
-  if (num_rows(splits))
-    sim.rescheduleScriptBlock(s1, generations = unique(splits.getValue("tsplit")));
-  else
-    sim.deregisterScriptBlock(s1);
+  sim.rescheduleScriptBlock(s1, generations = unique(POPULATIONS.getValue("tsplit")));
 
   // geneflow events
   if (num_rows(GENEFLOWS)) {
@@ -160,8 +144,14 @@ initialize() {
 s1 late() {
   pops = filter(POPULATIONS, "tsplit", sim.generation);
   for (i in iter(pops)) {
-    pop_id = pops.getRowValues(i).getValue("pop_id");
-    split_pop(pop_id);
+    pop = pops.getRowValues(i);
+    pop_id = pop.getValue("pop_id");
+
+    if (pop.getValue("parent") ==  "ancestor")
+      sim.addSubpop(pop_id, pop.getValue("N"));
+    else
+      split_pop(pop_id);
+
     set_map(pop_id, sim.generation);
     set_coordinates(get_pop(pop_id).individuals, pop_id);
     add_markers(pop_id);
@@ -490,8 +480,10 @@ function (object<Dictionary>) read_table(s$ path) {
 
 // Filter Dictionary/data-frame for rows where the <column> is
 // equal to <value>
-function (object<Dictionary>) filter(object<Dictionary> d, s$ col, ifsl$ val,
+function (object<Dictionary>) filter(No<Dictionary> d, s$ col, ifsl$ val,
                                      [l$ negate = F]) {
+  if (isNULL(d)) return(NULL);
+
   if (!any(col == d.allKeys))
     stop("Column '" + col + "' not present in the table");
 
@@ -505,6 +497,7 @@ function (object<Dictionary>) filter(object<Dictionary> d, s$ col, ifsl$ val,
 // Get the number of rows of the given dataframe
 function (i$) num_rows(No<Dictionary>$ d) {
   if (isNULL(d)) return(0);
+
   columns = d.allKeys;
   lengths = sapply(columns, 'length(d.getValue(applyValue));');
   if (length(unique(lengths)) != 1)

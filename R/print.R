@@ -116,7 +116,7 @@ print.slendr_model <- function(x, ...) {
   else
     cat("[no geneflow]\n")
   cat("generation time:", x$generation_time, "\n")
-  cat("time direction:", get_time_direction(tail(x$populations, 1)[[1]]), "\n")
+  cat("time direction:", x$direction, "\n")
   cat("number of spatial maps:", nrow(x$maps), "\n")
   cat("resolution:", x$resolution, "distance unit per pixel\n\n")
   cat("configuration files in:", normalizePath(x$directory), "\n\n")
@@ -200,7 +200,7 @@ print_pop_history <- function(x) {
     }
 
     # population size change
-    else if (event$event == "resize" & event$how == "step") {
+    else if (event$event == "resize" & event$resize_how == "step") {
       cat(sprintf("%d: resize from %d to %d individuals",
                   event$time, event$prev_N, event$N))
     } else
