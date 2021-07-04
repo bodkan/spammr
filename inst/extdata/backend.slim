@@ -85,43 +85,30 @@ initialize() {
     sim.deregisterScriptBlock(s3);
   }
 
-  // removing populations from the simulation
-  cleanups = filter(POPULATIONS, "tremove", -1, negate = T);
-  if (num_rows(cleanups))
-     sim.rescheduleScriptBlock(s4, generations = unique(cleanups.getValue("tremove")));
-  else
-     sim.deregisterScriptBlock(s4);
-
   // spatial map changes
   if (any(MAPS.getValue("time_gen") > 1))
-     sim.rescheduleScriptBlock(s5, generations = unique(MAPS.getValue("time")));
+     sim.rescheduleScriptBlock(s4, generations = unique(MAPS.getValue("time")));
   else
-     sim.deregisterScriptBlock(s5);
+     sim.deregisterScriptBlock(s4);
 
   // step population size changes
   step_changes = filter(RESIZES, "resize_how", "step");
   if (num_rows(step_changes))
-    sim.rescheduleScriptBlock(s10, generations = unique(step_changes.getValue("time")));
+    sim.rescheduleScriptBlock(s5, generations = unique(step_changes.getValue("time")));
   else
-    sim.deregisterScriptBlock(s10);
+    sim.deregisterScriptBlock(s5);
 
   // exponential population size changes
   // exp_changes = filter(RESIZES, "resize_how", "exponential");
   // if (num_rows(exp_changes))
-  //   sim.rescheduleScriptBlock(s11, generations = unique(exp_changes.getValue("time")));
+  //   sim.rescheduleScriptBlock(s6, generations = unique(exp_changes.getValue("time")));
   // else
-  //   sim.deregisterScriptBlock(s11);
+  //   sim.deregisterScriptBlock(s6);
 
   // output locations of individuals
   if (SAVE_LOCATIONS) {
-    sim.rescheduleScriptBlock(s6, start = SIM_START, end = SIM_END);
+    sim.rescheduleScriptBlock(s7, start = SIM_START, end = SIM_END);
     write_locations_header();
-  } else
-    sim.deregisterScriptBlock(s6);
-
-  // output tree sequence data
-  if (TS_RECORDING) {
-    sim.rescheduleScriptBlock(s7, generations = SIM_END);
   } else
     sim.deregisterScriptBlock(s7);
 
@@ -132,8 +119,21 @@ initialize() {
   } else
      sim.deregisterScriptBlock(s8);
 
+  // output tree sequence data
+  if (TS_RECORDING) {
+    sim.rescheduleScriptBlock(s9, generations = SIM_END);
+  } else
+    sim.deregisterScriptBlock(s9);
+
+  // removing populations from the simulation
+  cleanups = filter(POPULATIONS, "tremove", -1, negate = T);
+  if (num_rows(cleanups))
+     sim.rescheduleScriptBlock(s10, generations = unique(cleanups.getValue("tremove")));
+  else
+     sim.deregisterScriptBlock(s10);
+
   // stop the simulation
-  sim.rescheduleScriptBlock(s9, generations = SIM_END);
+  sim.rescheduleScriptBlock(s11, generations = SIM_END);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -177,19 +177,8 @@ s3 late() {
   }
 }
 
-// Remove populations which are no longer necessary
-s4 late() {
-  pops = filter(POPULATIONS, "tremove", sim.generation);
-  for (i in iter(pops)) {
-    pop = pops.getRowValues(i);
-    log_output("cleanup of " + pop.getValue("pop") +
-               "(p" + pop.getValue("pop_id") + ")");
-    get_pop(pop.getValue("pop")).setSubpopulationSize(0);
-  }
-}
-
 // Update population spatial maps
-s5 late() {
+s4 late() {
   maps = filter(MAPS, "time", sim.generation);
   for (i in iter(maps)) {
     map = maps.getRowValues(i);
@@ -199,8 +188,20 @@ s5 late() {
   }
 }
 
+// Step population size changes
+s5 late() {
+  events = filter(RESIZES, "time", sim.generation);
+  for (i in iter(events)) {
+    event = events.getRowValues(i);
+    pop = event.getValue("pop"); N = event.getValue("N");
+    get_pop(pop).setSubpopulationSize(N);
+    log_output(pop + "(p" + event.getValue("pop_id") + ") resized to " +
+               N + " individuals");
+  }
+}
+
 // Save locations and remember ancient individuals
-s6 late() {
+s7 late() {
   // explicitly sample individuals for later tree sequence analysis
   // (one individual from each population)
   // TODO: make this programmable by the user on the R side
@@ -215,8 +216,13 @@ s6 late() {
   }
 }
 
+// Write ancestry proportions in the current generation
+s8 late() {
+  write_ancestries();
+}
+
 // Save tree sequences at the end of the simulation
-s7 late() {
+s9 late() {
   log_output("saving tree-sequence data");
 
   if (TS_RECORDING) {
@@ -225,27 +231,22 @@ s7 late() {
   }
 }
 
-// Write ancestry proportions in the current generation
-s8 late() {
-  write_ancestries();
+// Remove populations which are no longer necessary
+s10 late() {
+  pops = filter(POPULATIONS, "tremove", sim.generation);
+  for (i in iter(pops)) {
+    pop = pops.getRowValues(i);
+    log_output("cleanup of " + pop.getValue("pop") +
+               "(p" + pop.getValue("pop_id") + ")");
+    get_pop(pop.getValue("pop")).setSubpopulationSize(0);
+  }
 }
 
-s9 late() {
+s11 late() {
   log_output("simulation finished");
   sim.simulationFinished();
 }
 
-// Step population size changes
-s10 late() {
-  events = filter(RESIZES, "time", sim.generation);
-  for (i in iter(events)) {
-    event = events.getRowValues(i);
-    pop = event.getValue("pop"); N = event.getValue("N");
-    get_pop(pop).setSubpopulationSize(N);
-    log_output(pop + "(p" + event.getValue("pop_id") + ") resized to " +
-               N + " individuals");
-  }
-}
 
 //////////////////////////////////////////////////////////////////////
 // Interaction and fitness callbacks
