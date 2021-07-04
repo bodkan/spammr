@@ -137,7 +137,8 @@ get_time_direction <- function(pop) {
   if (length(split_times) == 1) {
     event_times <- attr(pop, "history") %>%
       sapply(function(event) c(event$time, event$start, event$end)) %>%
-      unlist
+      unlist %>%
+      unique
     if (length(event_times) == 1)
         "unknown"
     else if (all(diff(event_times) < 0))
