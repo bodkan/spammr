@@ -394,6 +394,8 @@ boundary <- function(pop, time, center = NULL, radius = NULL,
 #' @param time Time of the population size change
 #' @param start,end Time-window for the population size change (used for
 #'   exponential or linear change)
+#'
+#' @export
 resize <- function(pop, N, how = "step", time = NULL, start = NULL, end = NULL) {
   if (N < 1) stop("Only positive population sizes allowed", call. = FALSE)
 
