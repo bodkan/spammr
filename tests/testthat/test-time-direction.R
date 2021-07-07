@@ -116,16 +116,17 @@ test_that("forward and backward models yield the same simulation result", {
 
   # make sure the scripts are the same
   f_script <- file.path(forward$directory, "script.slim") %>%
-    readLines %>% grep("MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
+    readLines %>% grep("DIRECTION|MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
   b_script <- file.path(backward$directory, "script.slim") %>%
-    readLines %>% grep("MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
+    readLines %>% grep("DIRECTION|MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
   expect_equal(f_script, b_script)
 
   # make sure that the simulated location data is the same
   f_loc <- data.table::fread(file.path(forward$directory, "output_ind_locations.tsv.gz"))
   b_loc <- data.table::fread(file.path(backward$directory, "output_ind_locations.tsv.gz"))
+  f_loc[, time := NULL]; b_loc[, time := NULL]
 
-  expect_equal(f_loc, b_loc)
+  expect_equal(f_loc, b_loc[)
 })
 
 test_that("move preceding population split results in an error", {

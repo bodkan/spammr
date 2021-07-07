@@ -24,6 +24,9 @@ initialize() {
   // load all spatial maps (image objects)
   MAPS.setValue("image", sapply(MAPS.getValue("path"), "Image(applyValue);"));
 
+  defineConstant("GENERATION_TIME", {{generation_time}});
+  defineConstant("DIRECTION", "{{direction}}");
+
   // convert times from generations (starting at 1) to absolute SLiM times
   // (shifted by the burnin length)
   slim_time(POPULATIONS);
@@ -32,7 +35,7 @@ initialize() {
   slim_time(RESIZES);
 
   defineConstant("SIM_START", BURNIN_LENGTH + min(POPULATIONS.getValue("tsplit_gen")));
-  defineConstant("SIM_END", SIM_START + SIM_LENGTH);
+  defineConstant("SIM_END", SIM_START + SIM_LENGTH - 1);
 
   // world map dimensions
   defineConstant("WIDTH", MAPS.getValue("image")[0].width);
@@ -114,7 +117,7 @@ initialize() {
 
   // output ancestry proportions
   if (TRACK_ANCESTRY) {
-     sim.rescheduleScriptBlock(s8, generations = SIM_START : SIM_END);
+     sim.rescheduleScriptBlock(s8, start = SIM_START, end = SIM_END);
      write_ancestries_header();
   } else
      sim.deregisterScriptBlock(s8);
@@ -395,7 +398,7 @@ function (s$) config_path(s$ file) {
 // Write the locations file header line
 function (void) write_locations_header(void) {
   filename = paste0(OUTPUT_PREFIX, "_ind_locations.tsv.gz");
-  header_str = "t\tpop\tind\tx\ty\tsampled";
+  header_str = "gen\ttime\tpop\tind\tx\ty\tsampled";
   writeFile(filename, header_str, compress = T);
 }
 
@@ -412,16 +415,24 @@ function (void) write_ancestries_header(void) {
 // Write information about a given individual to the locations file
 function(void) write_locations(lifso<Individual>$ ind) {
   filename = paste0(OUTPUT_PREFIX, "_ind_locations.tsv.gz");
-  if (KEEP_PEDIGREES) id = ind.pedigreeID;
-  else id = -1;
-  ind_str = paste(
-    SIM_END - sim.generation,
-    ind.subpopulation.id,
-    id,
-    ind.spatialPosition,
-    asInteger(!isNULL(ind.getValue("sampled"))),
-    sep = "\t"
-  );
+
+  if (KEEP_PEDIGREES)
+    id = ind.pedigreeID;
+  else
+    id = -1;
+
+  if (DIRECTION == "forward") {
+    absolute_start = min(POPULATIONS.getValue("tsplit_gen"));
+    time = (sim.generation - SIM_START + absolute_start) * GENERATION_TIME;
+  } else {
+    absolute_end = SIM_START + asInteger(max(POPULATIONS.getValue("tsplit_orig")) / GENERATION_TIME) - 1;
+    time = (absolute_end - sim.generation + 1) * GENERATION_TIME;
+  }
+
+  ind_str = paste(SIM_END - sim.generation, time,
+                  ind.subpopulation.id, id, ind.spatialPosition,
+                  asInteger(!isNULL(ind.getValue("sampled"))), sep = "\t");
+
   writeFile(filename, ind_str, append = T, compress = T);
 }
 
