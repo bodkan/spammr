@@ -166,6 +166,8 @@ time (%d) is lower than the parent's (%s)",
 time (%s) is higher than the parent's (%s)",
                  time, parent_time),
          call. = FALSE)
+  } else if (time == parent_time) {
+    stop("Population can be only created after its parent is already present in the simulation", call. = FALSE)
   }
 }
 
@@ -182,23 +184,53 @@ get_previous_time <- function(pop) {
 
 
 check_event_time <- function(time, pop) {
+  if (length(time) > 1 & time[1] == time[2])
+    stop("Start time of the event is equal to the end time of the event", call. = FALSE)
+
   direction <- get_time_direction(pop)
 
   previous_time <- get_previous_time(pop)
 
-  comp <- if (direction == "backward") `>` else `<`
+  # testing for consistent for ancestral populations (unknown time direction)
+  if (direction == "unknown") {
+    # there is no information about time direction from ancestral populations,
+    # but we can test that all times of the current event are before/after that
+    # population's split time
+    if (!(all(time >= previous_time) | all(time <= previous_time)))
+      stop(sprintf("The new event (time %s) falls both before and after the last active time (%s) for the population",
+                   paste(time, collapse = "-"), previous_time), call. = FALSE)
 
-  # test if all times are consistent with the assumed time direction
-  if (direction != "unknown" & length(time) > 1 & all(comp(diff(time), 0)))
-      stop(sprintf("The specified start-end time window is inconsistent with the %s time direction assumed by the model", direction),
+    # if a start-end time window was specified for the event, we can lock in
+    # a time direction even for ancestral populations for which the flow of
+    # time is otherwise unknown
+    if (length(time) > 1) {
+      # the first time point implies time going backwards, but the event window
+      # implies a forward direction
+      if (time[1] < previous_time & time[2] > time[1])
+        stop(sprintf("The new event (time %s) implies a forward time direction but the population split time (%d) is higher (indicating backward time direction)",
+             paste(time, collapse = "-"), previous_time), call. = FALSE)
+      else if (time[1] > previous_time & time[2] < time[1])
+        stop(sprintf("The new event (time %s) implies a backward time direction but the population split time (%d) is lower (indicating forward time direction)",
+                     paste(time, collapse = "-"), previous_time), call. = FALSE)
+    }
+  } else if (direction %in% c("backward", "forward")) {
+    # direction of an event follows the already established time direction
+    if ((direction == "backward" & length(time) > 1 & time[1] < time[2]) |
+        (direction == "forward" & length(time) > 1 & time[1] > time[2])) {
+      event_direction <- if (time[1] < time[2]) "forward" else "backward"
+      stop(sprintf("The new %s event (time %s) is inconsistent with the %s time direction assumed by the model",
+                   event_direction, paste0(time, collapse = "-"), direction), call. = FALSE)
+    }
+
+    # time of event is consistent with the already established time direction
+    if ((direction == "backward" & !all(previous_time >= time)) |
+        (direction == "forward" & !all(previous_time <= time))) {
+      stop(sprintf("The new event (time %s) pre-dates the last specified active event (%s) which is incompatible with the assumed %s time direction of the model",
+                   paste(time, collapse = "-"), previous_time, direction),
            call. = FALSE)
-
-  # check consistency of times with the last specified time event for
-  # this population
-  if (direction != "unknown" & !all(comp(previous_time, time)))
-    stop(sprintf("The specified event time (%s) is inconsistent with last active time (%s) given the assumed %s time direction",
-                 paste(time, collapse = "-"), previous_time, direction),
-         call. = FALSE)
+    }
+  } else
+    stop(sprintf("Unknown time direction %s", direction), call. = FALSE)
 }
 
 

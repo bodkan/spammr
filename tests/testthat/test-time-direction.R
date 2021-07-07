@@ -133,7 +133,7 @@ test_that("move preceding population split results in an error", {
   p1 <- population(name = "p1", time = 1, N = 1, center = c(1, 1), radius = 10, map = map)
   p2 <- population(name = "p2", parent = p1, time = 10, N = 1, center = c(20, 50), radius = 20)
   expect_error(move(p2, trajectory = c(100, 100), start = 3, end = 20, snapshots = 5),
-               "The specified event time")
+               "The new event (.*) pre-dates the last specified active event")
 })
 
 test_that("overlaps in time result in an error (forward time)", {
@@ -141,18 +141,15 @@ test_that("overlaps in time result in an error (forward time)", {
   p1 <- population(name = "p1", time = 1, N = 1, center = c(1, 1), radius = 10, map = map)
   p2 <- population(name = "p2", parent = p1, time = 10, N = 1, center = c(20, 50), radius = 20) %>%
     move(trajectory = c(100, 100), start = 11, end = 20, snapshots = 5)
+  msg <- "The new event (.*) pre-dates the last specified active event"
   # repeating the same move
-  expect_error(move(p2, trajectory = c(100, 100), start = 10, end = 20, snapshots = 5),
-               "The specified event time")
+  expect_error(move(p2, trajectory = c(100, 100), start = 10, end = 20, snapshots = 5), msg)
   # overlapping time window of the second move
-  expect_error(move(p2, trajectory = c(100, 100), start = 5, end = 30, snapshots = 5),
-               "The specified event time")
+  expect_error(move(p2, trajectory = c(100, 100), start = 5, end = 30, snapshots = 5), msg)
   # overlapping time window of the following range expansion
-  expect_error(expand(p2, by = 20, start = 5, end = 30, snapshots = 5),
-               "The specified event time" )
+  expect_error(expand(p2, by = 20, start = 5, end = 30, snapshots = 5), msg)
   # overlapping time window of the following range change
-  expect_error(boundary(p2, time = 8, center = c(50, 10), radius = 8),
-               "The specified event time")
+  expect_error(boundary(p2, time = 8, center = c(50, 10), radius = 8), msg)
 })
 
 test_that("overlaps in time result in an error (backward time)", {
@@ -160,28 +157,26 @@ test_that("overlaps in time result in an error (backward time)", {
   p1 <- population(name = "p1", time = 100, N = 1, center = c(1, 1), radius = 10, map = map)
   p2 <- population(name = "p2", parent = p1, time = 40, N = 1, center = c(20, 50), radius = 20) %>%
     move(trajectory = c(100, 100), start = 30, end = 10, snapshots = 5)
+  msg <- "The new event (.*) pre-dates the last specified active event"
   # repeating the same move
-  expect_error(move(p2, trajectory = c(100, 100), start = 30, end = 10, snapshots = 5),
-               "The specified event time")
+  expect_error(move(p2, trajectory = c(100, 100), start = 30, end = 10, snapshots = 5), msg)
   # overlapping time window of the second move
-  expect_error(move(p2, trajectory = c(100, 100), start = 25, end = 5, snapshots = 5),
-              "The specified event time")
+  expect_error(move(p2, trajectory = c(100, 100), start = 25, end = 5, snapshots = 5), msg)
   # overlapping time window of the following range expansion
-  expect_error(expand(p2, by = 20, start = 25, end = 5, snapshots = 5),
-               "The specified event time")
+  expect_error(expand(p2, by = 20, start = 25, end = 5, snapshots = 5), msg)
   # overlapping time window of the following range change
-  expect_error(boundary(p2, time = 15, center = c(50, 10), radius = 8),
-               "The specified event time")
+  expect_error(boundary(p2, time = 15, center = c(50, 10), radius = 8), msg)
 })
 
 test_that("times are correctly specified for different population size change methods", {
   map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
   p <- population(name = "pop", map = map, time = 30000, N = 500, center = c(10, 25), radius = 300000)
-  expect_error(resize(p, N = 10, how = "step"), "Timing of the population change needs to be specified")
+  msg <- "Timing of the population change needs to be specified"
+  expect_error(resize(p, N = 10, how = "step"), msg)
   expect_silent(resize(p, N = 10, how = "step", time = 123))
-  expect_error(resize(p, N = 10, how = "linear"), "Timing of the population change needs to be specified")
+  expect_error(resize(p, N = 10, how = "linear"), msg)
   expect_silent(resize(p, N = 10, how = "linear", start = 123, end = 10))
-  expect_error(resize(p, N = 10, how = "exponential"), "Timing of the population change needs to be specified")
+  expect_error(resize(p, N = 10, how = "exponential"), msg)
   expect_silent(resize(p, N = 10, how = "exponential", start = 123, end = 10))
 })
 
@@ -189,12 +184,87 @@ test_that("resizing of populations is consistent with established population dyn
   map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
   p1 <- population(name = "pop1", map = map, time = 1, N = 500, center = c(10, 25), radius = 300000)
   p2 <- population(name = "pop2", parent = p1, time = 10, N = 500, center = c(10, 25), radius = 300000)
-  expect_error(resize(p2, N = 10, how = "step", time = 5), "The specified event time")
+  msg <- "The new event (.*) pre-dates the last specified active event"
+  expect_error(resize(p2, N = 10, how = "step", time = 5), msg)
 })
 
 test_that("resizing of populations is consistent with established population dynamics (backward time)", {
   map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
   p1 <- population(name = "pop1", map = map, time = 30000, N = 500, center = c(10, 25), radius = 300000)
   p2 <- population(name = "pop2", parent = p1, time = 25000, N = 500, center = c(10, 25), radius = 300000)
-  expect_error(resize(p2, N = 10, how = "step", time = 28000), "The specified event time")
+  msg <- "The new event (.*) pre-dates the last specified active event"
+  expect_error(resize(p2, N = 10, how = "step", time = 28000), msg)
+})
+
+
+# New tests for time consistency added after re-factoring of event time checks
+
+map <- readRDS("map.rds")
+
+p1 <- population(name = "p1", map = map, time = 100, N = 1, center = c(20, 50), radius = 20)
+
+# ancestral populations
+
+test_that("Overlapping time-windows for ancestral populations are caught", {
+  expect_error(expand(p1, by = 20, start = 120, end = 20, snapshots = 5),
+               "The new event (.*) falls both before and after")
+})
+
+test_that("Older forward event can't follow ancestral population with a higher 'split time'", {
+  msg <- "The new event (.*) implies a forward time direction but"
+  expect_error(move(p1, trajectory = c(10, 10), start = 80, end = 90, snapshots = 5), msg)
+  expect_error(expand(p1, by = 1000, start = 80, end = 90, snapshots = 5), msg)
+})
+
+test_that("Older backward event can't follow ancestral population with a lower 'split time'", {
+  msg <- "The new event (.*) implies a backward time direction but"
+  expect_error(move(p1, trajectory = c(10, 10), start = 120, end = 110, snapshots = 5), msg)
+  expect_error(expand(p1, by = 1000, start = 120, end = 110, snapshots = 5), msg)
+})
+
+
+# daughter populations
+
+# backward model
+
+test_that("Populations can only be created after their parents (backward model)", {
+  expect_error(population(name = "p2", parent = p1, time = 100, N = 1, center = c(20, 50), radius = 20),
+               "Population can be only created after its parent")
+  expect_silent(population(name = "p2", parent = p1, time = 90, N = 1, center = c(20, 50), radius = 20))
+})
+
+p2 <- population(name = "p2", parent = p1, time = 98, N = 1, center = c(20, 50), radius = 20)
+
+test_that("Forward time events not allowed for backward models", {
+  msg <- "The new forward event (.*) is inconsistent with the backward time"
+  expect_error(move(p2, trajectory = c(10, 10), start = 50, end = 80, snapshots = 5), msg)
+  expect_error(expand(p2, by = 1000, start = 50, end = 80, snapshots = 5), msg)
+})
+
+test_that("Backward time events can't predate previous active event for backward models", {
+  msg <- "The new event (.*) pre-dates"
+  expect_error(move(p2, trajectory = c(10, 10), start = 150, end = 140, snapshots = 5), msg)
+  expect_error(expand(p2, by = 1000, start = 150, end = 140, snapshots = 5), msg)
+})
+
+# forward model
+
+test_that("Populations can only be created after their parents (forward model)", {
+  expect_error(population(name = "p2", parent = p1, time = 100, N = 1, center = c(20, 50), radius = 20),
+               "Population can be only created after its parent")
+  expect_silent(population(name = "p2", parent = p1, time = 90, N = 1, center = c(20, 50), radius = 20))
+})
+
+p2 <- population(name = "p2", parent = p1, time = 120, N = 1, center = c(20, 50), radius = 20)
+
+test_that("Backward time events not allowed for forward models", {
+  msg <- "The new backward event (.*) is inconsistent with the forward time"
+  expect_error(move(p2, trajectory = c(10, 10), start = 80, end = 50, snapshots = 5), msg)
+  expect_error(expand(p2, by = 1000, start = 80, end = 50, snapshots = 5), msg)
+})
+
+test_that("Forward time events can't predate previous active event for forward models", {
+  msg <- "The new event (.*) pre-dates"
+  expect_error(move(p2, trajectory = c(10, 10), start = 40, end = 50, snapshots = 5), msg)
+  expect_error(expand(p2, by = 1000, start = 40, end = 50, snapshots = 5), msg)
 })
