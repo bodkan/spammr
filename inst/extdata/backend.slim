@@ -291,7 +291,7 @@ modifyChild() {
 
   // for spatially overlapping geneflow and non-migrant offspring,
   // propose location in the neighborhood of one of its parents
-  sigma_dist = filter(POPULATIONS, "pop_id", subpop.id).getValue("offspring_dist");
+  sigma_dist = filter(POPULATIONS, "pop_id", subpop.id).getValue("dispersal_dist");
   jitter = rnorm(2, 0, sigma_dist);
   pos = parent1.spatialPosition + jitter;
 
@@ -538,7 +538,7 @@ function (ifsl) convert_type(s$ column_name, s string_values) {
 	            "time_orig", "time_gen", "tsplit_orig", "tsplit_gen",
 	            "tremove_orig", "tremove_gen", "tstart_orig", "tstart_gen",
 	            "tend_orig", "tend_gen");
-	float = c("rate", "competition_dist", "mate_dist", "offspring_dist");
+	float = c("rate", "competition_dist", "mate_dist", "dispersal_dist");
 	logical = c("overlap");
 
 	if (any(column_name == integer))

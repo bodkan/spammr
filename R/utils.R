@@ -268,7 +268,7 @@ compute_overlaps <- function(x) {
 
 # Take care of missing interactions and offspring distances
 set_distances <- function(split_table, resolution,
-                          competition_dist, mate_dist, offspring_dist) {
+                          competition_dist, mate_dist, dispersal_dist) {
   if (any(is.na(split_table$competition_dist))) {
     if (is.null(competition_dist)) {
       pop_names <- paste(split_table[is.na(split_table$competition_dist), ]$pop, collapse = ", ")
@@ -287,17 +287,17 @@ set_distances <- function(split_table, resolution,
       split_table$mate_dist[is.na(split_table$mate_dist)] <- mate_dist
   }
 
-  if (any(is.na(split_table$offspring_dist))) {
-    if (is.null(offspring_dist)) {
-      pop_names <- paste(split_table[is.na(split_table$offspring_dist), ]$pop, collapse = ", ")
-      stop("Parameter 'offspring_dist' missing for ", pop_names, " and a general
+  if (any(is.na(split_table$dispersal_dist))) {
+    if (is.null(dispersal_dist)) {
+      pop_names <- paste(split_table[is.na(split_table$dispersal_dist), ]$pop, collapse = ", ")
+      stop("Parameter 'dispersal_dist' missing for ", pop_names, " and a general
   value of this parameter was not provided to the compile() function", call. = FALSE)
     } else
-      split_table$offspring_dist[is.na(split_table$offspring_dist)] <- offspring_dist
+      split_table$dispersal_dist[is.na(split_table$dispersal_dist)] <- dispersal_dist
   }
 
-  split_table[, c("competition_dist", "mate_dist", "offspring_dist")] <-
-    split_table[, c("competition_dist", "mate_dist", "offspring_dist")] / resolution
+  split_table[, c("competition_dist", "mate_dist", "dispersal_dist")] <-
+    split_table[, c("competition_dist", "mate_dist", "dispersal_dist")] / resolution
 
   split_table
 }

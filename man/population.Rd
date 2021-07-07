@@ -17,7 +17,7 @@ population(
   intersect = TRUE,
   competition_dist = NA,
   mate_dist = NA,
-  offspring_dist = NA,
+  dispersal_dist = NA,
   aquatic = FALSE
 )
 }
@@ -52,8 +52,8 @@ features?}
 \item{competition_dist, mate_dist}{Maximum spatial competition and mating
 choice distance}
 
-\item{offspring_dist}{Standard deviation of the normal distribution of the
-parent-offspring distance}
+\item{dispersal_dist}{Standard deviation of the normal distribution of the
+distance that offspring disperses from its parent}
 
 \item{aquatic}{Is the species aquatic (\code{FALSE} by default, i.e.
 terrestrial species)?}

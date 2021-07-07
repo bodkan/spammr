@@ -160,7 +160,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmppEm23X", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpcUKt4q", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -467,7 +467,7 @@ between populations.</code></pre>
   generation_time <span class="op">=</span> <span class="fl">30</span>,
   resolution <span class="op">=</span> <span class="fl">10e3</span>, <span class="co"># resolution in meters per pixel</span>
   competition_dist <span class="op">=</span> <span class="fl">130e3</span>, mate_dist <span class="op">=</span> <span class="fl">100e3</span>, <span class="co"># spatial interaction in SLiM</span>
-  offspring_dist <span class="op">=</span> <span class="fl">70e3</span>, <span class="co"># how far will offspring end up from their parents</span>
+  dispersal_dist <span class="op">=</span> <span class="fl">70e3</span>, <span class="co"># how far will offspring end up from their parents</span>
   dir <span class="op">=</span> <span class="st">"/tmp/test-model/"</span>,
   overwrite <span class="op">=</span> <span class="cn">TRUE</span>
 <span class="op">)</span></code></pre></div>
@@ -489,7 +489,7 @@ between populations.</code></pre>
 </ul>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"/tmp/test-model/populations.tsv"</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="co">#&gt;   pop   parent    N competition_dist mate_dist offspring_dist tsplit_gen</span>
+<span class="co">#&gt;   pop   parent    N competition_dist mate_dist dispersal_dist tsplit_gen</span>
 <span class="co">#&gt; 1 AFR ancestor 3000               13        10              7          1</span>
 <span class="co">#&gt; 2 OOA      AFR  500               13        10              7         34</span>
 <span class="co">#&gt; 3 EHG      OOA 1000               13        10              7        801</span>

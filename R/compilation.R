@@ -16,7 +16,7 @@
 #'   \code{geneflow} function, or a single data.frame)
 #' @param competition_dist,mate_dist Maximum spatial competition and mating
 #'   choice distance
-#' @param offspring_dist Standard deviation of the normal distribution of the
+#' @param dispersal_dist Standard deviation of the normal distribution of the
 #'   parent-offspring distance
 #' @param dir Output directory for the model configuration files which will be
 #'   loaded by the backend SLiM script
@@ -30,7 +30,7 @@
 #' @return Compiled \code{slendr_model} model object
 #' @export
 compile <- function(populations, dir, generation_time, resolution,
-                    competition_dist = NULL, mate_dist = NULL, offspring_dist = NULL,
+                    competition_dist = NULL, mate_dist = NULL, dispersal_dist = NULL,
                     geneflow = list(), overwrite = FALSE,
                     sim_length = NULL, direction = NULL) {
   if (!inherits(populations, "list"))  populations <- list(populations)
@@ -78,7 +78,7 @@ this by setting `direction = 'backward'.`", call. = FALSE)
 
   if (!is.null(competition_dist)) check_resolution(map, competition_dist)
   if (!is.null(mate_dist)) check_resolution(map, mate_dist)
-  if (!is.null(offspring_dist)) check_resolution(map, offspring_dist)
+  if (!is.null(dispersal_dist)) check_resolution(map, dispersal_dist)
   check_resolution(map, resolution)
 
   split_table <- compile_splits(populations, generation_time, time_dir, max_time)
@@ -87,7 +87,7 @@ this by setting `direction = 'backward'.`", call. = FALSE)
   resize_table <- compile_resizes(populations, generation_time, time_dir, max_time, split_table)
 
   # take care of missing interactions and offspring distances
-  split_table <- set_distances(split_table, resolution, competition_dist, mate_dist, offspring_dist)
+  split_table <- set_distances(split_table, resolution, competition_dist, mate_dist, dispersal_dist)
 
   # compile the result
   result <- list(
@@ -387,7 +387,7 @@ compile_splits <- function(populations, generation_time, direction, max_time) {
       tremove = ifelse(!is.null(tremove), tremove, -1),
       competition_dist = init_params$competition_dist,
       mate_dist = init_params$mate_dist,
-      offspring_dist = init_params$offspring_dist,
+      dispersal_dist = init_params$dispersal_dist,
       stringsAsFactors = FALSE
     )
   }) %>% do.call(rbind, .)

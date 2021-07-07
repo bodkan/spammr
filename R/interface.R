@@ -26,8 +26,8 @@
 #'   features?
 #' @param competition_dist,mate_dist Maximum spatial competition and mating
 #'   choice distance
-#' @param offspring_dist Standard deviation of the normal distribution of the
-#'   parent-offspring distance
+#' @param dispersal_dist Standard deviation of the normal distribution of the
+#'   distance that offspring disperses from its parent
 #' @param aquatic Is the species aquatic (\code{FALSE} by default, i.e.
 #'   terrestrial species)?
 #'
@@ -37,7 +37,7 @@
 population <- function(name, time, N, parent = "ancestor", map = NULL,
                        center = NULL, radius = NULL, polygon = NULL,
                        remove = NULL, intersect = TRUE,
-                       competition_dist = NA, mate_dist = NA, offspring_dist = NA,
+                       competition_dist = NA, mate_dist = NA, dispersal_dist = NA,
                        aquatic = FALSE) {
   # is this the first population defined in the model?
   if (is.character(parent) && parent == "ancestor") {
@@ -88,7 +88,7 @@ population <- function(name, time, N, parent = "ancestor", map = NULL,
     N = N,
     competition_dist = competition_dist,
     mate_dist = mate_dist,
-    offspring_dist = offspring_dist
+    dispersal_dist = dispersal_dist
   ))
 
   class(pop) <- set_class(pop, "pop")

@@ -15,7 +15,7 @@ test_that("forward and backward time model objects are equivalent", {
     populations = list(p1, p2, p3, p4, p5), geneflow = geneflows,
     generation_time = 1, resolution = 1,
     overwrite = TRUE,
-    competition_dist = 1, mate_dist = 1, offspring_dist = 1,
+    competition_dist = 1, mate_dist = 1, dispersal_dist = 1,
     sim_length = 5
   )
 
@@ -33,7 +33,7 @@ test_that("forward and backward time model objects are equivalent", {
     populations = list(p1, p2, p3, p4, p5), geneflow = geneflows,
     generation_time = 1, resolution = 1,
     overwrite = TRUE,
-    competition_dist = 1, mate_dist = 1, offspring_dist = 1
+    competition_dist = 1, mate_dist = 1, dispersal_dist = 1
   )
 
   expect_true(all.equal(forward$splits[, grep("_orig", colnames(forward$splits), value = TRUE, invert = TRUE)],
@@ -72,7 +72,7 @@ test_that("forward and backward models yield the same simulation result", {
     generation_time = 1,
     resolution = 10000,
     overwrite = TRUE,
-    competition_dist = 100e3, mate_dist = 100e3, offspring_dist = 100e3,
+    competition_dist = 100e3, mate_dist = 100e3, dispersal_dist = 100e3,
     sim_length = 480
   )
 
@@ -97,7 +97,7 @@ test_that("forward and backward models yield the same simulation result", {
     generation_time = 1,
     resolution = 10000,
     overwrite = TRUE,
-    competition_dist = 100e3, mate_dist = 100e3, offspring_dist = 100e3
+    competition_dist = 100e3, mate_dist = 100e3, dispersal_dist = 100e3
   )
 
   expect_true(all.equal(forward$splits[, grep("_orig", colnames(forward$splits), value = TRUE, invert = TRUE)],

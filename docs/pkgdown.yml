@@ -3,7 +3,7 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   slendr: slendr.html
-last_built: 2021-07-03T21:45Z
+last_built: 2021-07-07T11:26Z
 urls:
   reference: https://bodkan.net/slendr/reference
   article: https://bodkan.net/slendr/articles
