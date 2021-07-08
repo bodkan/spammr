@@ -13,9 +13,6 @@ initialize() {
   defineConstant("MODEL_DIR", "{{model_dir}}");
   defineConstant("OUTPUT_PREFIX", "{{output_prefix}}");
 
-  defineConstant("BURNIN_LENGTH", {{burnin}});
-  defineConstant("SIM_LENGTH", {{length}});
-
   // load model definition tables
   defineConstant("POPULATIONS", read_table(config_path("populations.tsv")));
   defineConstant("GENEFLOWS", read_table(config_path("geneflow.tsv")));
@@ -26,6 +23,8 @@ initialize() {
 
   defineConstant("GENERATION_TIME", {{generation_time}});
   defineConstant("DIRECTION", "{{direction}}");
+  defineConstant("BURNIN_LENGTH", {{burnin}});
+  defineConstant("SIM_LENGTH", get_length(DIRECTION, {{length}}));
 
   // convert times from generations (starting at 1) to absolute SLiM times
   // (shifted by the burnin length)
@@ -35,7 +34,7 @@ initialize() {
   slim_time(RESIZES);
 
   defineConstant("SIM_START", BURNIN_LENGTH + min(POPULATIONS.getValue("tsplit_gen")));
-  defineConstant("SIM_END", SIM_START + SIM_LENGTH - 1);
+  defineConstant("SIM_END", SIM_START + SIM_LENGTH);
 
   // world map dimensions
   defineConstant("WIDTH", MAPS.getValue("image")[0].width);
@@ -312,6 +311,16 @@ modifyChild() {
 // Simulation utility functions
 //////////////////////////////////////////////////////////////////////
 
+// Get the total length of the simulation based on the intended
+// direction and a given simulation length
+function (i$) get_length(s$ direction, i$ length) {
+  absolute_length = asInteger(round(POPULATIONS.getValue("tsplit_orig") / GENERATION_TIME));
+  if (direction == "forward" | (direction == "backward" & absolute_length != length))
+    return(length - 1);
+  else
+    return(length);
+}
+
 function (void) evaluate_interactions(void) {
   sim.interactionTypes.evaluate();
 }
@@ -425,11 +434,11 @@ function(void) write_locations(lifso<Individual>$ ind) {
     absolute_start = min(POPULATIONS.getValue("tsplit_gen"));
     time = (sim.generation - SIM_START + absolute_start) * GENERATION_TIME;
   } else {
-    absolute_end = SIM_START + asInteger(max(POPULATIONS.getValue("tsplit_orig")) / GENERATION_TIME) - 1;
-    time = (absolute_end - sim.generation + 1) * GENERATION_TIME;
+    absolute_end = SIM_START + asInteger(max(POPULATIONS.getValue("tsplit_orig")) / GENERATION_TIME);
+    time = (absolute_end - sim.generation) * GENERATION_TIME;
   }
 
-  ind_str = paste(SIM_END - sim.generation, time,
+  ind_str = paste(sim.generation, time,
                   ind.subpopulation.id, id, ind.spatialPosition,
                   asInteger(!isNULL(ind.getValue("sampled"))), sep = "\t");
 
