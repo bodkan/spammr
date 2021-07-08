@@ -13,6 +13,11 @@ initialize() {
   defineConstant("MODEL_DIR", "{{model_dir}}");
   defineConstant("OUTPUT_PREFIX", "{{output_prefix}}");
 
+  defineConstant("GENERATION_TIME", {{generation_time}});
+  defineConstant("DIRECTION", "{{direction}}");
+  defineConstant("BURNIN_LENGTH", {{burnin}});
+  defineConstant("SIM_LENGTH", {{length}});
+
   // load model definition tables
   defineConstant("POPULATIONS", read_table(config_path("populations.tsv")));
   defineConstant("GENEFLOWS", read_table(config_path("geneflow.tsv")));
@@ -20,11 +25,6 @@ initialize() {
   defineConstant("MAPS", read_table(config_path("maps.tsv")));
   // load all spatial maps (image objects)
   MAPS.setValue("image", sapply(MAPS.getValue("path"), "Image(applyValue);"));
-
-  defineConstant("GENERATION_TIME", {{generation_time}});
-  defineConstant("DIRECTION", "{{direction}}");
-  defineConstant("BURNIN_LENGTH", {{burnin}});
-  defineConstant("SIM_LENGTH", get_length(DIRECTION, {{length}}));
 
   // convert times from generations (starting at 1) to absolute SLiM times
   // (shifted by the burnin length)
@@ -311,16 +311,6 @@ modifyChild() {
 // Simulation utility functions
 //////////////////////////////////////////////////////////////////////
 
-// Get the total length of the simulation based on the intended
-// direction and a given simulation length
-function (i$) get_length(s$ direction, i$ length) {
-  absolute_length = asInteger(round(POPULATIONS.getValue("tsplit_orig") / GENERATION_TIME));
-  if (direction == "forward" | (direction == "backward" & absolute_length != length))
-    return(length - 1);
-  else
-    return(length);
-}
-
 function (void) evaluate_interactions(void) {
   sim.interactionTypes.evaluate();
 }
@@ -430,15 +420,7 @@ function(void) write_locations(lifso<Individual>$ ind) {
   else
     id = -1;
 
-  if (DIRECTION == "forward") {
-    absolute_start = min(POPULATIONS.getValue("tsplit_gen"));
-    time = (sim.generation - SIM_START + absolute_start) * GENERATION_TIME;
-  } else {
-    absolute_end = SIM_START + asInteger(max(POPULATIONS.getValue("tsplit_orig")) / GENERATION_TIME);
-    time = (absolute_end - sim.generation) * GENERATION_TIME;
-  }
-
-  ind_str = paste(sim.generation, time,
+  ind_str = paste(sim.generation, original_time(sim.generation),
                   ind.subpopulation.id, id, ind.spatialPosition,
                   asInteger(!isNULL(ind.getValue("sampled"))), sep = "\t");
 
@@ -595,4 +577,17 @@ function (void) slim_time(No<Dictionary>$ table) {
       table.setValue(new_col, new_times);
     }
   }
+}
+
+// Convert current generation time into the original units
+function (i) original_time(i$ generation) {
+  if (DIRECTION == "forward") {
+    absolute_start = min(POPULATIONS.getValue("tsplit_gen"));
+    time = (sim.generation - SIM_START + absolute_start) * GENERATION_TIME;
+  } else {
+    absolute_end = SIM_START + round(max(POPULATIONS.getValue("tsplit_orig")) / GENERATION_TIME);
+    time = (absolute_end - sim.generation) * GENERATION_TIME;
+    //if (time < 0) time = 0;
+  }
+  return asInteger(time);
 }
