@@ -139,9 +139,15 @@ get_time_direction <- function(pop) {
       sapply(function(event) c(event$time, event$start, event$end)) %>%
       unlist %>%
       unique
-    if (length(event_times) == 1)
+    if (length(event_times) == 1) {
+      removal_time <- attr(pop, "remove")
+      if (removal_time != -1 & event_times > removal_time)
+        "backward"
+      else if (removal_time != -1 & event_times < removal_time)
+        "forward"
+      else
         "unknown"
-    else if (all(diff(event_times) < 0))
+    } else if (all(diff(event_times) < 0))
       "backward"
     else
       "forward"
@@ -239,13 +245,13 @@ check_removal_time <- function(time, pop) {
 
   removal_time <- attr(pop, "remove")
   if (removal_time != -1 & direction == "forward" & any(time > removal_time)) {
-    stop(sprintf("The specified event time (%d) is not consistent with the scheduled removal of %s (%s). ",
-                 time, pop$pop[1], removal_time),
+    stop(sprintf("The specified event time (%d) is not consistent with the scheduled removal of %s (%s) given the assumed %s time direction",
+                 time, pop$pop[1], removal_time, direction),
          call. = FALSE)
   }
   if (removal_time != -1 & direction == "backward" & any(time < removal_time)) {
-    stop(sprintf("The specified event time (%d) is not consistent with the scheduled removal of %s (%s). ",
-                 time, pop$pop[1], removal_time),
+    stop(sprintf("The specified event time (%d) is not consistent with the scheduled removal of %s (%s) given the assumed %s time direction",
+                 time, pop$pop[1], removal_time, direction),
          call. = FALSE)
   }
 }

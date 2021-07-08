@@ -119,6 +119,7 @@ move <- function(pop, trajectory, end, start, overlap = 0.8, snapshots = NULL,
                  verbose = TRUE) {
   check_event_time(c(start, end), pop)
   check_removal_time(start, pop)
+  check_removal_time(end, pop)
 
   if (!is.null(snapshots))
     if (snapshots <= 0)
@@ -376,6 +377,7 @@ for the 'how' parameter", call. = FALSE)
   } else {
     check_event_time(c(start, end), pop)
     check_removal_time(start, pop)
+    check_removal_time(end, pop)
     change$tstart <- start
     change$tend <- end
   }
@@ -790,6 +792,7 @@ dimension <- function(map) {
 shrink_or_expand <- function(pop, by, end, start, overlap, snapshots, polygon, verbose) {
   check_event_time(c(start, end), pop)
   check_removal_time(start, pop)
+  check_removal_time(end, pop)
 
   map <- attr(pop, "map")
 

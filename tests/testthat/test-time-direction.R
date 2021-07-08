@@ -269,3 +269,23 @@ test_that("Forward time events can't predate previous active event for forward m
   expect_error(move(p2, trajectory = c(10, 10), start = 40, end = 50, snapshots = 5), msg)
   expect_error(expand(p2, by = 1000, start = 40, end = 50, snapshots = 5), msg)
 })
+
+# Test consistency with scheduled removal times
+
+test_that("Events can't be scheduled after population removal", {
+  msg <- "The specified event time (.*) is not consistent with the scheduled removal .*"
+
+  forward <- population(name = "forward", map = map, time = 1, N = 1, center = c(20, 50), radius = 20, remove = 50)
+  expect_error(move(forward, trajectory = c(5, 5), start = 5, end = 80, snapshots = 3), paste0(msg, "given the assumed forward time"))
+  expect_error(move(forward, trajectory = c(5, 5), start = 60, end = 80, snapshots = 3), paste0(msg, "given the assumed forward time"))
+  expect_error(expand(forward, by = 100, start = 5, end = 80, snapshots = 3), paste0(msg, "given the assumed forward time"))
+  expect_error(expand(forward, by = 100, start = 60, end = 80, snapshots = 3), paste0(msg, "given the assumed forward time"))
+  expect_silent(move(forward, trajectory = c(5, 5), start = 5, end = 40, snapshots = 3))
+
+  backward <- population(name = "backward", map = map, time = 100, N = 1, center = c(20, 50), radius = 20, remove = 10)
+  expect_error(move(backward, trajectory = c(5, 5), start = 80, end = 5, snapshots = 3), paste0(msg, "given the assumed backward time"))
+  expect_error(move(backward, trajectory = c(5, 5), start = 8, end = 5, snapshots = 3),paste0(msg, "given the assumed backward time"))
+  expect_error(expand(backward, by = 10, start = 80, end = 5, snapshots = 3), paste0(msg, "given the assumed backward time"))
+  expect_error(expand(backward, by = 10, start = 8, end = 5, snapshots = 3),paste0(msg, "given the assumed backward time"))
+  expect_silent(move(backward, trajectory = c(5, 5), start = 80, end = 50, snapshots = 3))
+})
