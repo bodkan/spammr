@@ -16,6 +16,8 @@
 
 - Any simulation can now have multiple "ancestral" populations (i.e. populations without an immediate ancestor created by `sim.addSubpop()`). Until now, all populations had to trace their ancestry to a single ancestor (a leftover of a hard-coded requirement from the very first version of my code).
 
+- A new `shrink()` function (analogous to `expand()`) is implemented.
+
 ## Changes to the R interface
 
 - Renamed `admixture()` to `geneflow()`. No ugly historical baggage and a more general name for this concept.
