@@ -139,7 +139,7 @@
 <li><p>It is now possible to define models in forward or backwards direction, depending on what is more convenient for the user and the scenario that is being modeled. The direction of time is automatically detected and translated to SLiM’s units of generations in the forward direction. The implementation of this features might be a bit wonky in some aspects and more testing is required.</p></li>
 <li><p>Simulations of marine species are now possible (this required adding a single argument <code>marine</code> to the <code><a href="../reference/population.html">population()</a></code> call which instructs the population range rendering procedure to "invert’ intersection with landscape features).</p></li>
 <li><p>Any simulation can now have multiple “ancestral” populations (i.e. populations without an immediate ancestor created by <code>sim.addSubpop()</code>). Until now, all populations had to trace their ancestry to a single ancestor (a leftover of a hard-coded requirement from the very first version of my code).</p></li>
-<li><p>A new <code>shrink()</code> function (analogous to <code><a href="../reference/expand.html">expand()</a></code>) is implemented.</p></li>
+<li><p>A new <code><a href="../reference/shrink.html">shrink()</a></code> function (analogous to <code><a href="../reference/expand.html">expand()</a></code>) is implemented.</p></li>
 </ul>
 </div>
 <div id="changes-to-the-r-interface" class="section level2">

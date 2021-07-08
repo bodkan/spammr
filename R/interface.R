@@ -250,79 +250,27 @@ move <- function(pop, trajectory, end, start, overlap = 0.8, snapshots = NULL,
 #' @export
 expand <- function(pop, by, end, start, overlap = 0.8, snapshots = NULL,
                    polygon = NULL, verbose = TRUE) {
-  check_event_time(c(start, end), pop)
-  check_removal_time(start, pop)
+  shrink_or_expand(pop, by, end, start, overlap, snapshots, polygon, verbose)
+}
 
-  map <- attr(pop, "map")
 
-  # get the last available population boundary
-  region_start <- pop[nrow(pop), ]
-  sf::st_agr(region_start) <- "constant"
-
-  if (is.null(snapshots)) {
-    n <- 1
-    message("Iterative search for the minimum sufficient number of intermediate
-spatial snapshots, starting at ", n, ". This should only take a couple of
-seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
-  } else
-    n <- snapshots
-
-  # iterate through the number of intermediate spatial boundaries to reach
-  # the required overlap between subsequent spatial maps
-  repeat {
-    times <- seq(start, end, length.out = n + 1)[-1]
-
-    # generate intermediate spatial maps, starting from the last one
-    inter_regions <- list()
-    inter_regions[[1]] <- region_start
-    for (i in seq_along(times)) {
-      exp_region <- sf::st_buffer(inter_regions[[1]], dist = i * (by / n))
-      exp_region$time <- times[i]
-      sf::st_agr(exp_region) <- "constant"
-
-      # restrict the next spatial boundary to the region of interest
-      if (!is.null(polygon)) {
-        if (!inherits(polygon, "slendr_region"))
-          polygon <- region(polygon = polygon, map = map)
-        exp_region <- sf::st_intersection(exp_region, polygon)
-        exp_region$region <- NULL
-        sf::st_agr(exp_region) <- "constant"
-      }
-
-      inter_regions[[i + 1]] <- exp_region
-    }
-
-    if (!is.null(snapshots)) break
-
-    overlaps <- compute_overlaps(do.call(rbind, inter_regions))
-
-    if (all(overlaps >= overlap)) {
-      message("The required ", sprintf("%.1f%%", 100 * overlap),
-              " overlap between subsequent spatial maps has been met")
-      break
-    } else {
-      n <- n + 1
-      if (verbose)
-        message("- Increasing to ", n, " snapshots")
-    }
-  }
-
-  all_maps <- do.call(rbind, inter_regions) %>% rbind(pop, .)
-  sf::st_agr(all_maps) <- "constant"
-
-  result <- copy_attributes(
-    all_maps, pop,
-    c("map", "parent", "remove", "intersect", "aquatic", "history")
-  )
-
-  attr(result, "history") <- append(attr(result, "history"), list(data.frame(
-    pop =  unique(region_start$pop),
-    event = "expand",
-    start = start,
-    end = end
-  )))
-
-  result
+#' Shrink the population range
+#'
+#' Shrinks the spatial population range by a specified distance in a given
+#' time-window
+#'
+#' @param pop Object of the class \code{slendr_pop}
+#' @param by How many units of distance to shrink by?
+#' @param start,end When does the boundary shrinking start/end?
+#' @param overlap Minimum overlap between subsequent spatial boundaries
+#' @param snapshots The number of intermediate snapshots (overrides the
+#'   \code{overlap} parameter)
+#'
+#' @return Object of the class \code{slendr_pop}
+#'
+#' @export
+shrink <- function(pop, by, end, start, overlap = 0.8, snapshots = NULL, verbose = TRUE) {
+  shrink_or_expand(pop, -by, end, start, overlap, snapshots, polygon = NULL, verbose)
 }
 
 
@@ -345,7 +293,7 @@ seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
 #'
 #' @export
 boundary <- function(pop, time, center = NULL, radius = NULL,
-                  polygon = NULL, overlap = 0.8) {
+                     polygon = NULL, overlap = 0.8) {
   check_event_time(time, pop)
   check_removal_time(time, pop)
 
@@ -545,11 +493,11 @@ deparse(substitute(to))), call. = FALSE)
 #' @export
 world <- function(xrange, yrange, landscape = "naturalearth", crs = NULL, ne_dir = NULL) {
   if (inherits(landscape, "sf")) { # a landscape defined by the user
-     map <- sf::st_sf(landscape = sf::st_geometry(landscape)) %>%
-       set_bbox(xmin = xrange[1], xmax = xrange[2], ymin = yrange[1], ymax = yrange[2])
-   } else if (landscape == "blank") { # an empty abstract landscape
+    map <- sf::st_sf(landscape = sf::st_geometry(landscape)) %>%
+      set_bbox(xmin = xrange[1], xmax = xrange[2], ymin = yrange[1], ymax = yrange[2])
+  } else if (landscape == "blank") { # an empty abstract landscape
     map <- sf::st_sf(geometry = sf::st_sfc()) %>%
-       set_bbox(xmin = xrange[1], xmax = xrange[2], ymin = yrange[1], ymax = yrange[2])
+      set_bbox(xmin = xrange[1], xmax = xrange[2], ymin = yrange[1], ymax = yrange[2])
   } else if (landscape == "naturalearth") {  # Natural Earth data vector landscape
     scale <- "small"
     type <- "land"
@@ -585,7 +533,6 @@ world <- function(xrange, yrange, landscape = "naturalearth", crs = NULL, ne_dir
 
   map
 }
-
 
 
 #' Define a geographic region
@@ -785,6 +732,7 @@ subtract <- function(x, y, name = NULL) {
   result
 }
 
+
 #' Calculate the distance between a pair of spatial boundaries
 #'
 #' @param x,y Objects of the class \code{slendr}
@@ -835,4 +783,82 @@ dimension <- function(map) {
     stop("Incorrect input type. Object of the type 'slendr_map' expected", call. = FALSE)
   c(as.vector(diff(sf::st_bbox(map)[c("xmin", "xmax")])),
     as.vector(diff(sf::st_bbox(map)[c("ymin", "ymax")])))
+}
+
+
+# Internal implementation of expand() and shrink() functions
+shrink_or_expand <- function(pop, by, end, start, overlap, snapshots, polygon, verbose) {
+  check_event_time(c(start, end), pop)
+  check_removal_time(start, pop)
+
+  map <- attr(pop, "map")
+
+  # get the last available population boundary
+  region_start <- pop[nrow(pop), ]
+  sf::st_agr(region_start) <- "constant"
+
+  if (is.null(snapshots)) {
+    n <- 1
+    message("Iterative search for the minimum sufficient number of intermediate
+spatial snapshots, starting at ", n, ". This should only take a couple of
+seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
+  } else
+    n <- snapshots
+
+  # iterate through the number of intermediate spatial boundaries to reach
+  # the required overlap between subsequent spatial maps
+  repeat {
+    times <- seq(start, end, length.out = n + 1)[-1]
+
+    # generate intermediate spatial maps, starting from the last one
+    inter_regions <- list()
+    inter_regions[[1]] <- region_start
+    for (i in seq_along(times)) {
+      exp_region <- sf::st_buffer(inter_regions[[1]], dist = i * (by / n))
+      exp_region$time <- times[i]
+      sf::st_agr(exp_region) <- "constant"
+
+      # restrict the next spatial boundary to the region of interest
+      if (!is.null(polygon)) {
+        if (!inherits(polygon, "slendr_region"))
+          polygon <- region(polygon = polygon, map = map)
+        exp_region <- sf::st_intersection(exp_region, polygon)
+        exp_region$region <- NULL
+        sf::st_agr(exp_region) <- "constant"
+      }
+
+      inter_regions[[i + 1]] <- exp_region
+    }
+
+    if (!is.null(snapshots)) break
+
+    overlaps <- compute_overlaps(do.call(rbind, inter_regions))
+
+    if (all(overlaps >= overlap)) {
+      message("The required ", sprintf("%.1f%%", 100 * overlap),
+              " overlap between subsequent spatial maps has been met")
+      break
+    } else {
+      n <- n + 1
+      if (verbose)
+        message("- Increasing to ", n, " snapshots")
+    }
+  }
+
+  all_maps <- do.call(rbind, inter_regions) %>% rbind(pop, .)
+  sf::st_agr(all_maps) <- "constant"
+
+  result <- copy_attributes(
+    all_maps, pop,
+    c("map", "parent", "remove", "intersect", "aquatic", "history")
+  )
+
+  attr(result, "history") <- append(attr(result, "history"), list(data.frame(
+    pop =  unique(region_start$pop),
+    event = "expand",
+    start = start,
+    end = end
+  )))
+
+  result
 }
