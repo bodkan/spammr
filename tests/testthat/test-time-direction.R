@@ -126,7 +126,7 @@ test_that("forward and backward models yield the same simulation result", {
   b_loc <- data.table::fread(file.path(backward$directory, "output_ind_locations.tsv.gz"))
   f_loc[, time := NULL]; b_loc[, time := NULL]
 
-  expect_equal(f_loc, b_loc[)
+  expect_equal(f_loc, b_loc)
 })
 
 test_that("move preceding population split results in an error", {
