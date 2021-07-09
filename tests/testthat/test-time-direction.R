@@ -169,18 +169,6 @@ test_that("overlaps in time result in an error (backward time)", {
   expect_error(boundary(p2, time = 15, center = c(50, 10), radius = 8), msg)
 })
 
-test_that("times are correctly specified for different population size change methods", {
-  map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
-  p <- population(name = "pop", map = map, time = 30000, N = 500, center = c(10, 25), radius = 300000)
-  msg <- "Timing of the population change needs to be specified"
-  expect_error(resize(p, N = 10, how = "step"), msg)
-  expect_silent(resize(p, N = 10, how = "step", time = 123))
-  expect_error(resize(p, N = 10, how = "linear"), msg)
-  expect_silent(resize(p, N = 10, how = "linear", start = 123, end = 10))
-  expect_error(resize(p, N = 10, how = "exponential"), msg)
-  expect_silent(resize(p, N = 10, how = "exponential", start = 123, end = 10))
-})
-
 test_that("resizing of populations is consistent with established population dynamics (forward time)", {
   map <- world(xrange = c(0, 100), yrange = c(0, 100), landscape = "blank")
   p1 <- population(name = "pop1", map = map, time = 1, N = 500, center = c(10, 25), radius = 300000)

@@ -52,19 +52,22 @@ compile <- function(populations, dir, generation_time, resolution,
 
   # make sure all populations share the same direction of time
   time_dir <- setdiff(unique(sapply(populations, get_time_direction)), "unknown")
+
+  if (!is.null(direction) & any(direction != time_dir))
+    stop("The direction that was explicitly specified contradicts the direction implied by the model", call. = FALSE)
+
   if (length(time_dir) > 1)
     stop("Inconsistent direction of time among the specified populations", call. = FALSE)
 
-  if (length(time_dir) == 0) {
+  if (length(time_dir) == 0 | all(time_dir == "forward")) {
     if (!is.null(direction) & all(direction == "backward"))
       time_dir <- "backward"
     else if (is.null(sim_length))
-      stop("The time direction of your model could not be automatically
-inferred, defaulting to the forward direction. However, forward
-models require that the 'sim_length' parameter is explicitly
-specified in order to know when to terminate the simulation.
-If you intended to run a backward time model instead, you can state
-this by setting `direction = 'backward'.`", call. = FALSE)
+      stop("The specified model implies a forward direction of time. However,
+forward models require that the 'sim_length' parameter is explicitly
+specified in order to know when to terminate the simulation. If you
+intended to run a backward time model instead, you can state this by
+setting `direction = 'backward'.`", call. = FALSE)
     else
       time_dir <- "forward"
   }
@@ -501,12 +504,15 @@ compile_resizes <- function(populations, generation_time, direction,
     }) %>% do.call(rbind, .)
   }) %>% do.call(rbind, .)
 
-  if (is.null(resize_events)) return(NULL)
+  if (is.null(resize_events))
+    return(NULL)
+  else
+    resize_events$tend[is.na(resize_events$tend)] <- -1
 
   resize_table <- convert_time(
     resize_events,
     direction = direction,
-    columns = "time",
+    columns = c("time", "tend"),
     max_time = max_time,
     generation_time = generation_time
   )
@@ -516,7 +522,8 @@ compile_resizes <- function(populations, generation_time, direction,
     function(i) split_table[split_table$pop == i, ]$pop_id
   ) %>% as.numeric
 
-  resize_table[, c("pop", "pop_id", "resize_how", "N", "time_orig", "time_gen")]
+  resize_table[, c("pop", "pop_id", "how", "N", "prev_N",
+                   "time_orig", "time_gen", "tend_orig", "tend_gen")]
 }
 
 

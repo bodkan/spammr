@@ -341,20 +341,19 @@ boundary <- function(pop, time, center = NULL, radius = NULL,
 #' @param how How to change the population size (options are \code{"step"},
 #'   \code{"exponential"}, \code{"linear"})
 #' @param time Time of the population size change
-#' @param start,end Time-window for the population size change (used for
-#'   exponential or linear change)
+#' @param end End of the population size change period (used for
+#'   exponential change events)
 #'
 #' @export
-resize <- function(pop, N, how = "step", time = NULL, start = NULL, end = NULL) {
+resize <- function(pop, N, how, time, end = NULL) {
   if (N < 1) stop("Only positive population sizes allowed", call. = FALSE)
 
-  if (!how %in% c("step", "exponential", "linear"))
+  if (!how %in% c("step", "exponential"))
     stop("Only 'step', 'exponential' and 'linear' are allowed as arguments
 for the 'how' parameter", call. = FALSE)
 
-  if ((how == "step" & is.null(time)) |
-      (how %in% c("exponential", "linear") & is.null(c(start, end))))
-    stop("Timing of the population change needs to be specified", call. = FALSE)
+  if (how == "exponential" & is.null(end))
+    stop("Start-end period of the exponential growth must be specified", call. = FALSE)
 
   # get the last active population size
   prev_N <- sapply(attr(pop, "history"), function(event) event$N) %>%
@@ -365,20 +364,20 @@ for the 'how' parameter", call. = FALSE)
   change <- data.frame(
     pop =  unique(pop$pop),
     event = "resize",
-    resize_how = how,
+    how = how,
     N = N,
-    prev_N = prev_N
+    prev_N = prev_N,
+    time = time
   )
 
   if (how == "step") {
     check_event_time(time, pop)
     check_removal_time(time, pop)
-    change$time <- time
+    change$tend <- NA
   } else {
-    check_event_time(c(start, end), pop)
-    check_removal_time(start, pop)
+    check_event_time(c(time, end), pop)
+    check_removal_time(time, pop)
     check_removal_time(end, pop)
-    change$tstart <- start
     change$tend <- end
   }
 

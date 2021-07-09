@@ -200,9 +200,12 @@ print_pop_history <- function(x) {
     }
 
     # population size change
-    else if (event$event == "resize" & event$resize_how == "step") {
+    else if (event$event == "resize" & event$how == "step") {
       cat(sprintf("%d: resize from %d to %d individuals",
                   event$time, event$prev_N, event$N))
+    } else if (event$event == "resize" & event$how == "exponential") {
+      cat(sprintf("%d-%d: exponential resize from %d to %d individuals",
+                  event$time, event$tend, event$prev_N, event$N))
     } else
       stop("Unknown event type", call. = FALSE)
 

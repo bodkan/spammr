@@ -102,9 +102,15 @@ initialize() {
 
   // exponential population size changes
   exp_changes = filter(RESIZES, "how", "exponential");
-  if (num_rows(exp_changes))
-    sim.rescheduleScriptBlock(s6, generations = unique(exp_changes.getValue("time")));
-  else
+  if (num_rows(exp_changes)) {
+    // generate all times of exponential size changes
+    times = c();
+    for (i in iter(exp_changes)) {
+      event = exp_changes.getRowValues(i);
+      times = c(times, event.getValue("time") : event.getValue("tend"));
+    }
+    sim.rescheduleScriptBlock(s6, generations = unique(times));
+  } else
     sim.deregisterScriptBlock(s6);
 
   // output locations of individuals
@@ -218,7 +224,7 @@ s6 {
   for (i in iter(events)) {
     event = events.getRowValues(i);
 
-    pop = event.getValue("pop"); pop_id = event.getValue("pop_id");
+    pop = event.getValue("pop"); id = event.getValue("pop_id");
     Nstart = event.getValue("prev_N"); Nend = event.getValue("N");
     tstart = event.getValue("time"); tend = event.getValue("tend");
 
@@ -226,12 +232,17 @@ s6 {
     tdelta = sim.generation - tstart;
     Nt = asInteger(round(Nstart * exp(r * tdelta)));
 
-    get_pop(pop).setSubpopulationSize(Nt);
+    get_pop(id).setSubpopulationSize(Nt);
+
+    if (Nstart < Nend)
+      event_type = "growth";
+    else
+      event_type = "shrinking";
 
     if (sim.generation == tstart)
-      log_output(pop + "(p" + pop_id + ") starts growing exponentially");
+      log_output("start of exponential " + event_type + " of " + pop + "(p" + id + ")");
     if (sim.generation == tend)
-      log_output("end of exponential growth of " + pop + "(p" + pop_id + ")");
+      log_output("end of exponential " + event_type + " of " + pop + "(p" + id + ")");
   }
 }
 

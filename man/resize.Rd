@@ -4,7 +4,7 @@
 \alias{resize}
 \title{Resize the population size}
 \usage{
-resize(pop, N, how = "step", time = NULL, start = NULL, end = NULL)
+resize(pop, N, how, time, end = NULL)
 }
 \arguments{
 \item{pop}{Object of the class \code{slendr_pop}}
@@ -16,8 +16,8 @@ resize(pop, N, how = "step", time = NULL, start = NULL, end = NULL)
 
 \item{time}{Time of the population size change}
 
-\item{start, end}{Time-window for the population size change (used for
-exponential or linear change)}
+\item{end}{End of the population size change period (used for
+exponential change events)}
 }
 \description{
 Resize the population size

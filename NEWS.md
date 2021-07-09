@@ -16,6 +16,8 @@
 
 - Any simulation can now have multiple "ancestral" populations (i.e. populations without an immediate ancestor created by `sim.addSubpop()`). Until now, all populations had to trace their ancestry to a single ancestor (a leftover of a hard-coded requirement from the very first version of my code).
 
+- A function `resize()` for scheduling changes in population size (in a single step, or as an exponential growth/shrinking) is implemented.
+
 - A new `shrink()` function (analogous to `expand()`) is implemented.
 
 ## Changes to the R interface
@@ -32,4 +34,4 @@
 
 ## Other changes
 
-- Many new unit tests. All new features have been developed along with their unit tests. More tests are coming.
+- More than a hundred new unit tests checking the consistency of the R interface (misspecified event times, etc.) as well as the correctness of the SLiM simulation runs programmed by _slendr_.

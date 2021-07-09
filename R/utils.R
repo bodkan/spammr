@@ -183,8 +183,9 @@ get_previous_time <- function(pop) {
   sapply(attr(pop, "history"), function(event) {
     c(event$time, event$start, event$end)
   }) %>%
-    Filter(Negate(is.null), .) %>%
     unlist %>%
+    Filter(Negate(is.null), .) %>%
+    Filter(Negate(is.na), .) %>%
     tail(1)
 }
 
