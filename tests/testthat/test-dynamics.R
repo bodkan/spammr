@@ -33,7 +33,8 @@ test_that("only positive population sizes allowed", {
 
 test_that("only three values of population size changes allowed", {
   p <- population(name = "pop", map = map, time = 30000, N = 500, center = c(10, 25), radius = 300000)
-  expect_error(resize(p, N = 10, how = "asdf"), "Only 'step', 'exponential' and 'linear' are allowed")
+  expect_error(resize(p, N = 10, how = "asdf"),
+               "Only 'step' or 'exponential' are allowed")
 })
 
 test_that("no overlap with a manually specified boundary is caught", {
