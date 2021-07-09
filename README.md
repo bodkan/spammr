@@ -143,6 +143,7 @@ Note that in order to make this example executable on a normal local machine,
 we deliberately decreased the sizes of all populations.
 
 
+
 ```r
 afr <- population( # African ancestral population
   "AFR", parent = "ancestor", time = 52000, N = 3000,
@@ -155,7 +156,7 @@ ooa <- population( # population of the first migrants out of Africa
 ) %>%
   move(
     trajectory = list(c(40, 30), c(50, 30), c(60, 40)),
-    start = 50000, end = 40000
+    start = 50000, end = 40000, snapshots = 20
   )
 
 ehg <- population( # Eastern hunter-gatherers
@@ -176,7 +177,7 @@ ana <- population( # Anatolian farmers
 ) %>%
   expand( # expand the range by 2.500 km
     by = 2500e3, start = 10000, end = 7000,
-    polygon = join(europe, anatolia)
+    polygon = join(europe, anatolia), snapshots = 20
   )
 
 yam <- population( # Yamnaya steppe population
@@ -184,7 +185,7 @@ yam <- population( # Yamnaya steppe population
   polygon = list(c(26, 50), c(38, 49), c(48, 50),
                  c(48, 56), c(38, 59), c(26, 56))
 ) %>%
-  move(trajectory = list(c(15, 50)), start = 5000, end = 3000)
+  move(trajectory = list(c(15, 50)), start = 5000, end = 3000, snapshots = 10)
 ```
 
 We can use the function `plot` again, but we get a warning informing us that
@@ -249,7 +250,7 @@ model
 #> geneflow events: [no geneflow]
 #> generation time: 30 
 #> time direction: backward 
-#> number of spatial maps: 56 
+#> number of spatial maps: 60 
 #> resolution: 10000 distance unit per pixel
 #> 
 #> configuration files in: /private/tmp/example-model 
@@ -269,7 +270,7 @@ this is much better than static spatial plots such as the one we showed in step
 
 
 ```r
-explore(model)
+#explore(model)
 ```
 
 The function has two modes:
@@ -296,7 +297,7 @@ of time.
 slim(
   model,
   seq_length = 1, recomb_rate = 0, # simulate only a single locus
-  save_locations = TRUE, # save the location of everyone who ever lived
+  save_locations = FALSE, # save the location of everyone who ever lived
   method = "batch" # change to "gui" to execute the model in SLiMgui
 )
 ```
@@ -313,9 +314,8 @@ course of the simulation to generate a simple GIF animation:
 
 ```r
 animate(model, steps = 100, width = 500, height = 300)
+#> Error in fread(locations, header = TRUE): File '/tmp/example-model//output_ind_locations.tsv.gz' does not exist or is non-readable. getwd()=='/Users/martin_petr/projects/slendr'
 ```
-
-![plot of chunk plot_gif](man/figures/README-plot_gif-1.gif)
 
 Note that it is possible to simulate population splits and geneflows
 both by "physically" moving individuals of a population from one

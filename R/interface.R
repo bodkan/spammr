@@ -336,21 +336,28 @@ boundary <- function(pop, time, center = NULL, radius = NULL,
 
 #' Resize the population size
 #'
+#' Resizes the population starting from the current value of \code{N}
+#' individuals to the specified value
+#'
+#' In the case of exponential size change, if the final \code{N} is larger than
+#' the current size, the population will be exponentially growing over the
+#' specified time period until it reaches \code{N} individuals. If \code{N} is
+#' smaller, the population will shrink exponentially.
+#'
 #' @param pop Object of the class \code{slendr_pop}
 #' @param N Population size after the change
-#' @param how How to change the population size (options are \code{"step"},
-#'   \code{"exponential"}, \code{"linear"})
+#' @param how How to change the population size (options are \code{"step"} or
+#'   \code{"exponential"})
 #' @param time Time of the population size change
-#' @param end End of the population size change period (used for
-#'   exponential change events)
+#' @param end End of the population size change period (used for exponential
+#'   change events)
 #'
 #' @export
 resize <- function(pop, N, how, time, end = NULL) {
   if (N < 1) stop("Only positive population sizes allowed", call. = FALSE)
 
   if (!how %in% c("step", "exponential"))
-    stop("Only 'step', 'exponential' and 'linear' are allowed as arguments
-for the 'how' parameter", call. = FALSE)
+    stop("Only 'step' or 'exponential' are allowed as arguments for the 'how' parameter", call. = FALSE)
 
   if (how == "exponential" & is.null(end))
     stop("Start-end period of the exponential growth must be specified", call. = FALSE)

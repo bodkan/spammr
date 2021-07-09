@@ -11,14 +11,21 @@ resize(pop, N, how, time, end = NULL)
 
 \item{N}{Population size after the change}
 
-\item{how}{How to change the population size (options are \code{"step"},
-\code{"exponential"}, \code{"linear"})}
+\item{how}{How to change the population size (options are \code{"step"} or
+\code{"exponential"})}
 
 \item{time}{Time of the population size change}
 
-\item{end}{End of the population size change period (used for
-exponential change events)}
+\item{end}{End of the population size change period (used for exponential
+change events)}
 }
 \description{
-Resize the population size
+Resizes the population starting from the current value of \code{N}
+individuals to the specified value
+}
+\details{
+In the case of exponential size change, if the final \code{N} is larger than
+the current size, the population will be exponentially growing over the
+specified time period until it reaches \code{N} individuals. If \code{N} is
+smaller, the population will shrink exponentially.
 }
