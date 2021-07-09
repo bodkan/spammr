@@ -10,6 +10,7 @@ reference:
     - shrink
     - boundary
     - resize
+    - dispersal
     - geneflow
 
   - title: Defining spatial features

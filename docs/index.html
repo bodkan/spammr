@@ -63,6 +63,18 @@
 <li>
   <a href="reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="articles/spatial_interactions.html">Spatial interaction dynamics</a>
+    </li>
+  </ul>
+</li>
 <li>
   <a href="news/index.html">Changelog</a>
 </li>
@@ -257,7 +269,7 @@
 <a href="#6-visualize-the-model" class="anchor"></a>6. Visualize the model</h4>
 <p>The package provides an <a href="https://shiny.rstudio.com">R shiny</a>-based browser app <code><a href="reference/explore.html">explore()</a></code> for checking the model dynamics interactively and visually. For more complex models, this is much better than static spatial plots such as the one we showed in step 2 above:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co">#explore(model)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="reference/explore.html">explore</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></code></pre></div>
 <p>The function has two modes:</p>
 <p>a) Plotting spatial map dynamics:</p>
 <p><img src="reference/figures/shiny_maps.png"></p>
@@ -273,7 +285,7 @@
 <code class="sourceCode R"><span class="fu"><a href="reference/slim.html">slim</a></span><span class="op">(</span>
   <span class="va">model</span>,
   seq_length <span class="op">=</span> <span class="fl">1</span>, recomb_rate <span class="op">=</span> <span class="fl">0</span>, <span class="co"># simulate only a single locus</span>
-  save_locations <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co"># save the location of everyone who ever lived</span>
+  save_locations <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># save the location of everyone who ever lived</span>
   method <span class="op">=</span> <span class="st">"batch"</span> <span class="co"># change to "gui" to execute the model in SLiMgui</span>
 <span class="op">)</span></code></pre></div>
 <p>As specified, the SLiM run will save ancestry proportions in each population over time as well as the location of every individual who ever lived.</p>
@@ -283,8 +295,8 @@
 <a href="#8-re-capitulate-the-slim-run-as-an-individual-based-animation" class="anchor"></a>8. Re-capitulate the SLiM run as an individual-based animation</h4>
 <p>We can use the saved locations of every individual that lived throughout the course of the simulation to generate a simple GIF animation:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="reference/animate.html">animate</a></span><span class="op">(</span><span class="va">model</span>, steps <span class="op">=</span> <span class="fl">100</span>, width <span class="op">=</span> <span class="fl">500</span>, height <span class="op">=</span> <span class="fl">300</span><span class="op">)</span>
-<span class="co">#&gt; Error in fread(locations, header = TRUE): File '/tmp/example-model//output_ind_locations.tsv.gz' does not exist or is non-readable. getwd()=='/Users/martin_petr/projects/slendr'</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="reference/animate.html">animate</a></span><span class="op">(</span><span class="va">model</span>, steps <span class="op">=</span> <span class="fl">100</span>, width <span class="op">=</span> <span class="fl">500</span>, height <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></code></pre></div>
+<p><img src="reference/figures/README-plot_gif-1.gif" alt="plot of chunk plot_gif"></p>
 <p>Note that it is possible to simulate population splits and geneflows both by “physically” moving individuals of a population from one destination to the next across space but it is also possible to do this more abstractly (in instantaneous “jumps”) in situations where this is more appropriate or where simulating accurate movement is not necessary.</p>
 <p>In this case, the only population movement we explicitly encoded was the split and migration of the OOA population from Africans and the expansion of Anatolians. All the other populations simply popped up on a map, without explicitly migrating there. Similarly, the geneflow from Anatolians into the Yamnaya specified in step 4. did not require a spatial overlap between the two populations, but the other two geneflow events did.</p>
 </div>

@@ -47,7 +47,8 @@
 
 
 <meta property="og:title" content="Resize the population size — resize" />
-<meta property="og:description" content="Resize the population size" />
+<meta property="og:description" content="Resizes the population starting from the current value of N
+individuals to the specified value" />
 <meta property="og:image" content="https://bodkan.net/slendr/logo.png" />
 
 
@@ -98,6 +99,18 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="../articles/spatial_interactions.html">Spatial interaction dynamics</a>
+    </li>
+  </ul>
+</li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
@@ -128,7 +141,8 @@
     </div>
 
     <div class="ref-description">
-    <p>Resize the population size</p>
+    <p>Resizes the population starting from the current value of <code>N</code>
+individuals to the specified value</p>
     </div>
 
     <pre class="usage"><span class='fu'>resize</span><span class='op'>(</span><span class='va'>pop</span>, <span class='va'>N</span>, <span class='va'>how</span>, <span class='va'>time</span>, end <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
@@ -155,11 +169,17 @@
     </tr>
     <tr>
       <th>end</th>
-      <td><p>End of the population size change period (used for
-exponential change events)</p></td>
+      <td><p>End of the population size change period (used for exponential
+change events)</p></td>
     </tr>
     </table>
 
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>In the case of exponential size change, if the final <code>N</code> is larger than
+the current size, the population will be exponentially growing over the
+specified time period until it reaches <code>N</code> individuals. If <code>N</code> is
+smaller, the population will shrink exponentially.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

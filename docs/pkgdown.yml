@@ -3,7 +3,8 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   slendr: slendr.html
-last_built: 2021-07-09T14:00Z
+  spatial_interactions: spatial_interactions.html
+last_built: 2021-07-09T22:23Z
 urls:
   reference: https://bodkan.net/slendr/reference
   article: https://bodkan.net/slendr/articles

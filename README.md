@@ -270,7 +270,7 @@ this is much better than static spatial plots such as the one we showed in step
 
 
 ```r
-#explore(model)
+explore(model)
 ```
 
 The function has two modes:
@@ -297,7 +297,7 @@ of time.
 slim(
   model,
   seq_length = 1, recomb_rate = 0, # simulate only a single locus
-  save_locations = FALSE, # save the location of everyone who ever lived
+  save_locations = TRUE, # save the location of everyone who ever lived
   method = "batch" # change to "gui" to execute the model in SLiMgui
 )
 ```
@@ -314,8 +314,9 @@ course of the simulation to generate a simple GIF animation:
 
 ```r
 animate(model, steps = 100, width = 500, height = 300)
-#> Error in fread(locations, header = TRUE): File '/tmp/example-model//output_ind_locations.tsv.gz' does not exist or is non-readable. getwd()=='/Users/martin_petr/projects/slendr'
 ```
+
+![plot of chunk plot_gif](man/figures/README-plot_gif-1.gif)
 
 Note that it is possible to simulate population splits and geneflows
 both by "physically" moving individuals of a population from one

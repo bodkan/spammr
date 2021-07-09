@@ -22,6 +22,9 @@
     <loc>https://bodkan.net/slendr/reference/dimension.html</loc>
   </url>
   <url>
+    <loc>https://bodkan.net/slendr/reference/dispersal.html</loc>
+  </url>
+  <url>
     <loc>https://bodkan.net/slendr/reference/distance.html</loc>
   </url>
   <url>
@@ -98,5 +101,8 @@
   </url>
   <url>
     <loc>https://bodkan.net/slendr/articles/slendr.html</loc>
+  </url>
+  <url>
+    <loc>https://bodkan.net/slendr/articles/spatial_interactions.html</loc>
   </url>
 </urlset>

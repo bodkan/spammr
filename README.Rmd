@@ -255,7 +255,7 @@ this is much better than static spatial plots such as the one we showed in step
 2 above:
 
 ```{r, eval = F}
-#explore(model)
+explore(model)
 ```
 
 The function has two modes:
@@ -281,7 +281,7 @@ of time.
 slim(
   model,
   seq_length = 1, recomb_rate = 0, # simulate only a single locus
-  save_locations = FALSE, # save the location of everyone who ever lived
+  save_locations = TRUE, # save the location of everyone who ever lived
   method = "batch" # change to "gui" to execute the model in SLiMgui
 )
 ```

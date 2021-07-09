@@ -394,6 +394,49 @@ resize <- function(pop, N, how, time, end = NULL) {
 }
 
 
+#' Change dispersal parameters
+#'
+#' Changes either the competition interactive distance, mating choice distance,
+#' or the dispersal of offspring from its parent
+#'
+#' @param pop Object of the class \code{slendr_pop}
+#' @param time Time of the population size change
+#' @param competition_dist,mate_dist Maximum spatial competition and mating
+#'   choice distance
+#' @param dispersal_dist Standard deviation of the normal distribution of the
+#'   distance that offspring disperses from its parent
+#'
+#' @export
+dispersal <- function(pop, time, competition_dist = NA, mate_dist = NA, dispersal_dist = NA) {
+  if (is.na(competition_dist) & is.na(mate_dist) & is.na(dispersal_dist))
+    stop("At least one spatial interaction parameter must be specified", call. = FALSE)
+
+  if (any(c(competition_dist, mate_dist, dispersal_dist) < 0, na.rm = TRUE))
+    stop("Spatial interaction parameters can only have positive, non-zero values", call. = FALSE)
+
+  map <- attr(pop, "map")
+  if (!is.na(competition_dist)) check_resolution(map, competition_dist)
+  if (!is.na(mate_dist)) check_resolution(map, mate_dist)
+  if (!is.na(dispersal_dist)) check_resolution(map, dispersal_dist)
+
+  check_event_time(time, pop)
+  check_removal_time(time, pop)
+
+  change <- data.frame(
+    pop =  unique(pop$pop),
+    event = "dispersal",
+    time = time,
+    competition_dist = competition_dist,
+    mate_dist = mate_dist,
+    dispersal_dist = dispersal_dist
+  )
+
+  attr(pop, "history") <- append(attr(pop, "history"), list(change))
+
+  pop
+}
+
+
 #' Define a geneflow event
 #'
 #' @param from,to Objects of the class \code{slendr_pop}

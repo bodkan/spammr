@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Get table of node labels in the graph — get_nodes • slendr</title>
+<title>Change dispersal parameters — dispersal • slendr</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -46,8 +46,9 @@
 
 
 
-<meta property="og:title" content="Get table of node labels in the graph — get_nodes" />
-<meta property="og:description" content="Get table of node labels in the graph" />
+<meta property="og:title" content="Change dispersal parameters — dispersal" />
+<meta property="og:description" content="Changes either the competition interactive distance, mating choice distance,
+or the dispersal of offspring from its parent" />
 <meta property="og:image" content="https://bodkan.net/slendr/logo.png" />
 
 
@@ -134,17 +135,46 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Get table of node labels in the graph</h1>
-    <small class="dont-index">Source: <a href='https://github.com/bodkan/slendr/blob/master/R/visualization.R'><code>R/visualization.R</code></a></small>
-    <div class="hidden name"><code>get_nodes.Rd</code></div>
+    <h1>Change dispersal parameters</h1>
+    <small class="dont-index">Source: <a href='https://github.com/bodkan/slendr/blob/master/R/interface.R'><code>R/interface.R</code></a></small>
+    <div class="hidden name"><code>dispersal.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Get table of node labels in the graph</p>
+    <p>Changes either the competition interactive distance, mating choice distance,
+or the dispersal of offspring from its parent</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_nodes</span><span class='op'>(</span><span class='va'>edges</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>dispersal</span><span class='op'>(</span>
+  <span class='va'>pop</span>,
+  <span class='va'>time</span>,
+  competition_dist <span class='op'>=</span> <span class='cn'>NA</span>,
+  mate_dist <span class='op'>=</span> <span class='cn'>NA</span>,
+  dispersal_dist <span class='op'>=</span> <span class='cn'>NA</span>
+<span class='op'>)</span></pre>
 
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>pop</th>
+      <td><p>Object of the class <code>slendr_pop</code></p></td>
+    </tr>
+    <tr>
+      <th>time</th>
+      <td><p>Time of the population size change</p></td>
+    </tr>
+    <tr>
+      <th>competition_dist, mate_dist</th>
+      <td><p>Maximum spatial competition and mating
+choice distance</p></td>
+    </tr>
+    <tr>
+      <th>dispersal_dist</th>
+      <td><p>Standard deviation of the normal distribution of the
+distance that offspring disperses from its parent</p></td>
+    </tr>
+    </table>
 
 
   </div>

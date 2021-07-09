@@ -22,6 +22,7 @@ initialize() {
   defineConstant("POPULATIONS", read_table(config_path("populations.tsv")));
   defineConstant("GENEFLOWS", read_table(config_path("geneflow.tsv")));
   defineConstant("RESIZES", read_table(config_path("resizes.tsv")));
+  defineConstant("INTERACTIONS", read_table(config_path("dispersals.tsv")));
   defineConstant("MAPS", read_table(config_path("maps.tsv")));
   // load all spatial maps (image objects)
   MAPS.setValue("image", sapply(MAPS.getValue("path"), "Image(applyValue);"));
@@ -32,6 +33,7 @@ initialize() {
   slim_time(GENEFLOWS);
   slim_time(MAPS);
   slim_time(RESIZES);
+  slim_time(INTERACTIONS);
 
   defineConstant("SIM_START", BURNIN_LENGTH + min(POPULATIONS.getValue("tsplit_gen")));
   defineConstant("SIM_END", SIM_START + SIM_LENGTH);
@@ -113,35 +115,41 @@ initialize() {
   } else
     sim.deregisterScriptBlock(s6);
 
+  // changes in interaction distances and dispersals
+  if (num_rows(INTERACTIONS))
+    sim.rescheduleScriptBlock(s7, generations = unique(INTERACTIONS.getValue("time")));
+  else
+    sim.deregisterScriptBlock(s7);
+
   // output locations of individuals
   if (SAVE_LOCATIONS) {
-    sim.rescheduleScriptBlock(s7, start = SIM_START, end = SIM_END);
+    sim.rescheduleScriptBlock(s8, start = SIM_START, end = SIM_END);
     write_locations_header();
   } else
-    sim.deregisterScriptBlock(s7);
+    sim.deregisterScriptBlock(s8);
 
   // output ancestry proportions
   if (TRACK_ANCESTRY) {
-     sim.rescheduleScriptBlock(s8, start = SIM_START, end = SIM_END);
+     sim.rescheduleScriptBlock(s9, start = SIM_START, end = SIM_END);
      write_ancestries_header();
   } else
-     sim.deregisterScriptBlock(s8);
+     sim.deregisterScriptBlock(s9);
 
   // output tree sequence data
   if (TS_RECORDING) {
-    sim.rescheduleScriptBlock(s9, generations = SIM_END);
+    sim.rescheduleScriptBlock(s10, generations = SIM_END);
   } else
-    sim.deregisterScriptBlock(s9);
+    sim.deregisterScriptBlock(s10);
 
   // removing populations from the simulation
   cleanups = filter(POPULATIONS, "tremove", -1, negate = T);
   if (num_rows(cleanups))
-     sim.rescheduleScriptBlock(s10, generations = unique(cleanups.getValue("tremove")));
+     sim.rescheduleScriptBlock(s11, generations = unique(cleanups.getValue("tremove")));
   else
-     sim.deregisterScriptBlock(s10);
+     sim.deregisterScriptBlock(s11);
 
   // stop the simulation
-  sim.rescheduleScriptBlock(s11, generations = SIM_END);
+  sim.rescheduleScriptBlock(s12, generations = SIM_END);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -160,6 +168,10 @@ s1 late() {
     else
       split_pop(pop_id);
 
+    get_pop(pop_id).setValue(
+      "dispersal_dist",
+      filter(POPULATIONS, "pop_id", pop_id).getValue("dispersal_dist")
+    );
     set_map(pop_id, sim.generation);
     set_coordinates(get_pop(pop_id).individuals, pop_id);
     add_markers(pop_id);
@@ -246,8 +258,42 @@ s6 {
   }
 }
 
-// Save locations and remember ancient individuals
+// Changing interaction distances and dispersals
 s7 late() {
+  events = filter(INTERACTIONS, "time", sim.generation);
+  for (i in iter(events)) {
+    event = events.getRowValues(i);
+
+    pop = event.getValue("pop"); pop_id = event.getValue("pop_id");
+    competition_dist = event.getValue("competition_dist");
+    mate_dist = event.getValue("competition_dist");
+    dispersal_dist = event.getValue("dispersal_dist");
+
+    if (competition_dist != -1) {
+      log_output("setting competition interaction distance for " + pop + "(" +
+                 pop_id + ") to " + competition_dist);
+      interaction = sim.interactionTypes[2 * pop_id];
+      interaction.unevaluate();
+      interaction.maxDistance = competition_dist;
+    }
+    if (mate_dist != -1) {
+      log_output("setting mate choice distance for " + pop + "(" +
+                 pop_id + ") to " + mate_dist);
+      interaction = sim.interactionTypes[2 * pop_id + 1];
+      interaction.unevaluate();
+      interaction.maxDistance = mate_dist;
+    }
+    if (dispersal_dist != -1) {
+      log_output("setting offspring dispersal distance for " + pop + "(" +
+                 pop_id + ") to " + dispersal_dist);
+      get_pop(pop).setValue("dispersal_dist", dispersal_dist);
+    }
+  }
+  evaluate_interactions();
+}
+
+// Save locations and remember ancient individuals
+s8 late() {
   // explicitly sample individuals for later tree sequence analysis
   // (one individual from each population)
   // TODO: make this programmable by the user on the R side
@@ -263,12 +309,12 @@ s7 late() {
 }
 
 // Write ancestry proportions in the current generation
-s8 late() {
+s9 late() {
   write_ancestries();
 }
 
 // Save tree sequences at the end of the simulation
-s9 late() {
+s10 late() {
   log_output("saving tree-sequence data");
 
   if (TS_RECORDING) {
@@ -278,7 +324,7 @@ s9 late() {
 }
 
 // Remove populations which are no longer necessary
-s10 late() {
+s11 late() {
   pops = filter(POPULATIONS, "tremove", sim.generation);
   for (i in iter(pops)) {
     pop = pops.getRowValues(i);
@@ -288,7 +334,7 @@ s10 late() {
   }
 }
 
-s11 late() {
+s12 late() {
   log_output("simulation finished");
   sim.simulationFinished();
 }
@@ -337,7 +383,7 @@ modifyChild() {
 
   // for spatially overlapping geneflow and non-migrant offspring,
   // propose location in the neighborhood of one of its parents
-  sigma_dist = filter(POPULATIONS, "pop_id", subpop.id).getValue("dispersal_dist");
+  sigma_dist = get_pop(subpop.id).getValue("dispersal_dist");
   jitter = rnorm(2, 0, sigma_dist);
   pos = parent1.spatialPosition + jitter;
 

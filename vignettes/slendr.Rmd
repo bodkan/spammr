@@ -5,9 +5,6 @@ vignette: >
   %\VignetteEncoding{UTF-8}
   %\VignetteIndexEntry{Introduction and tutorial}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
-  markdown: 
-    wrap: 72
 ---
 
 ```{r, include = FALSE}

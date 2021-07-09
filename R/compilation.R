@@ -90,6 +90,7 @@ setting `direction = 'backward'.`", call. = FALSE)
   admix_table <- compile_geneflows(geneflow, split_table, generation_time, time_dir, max_time)
   map_table <- compile_maps(populations, split_table, resolution, generation_time, time_dir, max_time, dir)
   resize_table <- compile_resizes(populations, generation_time, time_dir, max_time, split_table)
+  dispersal_table <- compile_dispersals(populations, generation_time, time_dir, max_time, split_table)
 
   # take care of missing interactions and offspring distances
   split_table <- set_distances(split_table, resolution, competition_dist, mate_dist, dispersal_dist)
@@ -110,7 +111,7 @@ setting `direction = 'backward'.`", call. = FALSE)
   class(result) <- set_class(result, "model")
 
   write_model(dir, populations, admix_table, map_table, split_table, resize_table,
-              generation_time, resolution, max_time, time_dir)
+              dispersal_table, generation_time, resolution, max_time, time_dir)
 
   result
 }
@@ -333,7 +334,8 @@ script <- function(path, output = NULL, ...) {
 
 # Write a compiled slendr model to disk
 write_model <- function(dir, populations, admix_table, map_table, split_table,
-                        resize_table, generation_time, resolution, length, direction) {
+                        resize_table, dispersal_table,
+                        generation_time, resolution, length, direction) {
   if (!is.null(admix_table)) {
     admix_table$overlap <- as.integer(admix_table$overlap)
     utils::write.table(admix_table, file.path(dir, "geneflow.tsv"),
@@ -357,6 +359,10 @@ write_model <- function(dir, populations, admix_table, map_table, split_table,
 
   if (!is.null(resize_table))
     utils::write.table(resize_table, file.path(dir, "resizes.tsv"),
+                       sep = "\t", quote = FALSE, row.names = FALSE)
+
+  if (!is.null(dispersal_table))
+    utils::write.table(dispersal_table, file.path(dir, "dispersals.tsv"),
                        sep = "\t", quote = FALSE, row.names = FALSE)
 
   # save the population names (SLiM doesn't do data frames with mixed numeric
@@ -524,6 +530,44 @@ compile_resizes <- function(populations, generation_time, direction,
 
   resize_table[, c("pop", "pop_id", "how", "N", "prev_N",
                    "time_orig", "time_gen", "tend_orig", "tend_gen")]
+}
+
+# Compile table of population resize events
+compile_dispersals <- function(populations, generation_time, direction,
+                               max_time, split_table) {
+  dispersal_events <- lapply(populations, function(p) {
+    lapply(attr(p, "history"), function(event) {
+      if (event$event == "dispersal") event
+    }) %>% do.call(rbind, .)
+  }) %>% do.call(rbind, .)
+
+  if (is.null(dispersal_events))
+    return(NULL)
+  else {
+    dispersal_events$competition_dist[is.na(dispersal_events$competition_dist)] <- -1
+    dispersal_events$mate_dist[is.na(dispersal_events$mate_dist)] <- -1
+    dispersal_events$dispersal_dist[is.na(dispersal_events$dispersal_dist)] <- -1
+
+    dispersal_events$competition_dist <- as.integer(dispersal_events$competition_dist)
+    dispersal_events$mate_dist <- as.integer(dispersal_events$mate_dist)
+    dispersal_events$dispersal_dist <- as.integer(dispersal_events$dispersal_dist)
+  }
+
+  dispersal_table <- convert_time(
+    dispersal_events,
+    direction = direction,
+    columns = "time",
+    max_time = max_time,
+    generation_time = generation_time
+  )
+
+  dispersal_table$pop_id <- sapply(
+    dispersal_table$pop,
+    function(i) split_table[split_table$pop == i, ]$pop_id
+  ) %>% as.numeric
+
+  dispersal_table[, c("pop", "pop_id", "time_gen", "time_orig",
+                      "competition_dist", "mate_dist", "dispersal_dist")]
 }
 
 
