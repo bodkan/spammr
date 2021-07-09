@@ -289,3 +289,28 @@ test_that("Events can't be scheduled after population removal", {
   expect_error(expand(backward, by = 10, start = 8, end = 5, snapshots = 3),paste0(msg, "given the assumed backward time"))
   expect_silent(move(backward, trajectory = c(5, 5), start = 80, end = 50, snapshots = 3))
 })
+
+test_that("Explicitly given direction must agree with the implied direction", {
+  map <- readRDS("map.rds")
+
+  msg <- "The direction that was explicitly specified contradicts the direction implied by the model"
+
+  pop <- population("pop", time = 500, N = 100, map = map, center = c(20, 50), radius = 500e3) %>%
+    resize(N = 1000, time = 900, how = "step")
+
+  model_dir <- file.path(tempdir(), "direction_conflict")
+  unlink(model_dir, recursive = TRUE, force = TRUE)
+  expect_error(compile(populations = list(pop), generation_time = 1,
+                       resolution = 10e3, competition_dist = 130e3, mate_dist = 100e3, dispersal_dist = 70e3, # how far will offspring end up from their parents
+                       dir = model_dir, direction = "backward"), msg)
+
+  pop <- population("pop", time = 500, N = 100, map = map, center = c(20, 50), radius = 500e3) %>%
+    resize(N = 1000, time = 300, how = "step")
+
+  model_dir <- file.path(tempdir(), "direction_conflict")
+  unlink(model_dir, recursive = TRUE, force = TRUE)
+  expect_error(compile(populations = list(pop), generation_time = 1,
+                       resolution = 10e3, competition_dist = 130e3, mate_dist = 100e3, dispersal_dist = 70e3, # how far will offspring end up from their parents
+                       dir = model_dir, direction = "forward"), msg)
+
+})
