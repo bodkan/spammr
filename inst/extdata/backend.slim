@@ -94,18 +94,18 @@ initialize() {
      sim.deregisterScriptBlock(s4);
 
   // step population size changes
-  step_changes = filter(RESIZES, "resize_how", "step");
+  step_changes = filter(RESIZES, "how", "step");
   if (num_rows(step_changes))
     sim.rescheduleScriptBlock(s5, generations = unique(step_changes.getValue("time")));
   else
     sim.deregisterScriptBlock(s5);
 
   // exponential population size changes
-  // exp_changes = filter(RESIZES, "resize_how", "exponential");
-  // if (num_rows(exp_changes))
-  //   sim.rescheduleScriptBlock(s6, generations = unique(exp_changes.getValue("time")));
-  // else
-  //   sim.deregisterScriptBlock(s6);
+  exp_changes = filter(RESIZES, "how", "exponential");
+  if (num_rows(exp_changes))
+    sim.rescheduleScriptBlock(s6, generations = unique(exp_changes.getValue("time")));
+  else
+    sim.deregisterScriptBlock(s6);
 
   // output locations of individuals
   if (SAVE_LOCATIONS) {
@@ -191,14 +191,47 @@ s4 late() {
 }
 
 // Step population size changes
-s5 late() {
-  events = filter(RESIZES, "time", sim.generation);
+s5 {
+  // get all step resize events active in this generation
+  all_events = filter(RESIZES, "time", sim.generation);
+  events = filter(all_events, "how", "step");
+
   for (i in iter(events)) {
     event = events.getRowValues(i);
     pop = event.getValue("pop"); N = event.getValue("N");
     get_pop(pop).setSubpopulationSize(N);
     log_output(pop + "(p" + event.getValue("pop_id") + ") resized to " +
                N + " individuals");
+  }
+}
+
+// Exponential population size changes
+s6 {
+  if (!num_rows(RESIZES)) return;
+
+  // get all exponential resize events active in this generation
+  active = RESIZES.getValue("time") <= sim.generation &
+           RESIZES.getValue("tend") >= sim.generation &
+           RESIZES.getValue("how") == "exponential";
+  events = RESIZES.getRowValues(active);
+
+  for (i in iter(events)) {
+    event = events.getRowValues(i);
+
+    pop = event.getValue("pop"); pop_id = event.getValue("pop_id");
+    Nstart = event.getValue("prev_N"); Nend = event.getValue("N");
+    tstart = event.getValue("time"); tend = event.getValue("tend");
+
+    r = log(Nend / Nstart) / (tend - tstart);
+    tdelta = sim.generation - tstart;
+    Nt = asInteger(round(Nstart * exp(r * tdelta)));
+
+    get_pop(pop).setSubpopulationSize(Nt);
+
+    if (sim.generation == tstart)
+      log_output(pop + "(p" + pop_id + ") starts growing exponentially");
+    if (sim.generation == tend)
+      log_output("end of exponential growth of " + pop + "(p" + pop_id + ")");
   }
 }
 
@@ -512,7 +545,7 @@ function (i$) num_rows(No<Dictionary>$ d) {
 }
 
 // Return a vector of row indices of a given dataframe
-function (i) iter(object<Dictionary> d) {
+function (i) iter(No<Dictionary> d) {
   return seqLen(num_rows(d));
 }
 
@@ -535,11 +568,11 @@ function (void) print_table(object<Dictionary> d) {
 // for every column among all slendr-generated TSV files)
 function (ifsl) convert_type(s$ column_name, s string_values) {
   // vectors of all possible column names in tables defined by slendr `compile()`
-	string = c("pop", "parent", "resize_how", "path", "from", "to", "how");
-	integer = c("pop_id", "parent_id", "from_id", "to_id", "N",
+	string = c("pop", "parent", "how", "path", "from", "to", "how");
+	integer = c("pop_id", "parent_id", "from_id", "to_id", "N", "prev_N",
 	            "time_orig", "time_gen", "tsplit_orig", "tsplit_gen",
 	            "tremove_orig", "tremove_gen", "tstart_orig", "tstart_gen",
-	            "tend_orig", "tend_gen");
+	            "tend_orig", "tend_gen", "end_orig", "end_gen");
 	float = c("rate", "competition_dist", "mate_dist", "dispersal_dist");
 	logical = c("overlap");
 
@@ -562,7 +595,7 @@ function (ifsl) convert_type(s$ column_name, s string_values) {
 function (void) slim_time(No<Dictionary>$ table) {
   if (!isNULL(table)) {
     // list of all possible time columns to look for
-    time_columns = c("time", "tsplit", "tremove", "tstart", "tend");
+    time_columns = c("time", "tsplit", "tremove", "tstart", "tend", "tend");
 
     // get time columns present in the current table
     columns = setIntersection(table.allKeys, time_columns + "_gen");
