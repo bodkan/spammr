@@ -30,18 +30,23 @@ animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
   ))]
 
   # convert pixel-based coordinates to the internal CRS
-  locs <- convert(
-    coords = locs,
-    from = "raster", to = "world",
-    model = model,
-    add = TRUE
-  )
+  if (has_crs(model$world))
+    locs <- convert(
+      coords = locs,
+      from = "raster", to = "world",
+      model = model,
+      add = TRUE
+    )
+  else
+    locs[, `:=`(newx = x, newy = y)]
 
   p <- plot(model$world) +
     geom_point(data = locs, aes(newx, newy, color = pop), alpha = 0.5, size = 0.5) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           legend.title = element_blank())
+
+  if (length(unique(locs$pop)) == 1) p <- p + theme(legend.position = "none")
 
   if (model$direction == "backward")
     transition <- gganimate::transition_states(
@@ -329,7 +334,7 @@ get_nodes <- function(edges) {
   nodes$type <- sapply(nodes$name, function(i) {
     type <- grep("intermediate", edges[edges$y == i, ]$type, invert = TRUE, value = TRUE)
     if (length(type) > 0)
-      return(type)
+      return(unique(type))
     else
       return("intermediate")
   })
