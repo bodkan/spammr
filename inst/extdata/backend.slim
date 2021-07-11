@@ -349,13 +349,13 @@ s12 late() {
 }
 
 2: fitness(NULL) {
-  interaction = sim.interactionTypes[subpop.id];
+  interaction = sim.interactionTypes[2 * subpop.id];
   totalStrength = interaction.totalOfNeighborStrengths(individual);
   return 1.1 - totalStrength / subpop.individualCount;
 }
 
 2: mateChoice() {
-  return sim.interactionTypes[subpop.id].strength(individual);
+  return sim.interactionTypes[2 * subpop.id + 1].strength(individual);
 }
 
 modifyChild() {
