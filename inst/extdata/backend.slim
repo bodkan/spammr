@@ -266,25 +266,25 @@ s7 late() {
 
     pop = event.getValue("pop"); pop_id = event.getValue("pop_id");
     competition_dist = event.getValue("competition_dist");
-    mate_dist = event.getValue("competition_dist");
+    mate_dist = event.getValue("mate_dist");
     dispersal_dist = event.getValue("dispersal_dist");
 
     if (competition_dist != -1) {
-      log_output("setting competition interaction distance for " + pop + "(" +
+      log_output("setting competition interaction distance for " + pop + "(p" +
                  pop_id + ") to " + competition_dist);
       interaction = sim.interactionTypes[2 * pop_id];
       interaction.unevaluate();
       interaction.maxDistance = competition_dist;
     }
     if (mate_dist != -1) {
-      log_output("setting mate choice distance for " + pop + "(" +
+      log_output("setting mate choice distance for " + pop + "(p" +
                  pop_id + ") to " + mate_dist);
       interaction = sim.interactionTypes[2 * pop_id + 1];
       interaction.unevaluate();
       interaction.maxDistance = mate_dist;
     }
     if (dispersal_dist != -1) {
-      log_output("setting offspring dispersal distance for " + pop + "(" +
+      log_output("setting offspring dispersal distance for " + pop + "(p" +
                  pop_id + ") to " + dispersal_dist);
       get_pop(pop).setValue("dispersal_dist", dispersal_dist);
     }
