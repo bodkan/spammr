@@ -456,11 +456,13 @@ function (void) add_markers(i$ pop_id) {
 }
 
 // Distribute individuals uniformly within the boundary of the given population
-function (void) set_coordinates(lifso<Individual> inds, i$ pop, [l$ log = T]) {
-  if (log) log_output("distributing individuals");
+function (void) set_coordinates(lifso<Individual> inds, i$ id, [l$ log = T]) {
+  if (log) log_output("distributing individuals of " +
+                      filter(POPULATIONS, "pop_id", id).getValue("pop") +
+                      "(" + id + ")");
   for (ind in inds) {
     do pos = c(runif(1, 0, WIDTH), runif(1, 0, HEIGHT));
-    while (get_pop(pop).spatialMapValue("world", pos) == 1.0);
+    while (get_pop(id).spatialMapValue("world", pos) == 1.0);
     ind.setSpatialPosition(pos);
   }
 }
