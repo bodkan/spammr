@@ -459,7 +459,7 @@ function (void) add_markers(i$ pop_id) {
 function (void) set_coordinates(lifso<Individual> inds, i$ id, [l$ log = T]) {
   if (log) log_output("distributing individuals of " +
                       filter(POPULATIONS, "pop_id", id).getValue("pop") +
-                      "(" + id + ")");
+                      "(p" + id + ")");
   for (ind in inds) {
     do pos = c(runif(1, 0, WIDTH), runif(1, 0, HEIGHT));
     while (get_pop(id).spatialMapValue("world", pos) == 1.0);
