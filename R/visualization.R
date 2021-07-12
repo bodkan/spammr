@@ -30,15 +30,12 @@ animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
   ))]
 
   # convert pixel-based coordinates to the internal CRS
-  if (has_crs(model$world))
-    locs <- convert(
-      coords = locs,
-      from = "raster", to = "world",
-      model = model,
-      add = TRUE
-    )
-  else
-    locs[, `:=`(newx = x, newy = y)]
+  locs <- convert(
+    coords = locs,
+    from = "raster", to = "world",
+    model = model,
+    add = TRUE
+  )
 
   p <- plot(model$world) +
     geom_point(data = locs, aes(newx, newy, color = pop), alpha = 0.5, size = 0.5) +

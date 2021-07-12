@@ -64,6 +64,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="../articles/grid_model.html">Spatial population grid example</a>
+    </li>
+    <li>
       <a href="../articles/spatial_interactions.html">Spatial interaction dynamics</a>
     </li>
   </ul>
@@ -172,7 +175,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpdD11Ib", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpKCs1vt", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -573,7 +576,8 @@ between populations.</code></pre>
   seq_length <span class="op">=</span> <span class="fl">1</span>, recomb_rate <span class="op">=</span> <span class="fl">0</span>, <span class="co"># simulate only a single locus</span>
   save_locations <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># save the location of everyone who ever lived</span>
   track_ancestry <span class="op">=</span> <span class="fl">1</span>,
-  method <span class="op">=</span> <span class="st">"batch"</span> <span class="co"># change to "gui" to execute the model in SLiMgui</span>
+  method <span class="op">=</span> <span class="st">"batch"</span>, <span class="co"># change to "gui" to execute the model in SLiMgui</span>
+  seed <span class="op">=</span> <span class="fl">314159265</span>
 <span class="op">)</span></code></pre></div>
 </div>
 <div id="post-simulation-diagnostics" class="section level2">

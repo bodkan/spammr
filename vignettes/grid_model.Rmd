@@ -1,0 +1,202 @@
+---
+title: "Spatial population grid example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Spatial population grid example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4,
+  dpi = 80
+)
+```
+
+```{r, echo = FALSE, message = FALSE}
+devtools::load_all(".")
+```
+
+In this vignette, we will build a simple model of isolated populations laid out on a two-dimensional grid, each exchanging migrants with its immediate neighbors. The purpose of the vignette is to demonstrate the power of R as a foundation for specifying *slendr* models. Although there is not built in functionality for such models in the R package, the fact that we have the complete functionality of R at our disposal makes it possible. By exposing a couple of simple model building primitives such as `population`, `geneflow`, `move`, etc, we can program spatiotemporal models of arbitrary complexity using R, and automatically execute them in SLiM.
+
+If you have worked with SLiM before, you will recognize that a nearly identical idea is implemented in Eidos language in section 5.3.3. of the SLiM manual. One difference in this example is that our model is explicitly spatial, unlike the example from the manual where spatiality is only approximated.
+
+## Simple two-dimensional grid model
+
+First, let's load the *slendr* R package and create a two-dimensional abstract world map:
+
+```{r, eval = FALSE}
+library(slendr)
+```
+
+```{r}
+map <- world(
+  xrange = c(0, 1000),
+  yrange = c(0, 1000),
+  landscape = "blank"
+)
+```
+
+Next, we define a helper function which will a) create a single *slendr* population object, b) place that population on an appropriate coordinate on the lattice on the world map based on the numeric identifier of the population *i*:
+
+```{r}
+create_pop <- function(i, n_side, map, N, radius) {
+  dim <- dimension(map, original = TRUE)
+
+  # position of the i-th population on the two-dimensional lattice grid
+  coords <- c((i - 1) %% n_side, (i - 1) %/% n_side)
+  center <- coords / n_side * dim + dim / (2 * n_side)
+
+  pop <- population(
+    name = sprintf("pop%d", i),
+    N = N,
+    time = 1,
+    map = map,
+    center = center + c(attr(map, "xrange")[1], attr(map, "yrange")[1]),
+    radius = radius
+  )
+  
+}
+```
+
+Having defined the population construction function, let's build our model. Let's say that we want to create a regular grid of *n* × *n* populations, with *N* individuals in each population:
+
+```{r}
+n <- 5
+
+populations <-
+  seq(1, n * n) %>%
+  lapply(create_pop, n_side = n, map = map, N = 100, radius = 40)
+```
+
+Let's plot the whole spatial population configuration, to make sure we set up things correctly:
+
+```{r}
+do.call(plot, populations) + ggplot2::theme(legend.position = "none")
+```
+
+So far, the way the model is specified, individuals of each population would be stuck on its own island. We can fix that by programming geneflow events using the *slendr* function `geneflow()`. Again, let's first program a simple helper function which will generate geneflow events according to neighborhood relationships on the two-dimensional grid, allowing each population to exchange migrants with each of its members.
+
+```{r}
+set_geneflow <- function(i, n_side, rate, start, end, populations) {
+  pop <- populations[[i]]
+
+  # get the position of the i-th population on the n*n grid
+  coords <- c((i - 1) %% n_side, (i - 1) %/% n_side)
+
+   # get coordinates of the i-th population's neighbors on the grid
+  neighbor_pos <- list(
+    c(coords[1] - 1, coords[2]), c(coords[1] + 1, coords[2]),
+    c(coords[1], coords[2] + 1), c(coords[1], coords[2] - 1)
+  )
+
+  # generate geneflow events for population coordinates inside the grid
+  geneflows <- lapply(neighbor_pos, function(pos) {
+    if (any(pos < 0 | pos >= n_side)) return(NULL)
+    neighbor <- populations[[pos[2] * n_side + pos[1] + 1]]
+    if (is.null(neighbor)) return(NULL)
+
+    rbind(
+      geneflow(from = pop, to = neighbor, rate = rate, start = start, end = end, overlap = FALSE),
+      geneflow(from = neighbor, to = pop, rate = rate, start = start, end = end, overlap = FALSE)
+    )
+  }) %>%
+    do.call(rbind, .)
+
+  geneflows
+}
+```
+
+Let's test this function. What would be the geneflow events of the population in the lower left corner of the grid (so, the first population in the series)? If everything works, this population should only be allowed to exchange migrants with its neighbor to the right (population number 2) and its neighbor above (population number `{r} n + 1`, because we defined a grid with `{r} n` populations on one side).
+
+```{r}
+set_geneflow(1, n, rate = 0.1, start = 2, end = 1000, populations)
+```
+
+Looks right! Lets generate the entire set of geneflow events:
+
+```{r}
+geneflows <-
+  seq(1, n * n) %>%
+  lapply(set_geneflow, n, rate = 0.05, start = 2, end = 1000, populations) %>%
+  do.call(rbind, .) %>%
+  unique # filter out duplicate events due to symmetries
+```
+
+```{r}
+nrow(geneflows)
+```
+
+Finally, we can compile the whole model:
+
+```{r}
+model <- compile(
+  dir = "/tmp/grid-model/", 
+  populations = populations, geneflow = geneflows,
+  generation_time = 1, resolution = 10,
+  competition_dist = 10, mate_dist = 10, dispersal_dist = 10,
+  sim_length = 1000, overwrite = TRUE
+)
+```
+
+We can use the function `graph()` to plot the layout of the population history graph in order to verify that the geneflow events have been specified correctly. The layout of the graph is a little bit wonky and crowded (not that due to the complexity of spatiotemporal models, the `graph()` function plots not just populations as nodes but also times of geneflow events and other demographic processes). Still, we can see that the geneflow events between populations have been specified correctly:
+
+```{r, fig.width = 8, fig.height = 6}
+graph(model, show_cleanups = FALSE) + ggplot2::theme(legend.position = "none")
+```
+
+Again, those familiar with the SLiM manual will recognize a similar figure in section 5.3.3.
+
+Finally, we can run our simulation using the `slim()` function.
+
+```{r, eval = FALSE}
+slim(model, seq_length = 1, recomb_rate = 0, method = "gui")
+```
+
+
+## Population grid on a real geographic landscape
+
+We can take things one step further. What if we wanted to do a similar thing (i.e. simulate regularly spaced subpopulations) but in a real geographic context? 
+
+Let's zoom in an some interesting part of the world and then create a `grid of populations using the same helper function `create_pop` we defined above (each population boundary being 300 km in diameter):
+
+```{r, message = FALSE}
+africa <- world(
+  xrange = c(-25, 55),
+  yrange = c(-32, 35),
+  crs = 4326
+)
+
+n <- 20
+
+populations <-
+  seq(1, n * n) %>%
+  lapply(create_pop, n_side = n, map = africa, N = 100, radius = 150e3)
+```
+
+Of course, when we lay out a regular grid across a map of the world, some population boundaries will fall outside the continent. In the following step we solve this problem by going through the list of all population boundaries we just created and filter to just those whose at least 80% area falls on land using another helper function defined here:
+
+```{r}
+check_area <- function(pop, map) {
+  pop_area <- as.numeric(sum(sf::st_area(pop)))
+  intersected_area <- as.numeric(sum(sf::st_area(sf::st_intersection(pop, map))))
+  if ((intersected_area / pop_area) < 0.5)
+    return(NULL)
+  else
+    return(pop)
+}
+
+filtered <- lapply(populations, check_area, africa) %>% Filter(Negate(is.null), .)
+```
+
+Let's plot the layout of the population grid on the real geographic background:
+
+```{r}
+do.call(plot, filtered) + ggplot2::theme(legend.position = "none")
+```
+
+If this were an example in a real study, we would probably set up some scenario of geneflow between subpopulations, perhaps we would be interested in studying how a selected allele spreads throughout the continent based on some factors of interest. Then, if we were to simulate data from this spatial model, we would first have to `compile()` it and them run it in SLiM via our `slim()` function. Given that this is the same process we described in the abstract example above, we won't be repeating it here.

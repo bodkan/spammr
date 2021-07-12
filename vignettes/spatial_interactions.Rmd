@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message = FALSE}
 devtools::load_all(".")
 ```
 
@@ -39,49 +39,64 @@ To demonstrate this feature, let's look at a simple example. We will focus only 
 library(slendr)
 ```
 
-Here is a single population *pop* which occupies a square, blank landscape 100 distance units on each side. The population has a circular range, appears at time 1 (this model will be specified in forward time direction) and has a size of 3000 individuals.
-
 ```{r abstract_world}
-blank_world <- world(
-  xrange = c(0, 100),
-  yrange = c(0, 100),
-  landscape = "blank"
-)
-
-pop <- population(
-  name = "pop", time = 1, N = 3000,
-  map = blank_world, center = c(50, 50), radius = 50,
-  competition_dist = 5, mate_dist = 5, dispersal_dist = 1
-)
-
-plot(pop)
+map <- world(xrange = c(0, 3000), yrange = c(0, 700), landscape = "blank")
 ```
 
-Note that we also specified the values of each of the three spatial parameters. They are given in distance units corresponding to the coordinate reference system of the underlying world map (i.e. the world map is 100 distance units wide and 100 distance units tall).
+Here are five populations occupying a circular range on a blank landscape `{r} dimension(map)[1])` distances units wide and `{r} dimension(map)[2]` distance units tall.
 
-Next, we will program a series of five changes in the competition distance parameter of this population. To do this, we will use the fact that most of *slendr*'s functions implement a tidyverse pipe-friendly interface, which makes model specification code very concise and readable.
+```{r pop_ranges}
+N <- 3000; y <- 350; r = 240
+
+p0 <- population("pop0", time = 1, N = N, map = map, center = c(250, y), radius = r)
+p1 <- population("pop1", time = 1, N = N, map = map, center = c(750, y), radius = r)
+p2 <- population("pop2", time = 1, N = N, map = map, center = c(1250, y), radius = r)
+p3 <- population("pop3", time = 1, N = N, map = map, center = c(1750, y), radius = r)
+p4 <- population("pop4", time = 1, N = N, map = map, center = c(2250, y), radius = r)
+p5 <- population("pop5", time = 1, N = N, map = map, center = c(2750, y), radius = r)
+
+plot(p0, p1, p2, p3, p4)
+```
+
+Next, we will program a series of five changes in the competition distance parameter of these populations. We are going to do this in sequence, so that we can clearly see the changes in spatial dynamics over time. This is hardly a realistic model for any evolutionary scenario, but when animated, it will allows to see the influence of the parameter choice on the spatial dynamics that emerges from the simulation.
 
 ```{r}
-pop <- pop %>%
-  dispersal(time = 100, competition_dist = 10) %>%
-  dispersal(time = 200, competition_dist = 40) %>%
-  dispersal(time = 300, competition_dist = 60) %>%
-  dispersal(time = 400, competition_dist = 80) %>%
-  dispersal(time = 500, competition_dist = 100, dispersal_dist = 5)
+p1 <- dispersal(p1, time = 200, competition_dist = 50)
+p2 <- dispersal(p2, time = 400, competition_dist = 80)
+p3 <- dispersal(p3, time = 600, competition_dist = 90)
+p4 <- dispersal(p4, time = 800, competition_dist = 130)
+p5 <- dispersal(p5, time = 1000, competition_dist = 170)
 ```
 
-Finally, we will compile this model and execute the simulation. Note that because we are working with a forward time model, we need to specify the total length of the simulation to know when to terminate it. Also, we specify a short burnin to let the initial spatial distribution settle down based on the initial spatial interaction distances. We will save the spatial locations of all individuals in order to visualize the spatial population dynamics with an animation later.
+Having defined the spatial dynamics, we will compile this model and execute the simulation. Note that because we are working with a forward time model, we need to specify the total length of the simulation to know when to terminate it.
 
 ```{r, echo = FALSE}
 unlink("/tmp/spatial-interactions", recursive = TRUE, force = TRUE); 
 ```
 
 ```{r}
-model <- compile(populations = pop, generation_time = 1, resolution = 1,
-                 dir = "/tmp/spatial-interactions/", sim_length = 800)
-
-slim(model, burnin = 300, seq_length = 1, recomb_rate = 0,
-     save_locations = TRUE, method = "batch")
+model <- compile(
+  populations = list(p0, p1, p2, p3, p4, p5),
+  generation_time = 1, resolution = 2,
+  competition_dist = 10, mate_dist = 10, dispersal_dist = 5,
+  dir = "/tmp/spatial-interactions/", sim_length = 1500,
+  overwrite = TRUE
+)
 ```
 
-Of course, it needs to be said that unlike the spatial population dynamics functionality described largely in the [tutorial](slendr.html) which is a unique feature of _slendr_, the example in this vignette could be reproduced in pure SLiM using vanilla Eidos code. However, I think it is fair to say that the about dozen lines of consise R code necessary to do this using our R interface is much more flexible and easy to tweak and extend towards much more complex scenarios.
+We will save the spatial locations of all individuals in order to visualize the spatial population dynamics with an animation later.
+
+```{r}
+slim(model, seq_length = 1, recomb_rate = 0, save_locations = TRUE,
+     method = "batch", verbose = TRUE, seed = 314159265)
+```
+
+Finally, lets re-capitulate the spatial population dynamics simulated by the SLiM backend script bundled with our package as an animated GIF:
+
+```{r plot_gif_interactions, message = F}
+animate(model, steps = 150, width = 500, height = 200)
+```
+
+Fun animation, isn't it? If you compare the result to the model dynamics we programmed above, you can see that the spatial dynamics follow what we would expect based on the parameter values. As the time progresses, the spatial competition is getting fiercer and fiercer (the distance at which individuals can 'feel' the competition is getting larger and larger), forcing the individuals to form more and more distant clusters. Depending on a species or population under study, these abstract parameters (and the spatial clustering or "clumpiness" they represent) could mean all sorts of things and could be used to model various phenomena in nature (competition for resources, shifting metapopulation dynamics, etc.).
+
+It needs to be said that unlike the spatial population dynamics functionality described in the main [tutorial](slendr.html) which is a unique feature of _slendr_, the example in this vignette could be reproduced in pure SLiM using vanilla Eidos code. However, I think it is fair to say that the _slendr_ R code is much more flexible and easier to tweak and extend towards much more complex scenarios. The R interface of the package is designed to let you, the user, focus on the difficult part of modeling (specifying spatiotemporal model dynamics), get immediate visual feedback during model building, and leverage the powerful SLiM simulation framework as a low level computational engine.

@@ -298,7 +298,8 @@ slim(
   model,
   seq_length = 1, recomb_rate = 0, # simulate only a single locus
   save_locations = TRUE, # save the location of everyone who ever lived
-  method = "batch" # change to "gui" to execute the model in SLiMgui
+  method = "batch", # change to "gui" to execute the model in SLiMgui
+  seed = 314159265
 )
 ```
 

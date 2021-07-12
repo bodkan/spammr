@@ -4,10 +4,13 @@
 \alias{dimension}
 \title{Return the dimensions of the world map}
 \usage{
-dimension(map)
+dimension(map, original = FALSE)
 }
 \arguments{
 \item{map}{Object of the type \code{slendr_map}}
+
+\item{original}{Return dimensions in the original coordinate system (CRS)
+instead of the internal projected CRS?}
 }
 \value{
 If the coordinate reference system was specified, the function

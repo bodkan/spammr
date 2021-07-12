@@ -71,6 +71,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="articles/grid_model.html">Spatial population grid example</a>
+    </li>
+    <li>
       <a href="articles/spatial_interactions.html">Spatial interaction dynamics</a>
     </li>
   </ul>
@@ -286,7 +289,8 @@
   <span class="va">model</span>,
   seq_length <span class="op">=</span> <span class="fl">1</span>, recomb_rate <span class="op">=</span> <span class="fl">0</span>, <span class="co"># simulate only a single locus</span>
   save_locations <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># save the location of everyone who ever lived</span>
-  method <span class="op">=</span> <span class="st">"batch"</span> <span class="co"># change to "gui" to execute the model in SLiMgui</span>
+  method <span class="op">=</span> <span class="st">"batch"</span>, <span class="co"># change to "gui" to execute the model in SLiMgui</span>
+  seed <span class="op">=</span> <span class="fl">314159265</span>
 <span class="op">)</span></code></pre></div>
 <p>As specified, the SLiM run will save ancestry proportions in each population over time as well as the location of every individual who ever lived.</p>
 </div>

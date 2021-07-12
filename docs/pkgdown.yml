@@ -2,9 +2,10 @@ pandoc: '2.13'
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
+  grid_model: grid_model.html
   slendr: slendr.html
   spatial_interactions: spatial_interactions.html
-last_built: 2021-07-09T22:23Z
+last_built: 2021-07-12T18:51Z
 urls:
   reference: https://bodkan.net/slendr/reference
   article: https://bodkan.net/slendr/articles

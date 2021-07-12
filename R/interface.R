@@ -563,11 +563,11 @@ world <- function(xrange, yrange, landscape = "naturalearth", crs = NULL, ne_dir
     sf::st_agr(map_raw) <- "constant"
 
     ## transform the map (default geographic CRS) into the target CRS
-    map_transf <- sf::st_transform(map_raw, crs)
+    map_transf <- sf::st_transform(map_raw, crs) %>% sf::st_make_valid()
 
     ## define boundary coordinates in the target CRS
     zoom_bounds <- define_zoom(xrange, yrange, "EPSG:4326")
-    zoom_transf <- sf::st_transform(zoom_bounds, crs)
+    zoom_transf <- sf::st_transform(zoom_bounds, crs) %>% sf::st_make_valid()
 
     ## crop the map to the boundary coordinates
     map <- sf::st_crop(map_transf, zoom_transf)
@@ -693,8 +693,11 @@ convert <- function(from, to, x = NULL, y = NULL, coords = NULL, model = NULL, a
     newx <- abs((point_coords[, "X"] - bbox["xmin"])) / map_dim[1] * raster_dim[1]
     newy <- abs((point_coords[, "Y"] - bbox["ymin"])) / map_dim[2] * raster_dim[2]
     new_point <- data.frame(newx = round(as.vector(newx)), newy = round(as.vector(newy)))
-  } else {
+  } else if (!is.na(to)){
     new_point <- sf::st_transform(point, crs = to) %>% sf::st_coordinates()
+    colnames(new_point) <- c("newx", "newy")
+  } else {
+    new_point <- point %>% sf::st_coordinates()
     colnames(new_point) <- c("newx", "newy")
   }
 
@@ -822,6 +825,8 @@ distance between population boundaries", call. = FALSE)
 #' Return the dimensions of the world map
 #'
 #' @param map Object of the type \code{slendr_map}
+#' @param original Return dimensions in the original coordinate system (CRS)
+#'   instead of the internal projected CRS?
 #'
 #' @return If the coordinate reference system was specified, the function
 #'   returns a two-dimensional vector of the world dimensions in the projected
@@ -829,11 +834,14 @@ distance between population boundaries", call. = FALSE)
 #'   returned.
 #'
 #' @export
-dimension <- function(map) {
+dimension <- function(map, original = FALSE) {
   if (!inherits(map, "slendr_map"))
     stop("Incorrect input type. Object of the type 'slendr_map' expected", call. = FALSE)
-  c(as.vector(diff(sf::st_bbox(map)[c("xmin", "xmax")])),
-    as.vector(diff(sf::st_bbox(map)[c("ymin", "ymax")])))
+  if (has_crs(map) && original)
+    return(c(diff(attr(map, "xrange")), diff(attr(map, "yrange"))))
+  else
+    c(as.vector(diff(sf::st_bbox(map)[c("xmin", "xmax")])),
+      as.vector(diff(sf::st_bbox(map)[c("ymin", "ymax")])))
 }
 
 
