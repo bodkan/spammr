@@ -7,7 +7,6 @@ initialize() {
   defineConstant("TS_RECORDING", {{ts_recording}});
   defineConstant("SAVE_LOCATIONS", {{save_locations}});
   defineConstant("TRACK_ANCESTRY", {{track_ancestry}});
-
   defineConstant("N_MARKERS", {{ancestry_markers}});
 
   defineConstant("MODEL_DIR", "{{model_dir}}");
@@ -67,8 +66,8 @@ initialize() {
 
   // generate interaction types (two for each population - competition and mating)
   for (i in POPULATIONS.getValue("pop_id")) {
-    competition = filter(POPULATIONS, "pop_id", i).getValue("competition_dist");
-    mating = filter(POPULATIONS, "pop_id", i).getValue("mate_dist");
+    competition = filter(INTERACTIONS, "pop_id", i).getValue("competition_dist")[0];
+    mating = filter(INTERACTIONS, "pop_id", i).getValue("mate_dist")[0];
 
     initializeInteractionType(2*i, "xy", reciprocal = T, maxDistance = competition);
     initializeInteractionType(2*i+1, "xy", reciprocal = T, maxDistance = mating);
@@ -115,7 +114,7 @@ initialize() {
   } else
     sim.deregisterScriptBlock(s6);
 
-  // changes in interaction distances and dispersals
+  // setting interaction distances and dispersals
   if (num_rows(INTERACTIONS))
     sim.rescheduleScriptBlock(s7, generations = unique(INTERACTIONS.getValue("time")));
   else
@@ -168,10 +167,7 @@ s1 late() {
     else
       split_pop(pop_id);
 
-    get_pop(pop_id).setValue(
-      "dispersal_dist",
-      filter(POPULATIONS, "pop_id", pop_id).getValue("dispersal_dist")
-    );
+    get_pop(pop_id).setValue("dispersal_dist", -1);
     set_map(pop_id, sim.generation);
     set_coordinates(get_pop(pop_id).individuals, pop_id);
     add_markers(pop_id);
@@ -265,27 +261,29 @@ s7 late() {
     event = events.getRowValues(i);
 
     pop = event.getValue("pop"); pop_id = event.getValue("pop_id");
+
     competition_dist = event.getValue("competition_dist");
     mate_dist = event.getValue("mate_dist");
     dispersal_dist = event.getValue("dispersal_dist");
 
-    if (competition_dist != -1) {
+    competition = sim.interactionTypes[2 * pop_id];
+    mating = sim.interactionTypes[2 * pop_id + 1];
+    dispersal = get_pop(pop).getValue("dispersal_dist");
+
+    if (competition_dist != competition.maxDistance) {
       log_output("setting competition interaction distance for " + pop + "(p" +
                  pop_id + ") to " + competition_dist);
-      interaction = sim.interactionTypes[2 * pop_id];
-      interaction.unevaluate();
-      interaction.maxDistance = competition_dist;
+      competition.unevaluate();
+      competition.maxDistance = competition_dist;
     }
-    if (mate_dist != -1) {
+    if (mate_dist != mating.maxDistance) {
       log_output("setting mate choice distance for " + pop + "(p" +
                  pop_id + ") to " + mate_dist);
-      interaction = sim.interactionTypes[2 * pop_id + 1];
-      interaction.unevaluate();
-      interaction.maxDistance = mate_dist;
+      mating.unevaluate();
+      mating.maxDistance = mate_dist;
     }
-    if (dispersal_dist != -1) {
-      log_output("setting offspring dispersal distance for " + pop + "(p" +
-                 pop_id + ") to " + dispersal_dist);
+    if (dispersal_dist != dispersal) {
+      if (dispersal != -1) log_output("setting offspring dispersal distance for " + pop + "(p" + pop_id + ") to " + dispersal_dist);
       get_pop(pop).setValue("dispersal_dist", dispersal_dist);
     }
   }
@@ -650,11 +648,13 @@ function (ifsl) convert_type(s$ column_name, s string_values) {
 }
 
 // Convert times in given tables into absolute SLiM times by adding
-// the burnin length to each time point
+// the burnin length to each time point (except for events involving
+// ancestral populations which always start at 1 to include them
+// in the burnin)
 function (void) slim_time(No<Dictionary>$ table) {
   if (!isNULL(table)) {
     // list of all possible time columns to look for
-    time_columns = c("time", "tsplit", "tremove", "tstart", "tend", "tend");
+    time_columns = c("time", "tsplit", "tremove", "tstart", "tend");
 
     // get time columns present in the current table
     columns = setIntersection(table.allKeys, time_columns + "_gen");

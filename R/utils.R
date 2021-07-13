@@ -274,39 +274,41 @@ compute_overlaps <- function(x) {
 
 
 # Take care of missing interactions and offspring distances
-set_distances <- function(split_table, resolution,
+set_distances <- function(dispersal_table, resolution,
                           competition_dist, mate_dist, dispersal_dist) {
-  if (any(is.na(split_table$competition_dist))) {
+  if (any(is.na(dispersal_table$competition_dist))) {
     if (is.null(competition_dist)) {
-      pop_names <- paste(split_table[is.na(split_table$competition_dist), ]$pop, collapse = ", ")
+      pop_names <- paste(dispersal_table[is.na(dispersal_table$competition_dist), ]$pop, collapse = ", ")
       stop("Parameter 'competition_dist' missing for ", pop_names, " and a general
   value of this parameter was not provided to the compile() function", call. = FALSE)
     } else
-      split_table$competition_dist[is.na(split_table$competition_dist)] <- competition_dist
+      dispersal_table$competition_dist[is.na(dispersal_table$competition_dist)] <- competition_dist
   }
 
-  if (any(is.na(split_table$mate_dist))) {
+  if (any(is.na(dispersal_table$mate_dist))) {
     if (is.null(mate_dist)) {
-      pop_names <- paste(split_table[is.na(split_table$mate_dist), ]$pop, collapse = ", ")
+      pop_names <- paste(dispersal_table[is.na(dispersal_table$mate_dist), ]$pop, collapse = ", ")
       stop("Parameter 'mate_dist' missing for ", pop_names, " and a general
   value of this parameter was not provided to the compile() function", call. = FALSE)
     } else
-      split_table$mate_dist[is.na(split_table$mate_dist)] <- mate_dist
+      dispersal_table$mate_dist[is.na(dispersal_table$mate_dist)] <- mate_dist
   }
 
-  if (any(is.na(split_table$dispersal_dist))) {
+  if (any(is.na(dispersal_table$dispersal_dist))) {
     if (is.null(dispersal_dist)) {
-      pop_names <- paste(split_table[is.na(split_table$dispersal_dist), ]$pop, collapse = ", ")
+      pop_names <- paste(dispersal_table[is.na(dispersal_table$dispersal_dist), ]$pop, collapse = ", ")
       stop("Parameter 'dispersal_dist' missing for ", pop_names, " and a general
   value of this parameter was not provided to the compile() function", call. = FALSE)
     } else
-      split_table$dispersal_dist[is.na(split_table$dispersal_dist)] <- dispersal_dist
+      dispersal_table$dispersal_dist[is.na(dispersal_table$dispersal_dist)] <- dispersal_dist
   }
 
-  split_table[, c("competition_dist", "mate_dist", "dispersal_dist")] <-
-    split_table[, c("competition_dist", "mate_dist", "dispersal_dist")] / resolution
+  dispersal_table[, c("competition_dist", "mate_dist", "dispersal_dist")] <-
+    dispersal_table[, c("competition_dist", "mate_dist", "dispersal_dist")] / resolution
 
-  split_table
+  dispersal_table <- dispersal_table[order(dispersal_table$time_gen, na.last = FALSE), ]
+
+  dispersal_table
 }
 
 

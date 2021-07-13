@@ -93,10 +93,8 @@ setting `direction = 'backward'.`", call. = FALSE)
   admix_table <- compile_geneflows(geneflow, split_table, generation_time, time_dir, max_time)
   map_table <- compile_maps(populations, split_table, resolution, generation_time, time_dir, max_time, dir)
   resize_table <- compile_resizes(populations, generation_time, time_dir, max_time, split_table)
-  dispersal_table <- compile_dispersals(populations, generation_time, time_dir, max_time, split_table)
-
-  # take care of missing interactions and offspring distances
-  split_table <- set_distances(split_table, resolution, competition_dist, mate_dist, dispersal_dist)
+  dispersal_table <- compile_dispersals(populations, generation_time, time_dir, max_time, split_table,
+                                        resolution, competition_dist, mate_dist, dispersal_dist)
 
   # compile the result
   result <- list(
@@ -392,17 +390,12 @@ compile_splits <- function(populations, generation_time, direction, max_time) {
 
     tremove <- attr(p, "remove")
 
-    init_params <- attr(p, "history")[[1]]
-
     data.frame(
       pop = unique(p$pop),
       parent = parent_name,
-      tsplit = init_params$time,
-      N = init_params$N,
+      tsplit = attr(p, "history")[[1]]$time,
+      N = attr(p, "history")[[1]]$N,
       tremove = ifelse(!is.null(tremove), tremove, -1),
-      competition_dist = init_params$competition_dist,
-      mate_dist = init_params$mate_dist,
-      dispersal_dist = init_params$dispersal_dist,
       stringsAsFactors = FALSE
     )
   }) %>% do.call(rbind, .)
@@ -537,24 +530,23 @@ compile_resizes <- function(populations, generation_time, direction,
 
 # Compile table of population resize events
 compile_dispersals <- function(populations, generation_time, direction,
-                               max_time, split_table) {
+                               max_time, split_table, resolution,
+                               competition_dist, mate_dist, dispersal_dist) {
   dispersal_events <- lapply(populations, function(p) {
     lapply(attr(p, "history"), function(event) {
-      if (event$event == "dispersal") event
+      if (event$event == "split") {
+        event$N <- NULL
+        names(event) <- c("pop", "event", "time", "competition_dist", "mate_dist", "dispersal_dist")
+        event$event <- "dispersal"
+        event
+      } else if (event$event == "dispersal") {
+        event
+      }
     }) %>% do.call(rbind, .)
   }) %>% do.call(rbind, .)
 
   if (is.null(dispersal_events))
     return(NULL)
-  else {
-    dispersal_events$competition_dist[is.na(dispersal_events$competition_dist)] <- -1
-    dispersal_events$mate_dist[is.na(dispersal_events$mate_dist)] <- -1
-    dispersal_events$dispersal_dist[is.na(dispersal_events$dispersal_dist)] <- -1
-
-    dispersal_events$competition_dist <- as.integer(dispersal_events$competition_dist)
-    dispersal_events$mate_dist <- as.integer(dispersal_events$mate_dist)
-    dispersal_events$dispersal_dist <- as.integer(dispersal_events$dispersal_dist)
-  }
 
   dispersal_table <- convert_time(
     dispersal_events,
@@ -568,6 +560,9 @@ compile_dispersals <- function(populations, generation_time, direction,
     dispersal_table$pop,
     function(i) split_table[split_table$pop == i, ]$pop_id
   ) %>% as.numeric
+
+  # take care of missing interactions and offspring distances
+  dispersal_table <- set_distances(dispersal_table, resolution, competition_dist, mate_dist, dispersal_dist)
 
   dispersal_table[, c("pop", "pop_id", "time_gen", "time_orig",
                       "competition_dist", "mate_dist", "dispersal_dist")]
