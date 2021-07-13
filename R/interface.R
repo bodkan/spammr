@@ -225,8 +225,8 @@ move <- function(pop, trajectory, end, start, overlap = 0.8, snapshots = NULL,
   attr(result, "history") <- append(attr(result, "history"), list(data.frame(
     pop =  unique(region_start$pop),
     event = "move",
-    start = start,
-    end = end
+    tstart = start,
+    tend = end
   )))
 
   result
@@ -875,7 +875,7 @@ seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
     inter_regions[[1]] <- region_start
     for (i in seq_along(times)) {
       exp_region <- sf::st_buffer(inter_regions[[1]], dist = i * (by / n))
-      exp_region$time <- times[i]
+      exp_region$tmap <- times[i]
       sf::st_agr(exp_region) <- "constant"
 
       # restrict the next spatial boundary to the region of interest
@@ -916,8 +916,8 @@ seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
   attr(result, "history") <- append(attr(result, "history"), list(data.frame(
     pop =  unique(region_start$pop),
     event = "expand",
-    start = start,
-    end = end
+    tstart = start,
+    tend = end
   )))
 
   result

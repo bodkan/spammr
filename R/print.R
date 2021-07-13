@@ -192,9 +192,9 @@ print_pop_history <- function(x) {
 
     # spatial dynamics events
     else if (event$event == "move") {
-      cat(sprintf("%d-%d: movement across a landscape", event$start, event$end))
+      cat(sprintf("%d-%d: movement across a landscape", event$tstart, event$tend))
     } else if (event$event == "expand") {
-      cat(sprintf("%d-%d: range expansion", event$start, event$end))
+      cat(sprintf("%d-%d: range expansion", event$tstart, event$tend))
     } else if (event$event == "range") {
       cat(sprintf("%d: change of the spatial boundary", event$time))
     }
@@ -202,15 +202,15 @@ print_pop_history <- function(x) {
     # population size change
     else if (event$event == "resize" && event$how == "step") {
       cat(sprintf("%d: resize from %d to %d individuals",
-                  event$time, event$prev_N, event$N))
+                  event$tresize, event$prev_N, event$N))
     } else if (event$event == "resize" && event$how == "exponential") {
       cat(sprintf("%d-%d: exponential resize from %d to %d individuals",
-                  event$time, event$tend, event$prev_N, event$N))
+                  event$tresize, event$tend, event$prev_N, event$N))
     }
 
     # change of dispersal parameters
     else if (event$event == "dispersal") {
-      cat(sprintf("%d: change in spatial interaction", event$time))
+      cat(sprintf("%d: change in spatial interaction", event$tdispersal))
       if (!is.na(event$competition_dist)) cat("\n        - competition distance:", event$competition_dist)
       if (!is.na(event$mate_dist)) cat("\n        - mate choice distance:", event$competition_dist)
       if (!is.na(event$dispersal_dist)) cat("\n        - dispersal from parent:", event$competition_dist)

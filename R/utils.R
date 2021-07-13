@@ -137,9 +137,10 @@ get_time_direction <- function(pop) {
 
   if (length(split_times) == 1) {
     event_times <- attr(pop, "history") %>%
-      sapply(function(event) c(event$time, event$start, event$end)) %>%
+      sapply(function(event) c(event$time, event$tresize, event$tend, event$start, event$end)) %>%
       unlist %>%
-      unique
+      unique %>%
+      na.omit
     if (length(event_times) == 1) {
       removal_time <- attr(pop, "remove")
       if (removal_time != -1 & event_times > removal_time)
@@ -182,7 +183,7 @@ time (%s) is higher than the parent's (%s)",
 # Get time of the very last event currently specified
 get_previous_time <- function(pop) {
   sapply(attr(pop, "history"), function(event) {
-    c(event$time, event$start, event$end)
+    c(event$time, event$tresize, event$tstart, event$tend)
   }) %>%
     unlist %>%
     Filter(Negate(is.null), .) %>%

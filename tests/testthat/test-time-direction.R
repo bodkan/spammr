@@ -40,8 +40,8 @@ test_that("forward and backward time model objects are equivalent", {
                         backward$splits[, grep("_orig", colnames(backward$splits), value = TRUE, invert = TRUE)]))
   expect_true(all.equal(forward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)],
                         backward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)]))
-  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "time_gen")],
-                        backward$maps[, c("pop", "pop_id","time_gen")]))
+  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "tmap_gen")],
+                        backward$maps[, c("pop", "pop_id","tmap_gen")]))
 
   components <- c("generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(forward[[i]], backward[[i]]))))
@@ -104,8 +104,8 @@ test_that("forward and backward models yield the same simulation result", {
                         backward$splits[, grep("_orig", colnames(backward$splits), value = TRUE, invert = TRUE)]))
   expect_true(all.equal(forward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)],
                         backward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)]))
-  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "time_gen")],
-                        backward$maps[, c("pop", "pop_id","time_gen")]))
+  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "tmap_gen")],
+                        backward$maps[, c("pop", "pop_id","tmap_gen")]))
 
   components <- c("generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(forward[[i]], backward[[i]]))))
@@ -287,18 +287,16 @@ test_that("Explicitly given direction must agree with the implied direction", {
     resize(N = 1000, time = 900, how = "step")
 
   model_dir <- file.path(tempdir(), "direction_conflict")
-  unlink(model_dir, recursive = TRUE, force = TRUE)
   expect_error(compile(populations = list(pop), generation_time = 1,
                        resolution = 10e3, competition_dist = 130e3, mate_dist = 100e3, dispersal_dist = 70e3, # how far will offspring end up from their parents
-                       dir = model_dir, direction = "backward"), msg)
+                       dir = model_dir, direction = "backward", overwrite = TRUE), msg)
 
   pop <- population("pop", time = 500, N = 100, map = map, center = c(20, 50), radius = 500e3) %>%
     resize(N = 1000, time = 300, how = "step")
 
   model_dir <- file.path(tempdir(), "direction_conflict")
-  unlink(model_dir, recursive = TRUE, force = TRUE)
   expect_error(compile(populations = list(pop), generation_time = 1,
                        resolution = 10e3, competition_dist = 130e3, mate_dist = 100e3, dispersal_dist = 70e3, # how far will offspring end up from their parents
-                       dir = model_dir, direction = "forward"), msg)
+                       dir = model_dir, direction = "forward", overwrite = TRUE), msg)
 
 })
