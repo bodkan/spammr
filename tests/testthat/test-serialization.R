@@ -50,3 +50,22 @@ test_that("read() restores a complex model object", {
   expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
   expect_true(all(sapply(seq_along(model1$populations), function(i) all(model1$populations[[i]] == model2$populations[[i]]))))
 })
+
+test_that("non-unique population names lead to error", {
+  map <- readRDS("map.rds")
+
+  p1 <- population(name = "pop1", N = 700, time = 1, radius = 600000, center = c(10, 25), map = map)
+  p2 <- population(name = "pop2", N = 700, time = 1, radius = 600000, center = c(10, 25), map = map)
+  p3 <- population(name = "pop2", N = 700, time = 1, radius = 600000, center = c(10, 25), map = map)
+  model_dir <- file.path(tempdir(), "tmp-name-uniqueness")
+  expect_error(
+    compile( dir = model_dir, populations = list(p1, p2, p3), generation_time = 30, resolution = 10000, overwrite = TRUE, sim_length = 10, competition_dist = 100e3, mate_dist = 100e3, dispersal_dist = 10e3),
+    "All populations must have unique names"
+  )
+
+  p1 <- population(name = "pop1", N = 700, time = 1, radius = 600000, center = c(10, 25), map = map)
+  p2 <- population(name = "pop2", N = 700, time = 1, radius = 600000, center = c(10, 25), map = map)
+  p3 <- population(name = "pop3", N = 700, time = 1, radius = 600000, center = c(10, 25), map = map)
+  model_dir <- file.path(tempdir(), "tmp-name-uniqueness")
+  expect_silent(compile( dir = model_dir, populations = list(p1, p2, p3), generation_time = 30, resolution = 10000, overwrite = TRUE, sim_length = 10, competition_dist = 100e3, mate_dist = 100e3, dispersal_dist = 10e3))
+})

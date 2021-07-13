@@ -37,6 +37,9 @@ compile <- function(populations, dir, generation_time, resolution,
                     sim_length = NULL, direction = NULL) {
   if (!inherits(populations, "list"))  populations <- list(populations)
 
+  if (length(populations) != length(unique(sapply(populations, `[[`, "pop"))))
+    stop("All populations must have unique names", call. = FALSE)
+
   # prepare the model output directory
   if (dir.exists(dir)) {
     if (!overwrite)
