@@ -123,10 +123,11 @@ copy_attributes <- function(to, from, which) {
 # Get split times of populations in the lineage of the given population
 get_lineage_splits <- function(x) {
   parent <- attr(x, "parent")
+  time <- attr(x, "history")[[1]]$time
   if (is.character(parent))
-    return(x$time[1])
+    return(time)
   else
-    return(c(x$time[1], get_lineage_splits(parent)))
+    return(c(time, get_lineage_splits(parent)))
 }
 
 
@@ -160,7 +161,7 @@ get_time_direction <- function(pop) {
 
 # Check the consistency of the given split time to the parent population
 check_split_time <- function(time, parent) {
-  parent_time <- parent$time[1]
+  parent_time <- attr(parent, "history")[[1]]$time
   direction <- get_time_direction(parent)
   if (direction == "forward" & time <= parent_time) {
     stop(sprintf("The model implies forward time direction but the specified split
@@ -305,8 +306,6 @@ set_distances <- function(dispersal_table, resolution,
 
   dispersal_table[, c("competition_dist", "mate_dist", "dispersal_dist")] <-
     dispersal_table[, c("competition_dist", "mate_dist", "dispersal_dist")] / resolution
-
-  dispersal_table <- dispersal_table[order(dispersal_table$time_gen, na.last = FALSE), ]
 
   dispersal_table
 }

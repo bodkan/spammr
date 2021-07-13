@@ -76,7 +76,7 @@ setting `direction = 'backward'.`", call. = FALSE)
   }
 
   if (time_dir == "backward" | is.null(sim_length))
-    max_time <- max(unlist(c(sapply(populations, function(x) max(x$time)),
+    max_time <- max(unlist(c(sapply(populations, function(x) max(x$tmap)),
                              sapply(geneflow, function(x) max(x$tstart)),
                              sapply(geneflow, function(x) max(x$tend)))))
   else
@@ -103,7 +103,7 @@ setting `direction = 'backward'.`", call. = FALSE)
     populations = populations,
     splits = split_table,
     geneflow = admix_table,
-    maps = map_table[, c("pop", "pop_id", "time_orig", "time_gen", "path")],
+    maps = map_table[, c("pop", "pop_id", "tmap_orig", "tmap_gen", "path")],
     generation_time = generation_time,
     resolution = resolution,
     length = if (is.null(sim_length)) max_time else sim_length,
@@ -354,7 +354,7 @@ write_model <- function(dir, populations, admix_table, map_table, split_table,
   utils::write.table(split_table, file.path(dir, "populations.tsv"),
                      sep = "\t", quote = FALSE, row.names = FALSE)
 
-  utils::write.table(map_table[, c("pop", "pop_id", "time_orig", "time_gen", "path")],
+  utils::write.table(map_table[, c("pop", "pop_id", "tmap_orig", "tmap_gen", "path")],
                      file.path(dir, "maps.tsv"), sep = "\t", quote = FALSE,
                      row.names = FALSE  )
 
@@ -434,7 +434,7 @@ compile_maps <- function(populations, split_table, resolution, generation_time,
   # convert list of rasters into data frame, adding the spatial
   # maps themselves as a list column
   map_table <- lapply(maps, function(m) {
-    as.data.frame(m[c("pop", "time")], stringsAsFactors = FALSE)
+    as.data.frame(m[c("pop", "tmap")], stringsAsFactors = FALSE)
   }) %>%
     do.call(rbind, .)
   # add column with a numeric population identifier (used later by SLiM)
@@ -447,18 +447,18 @@ compile_maps <- function(populations, split_table, resolution, generation_time,
   map_table <- convert_time(
     map_table,
     direction = direction,
-    columns = "time",
+    columns = "tmap",
     max_time = max_time,
     generation_time = generation_time
   )
 
   # number maps sequentially in the order SLiM will be swapping them
   # later (each map number X corresponds to X.png)
-  map_table <- map_table[order(map_table$time_gen, na.last = FALSE), ]
+  map_table <- map_table[order(map_table$tmap_gen, na.last = FALSE), ]
   # in some situations, multiple maps are scheduled for a single generation
   # for one population - this removes the duplicates, but ideally this kind
   # of problem should be caught somewhere upstream
-  map_table <- map_table[!duplicated(map_table[, c("pop", "time_gen")]), ]
+  map_table <- map_table[!duplicated(map_table[, c("pop", "tmap_gen")]), ]
   map_table$path <- seq_len(nrow(map_table)) %>%
     paste0(., ".png") %>%
     file.path(dir, .) %>%
@@ -514,7 +514,7 @@ compile_resizes <- function(populations, generation_time, direction,
   resize_table <- convert_time(
     resize_events,
     direction = direction,
-    columns = c("time", "tend"),
+    columns = c("tresize", "tend"),
     max_time = max_time,
     generation_time = generation_time
   )
@@ -525,7 +525,7 @@ compile_resizes <- function(populations, generation_time, direction,
   ) %>% as.numeric
 
   resize_table[, c("pop", "pop_id", "how", "N", "prev_N",
-                   "time_orig", "time_gen", "tend_orig", "tend_gen")]
+                   "tresize_orig", "tresize_gen", "tend_orig", "tend_gen")]
 }
 
 # Compile table of population resize events
@@ -548,10 +548,13 @@ compile_dispersals <- function(populations, generation_time, direction,
   if (is.null(dispersal_events))
     return(NULL)
 
+  dispersal_events$tdispersal <- dispersal_events$time
+  dispersal_events$time <- NULL
+
   dispersal_table <- convert_time(
     dispersal_events,
     direction = direction,
-    columns = "time",
+    columns = "tdispersal",
     max_time = max_time,
     generation_time = generation_time
   )
@@ -564,7 +567,9 @@ compile_dispersals <- function(populations, generation_time, direction,
   # take care of missing interactions and offspring distances
   dispersal_table <- set_distances(dispersal_table, resolution, competition_dist, mate_dist, dispersal_dist)
 
-  dispersal_table[, c("pop", "pop_id", "time_gen", "time_orig",
+  dispersal_table <- dispersal_table[order(dispersal_table$tdispersal_gen, na.last = FALSE), ]
+
+  dispersal_table[, c("pop", "pop_id", "tdispersal_gen", "tdispersal_orig",
                       "competition_dist", "mate_dist", "dispersal_dist")]
 }
 
@@ -573,8 +578,8 @@ compile_dispersals <- function(populations, generation_time, direction,
 render <- function(pops, resolution) {
   raster_list <- lapply(pops, function(pop) {
     # iterate over temporal maps for the current population
-    snapshots <- lapply(unique(pop$time), function(t) {
-      snapshot <- pop[pop$time == t, ]
+    snapshots <- lapply(unique(pop$tmap), function(t) {
+      snapshot <- pop[pop$tmap == t, ]
       class(snapshot) <- set_class(snapshot, "pop")
 
       # render the population if needed
@@ -588,7 +593,7 @@ render <- function(pops, resolution) {
       # the spatial object into multiple disjoint features)
       list(
         pop = unique(snapshot$pop),
-        time = unique(snapshot$time),
+        tmap = unique(snapshot$tmap),
         map = raster_map
       )
     })

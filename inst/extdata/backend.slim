@@ -89,15 +89,15 @@ initialize() {
   }
 
   // spatial map changes
-  if (any(MAPS.getValue("time_gen") > 1))
-     sim.rescheduleScriptBlock(s4, generations = unique(MAPS.getValue("time")));
+  if (num_rows(MAPS))
+     sim.rescheduleScriptBlock(s4, generations = unique(MAPS.getValue("tmap")));
   else
      sim.deregisterScriptBlock(s4);
 
   // step population size changes
   step_changes = filter(RESIZES, "how", "step");
   if (num_rows(step_changes))
-    sim.rescheduleScriptBlock(s5, generations = unique(step_changes.getValue("time")));
+    sim.rescheduleScriptBlock(s5, generations = unique(step_changes.getValue("tresize")));
   else
     sim.deregisterScriptBlock(s5);
 
@@ -108,7 +108,7 @@ initialize() {
     times = c();
     for (i in iter(exp_changes)) {
       event = exp_changes.getRowValues(i);
-      times = c(times, event.getValue("time") : event.getValue("tend"));
+      times = c(times, event.getValue("tresize") : event.getValue("tend"));
     }
     sim.rescheduleScriptBlock(s6, generations = unique(times));
   } else
@@ -116,7 +116,7 @@ initialize() {
 
   // setting interaction distances and dispersals
   if (num_rows(INTERACTIONS))
-    sim.rescheduleScriptBlock(s7, generations = unique(INTERACTIONS.getValue("time")));
+    sim.rescheduleScriptBlock(s7, generations = unique(INTERACTIONS.getValue("tdispersal")));
   else
     sim.deregisterScriptBlock(s7);
 
@@ -168,8 +168,6 @@ s1 late() {
       split_pop(pop_id);
 
     get_pop(pop_id).setValue("dispersal_dist", -1);
-    set_map(pop_id, sim.generation);
-    set_coordinates(get_pop(pop_id).individuals, pop_id);
     add_markers(pop_id);
     evaluate_interactions();
   }
@@ -195,19 +193,22 @@ s3 late() {
 
 // Update population spatial maps
 s4 late() {
-  maps = filter(MAPS, "time", sim.generation);
+  maps = filter(MAPS, "tmap", sim.generation);
   for (i in iter(maps)) {
     map = maps.getRowValues(i);
-    log_output("updating map for " + map.getValue("pop") +
-               "(p" + map.getValue("pop_id") + ")");
-    set_map(map.getValue("pop_id"), sim.generation);
+    id = map.getValue("pop_id");
+    log_output("updating map for " + map.getValue("pop") + "(p" + id + ")");
+    set_map(id, sim.generation);
+    // distribute individuals if this is the first map of the population
+    if (sim.generation == filter(POPULATIONS, "pop_id", id).getValue("tsplit"))
+      set_coordinates(get_pop(id).individuals, id);
   }
 }
 
 // Step population size changes
 s5 {
   // get all step resize events active in this generation
-  all_events = filter(RESIZES, "time", sim.generation);
+  all_events = filter(RESIZES, "tresize", sim.generation);
   events = filter(all_events, "how", "step");
 
   for (i in iter(events)) {
@@ -224,7 +225,7 @@ s6 {
   if (!num_rows(RESIZES)) return;
 
   // get all exponential resize events active in this generation
-  active = RESIZES.getValue("time") <= sim.generation &
+  active = RESIZES.getValue("tresize") <= sim.generation &
            RESIZES.getValue("tend") >= sim.generation &
            RESIZES.getValue("how") == "exponential";
   events = RESIZES.getRowValues(active);
@@ -234,7 +235,7 @@ s6 {
 
     pop = event.getValue("pop"); id = event.getValue("pop_id");
     Nstart = event.getValue("prev_N"); Nend = event.getValue("N");
-    tstart = event.getValue("time"); tend = event.getValue("tend");
+    tstart = event.getValue("tresize"); tend = event.getValue("tend");
 
     r = log(Nend / Nstart) / (tend - tstart);
     tdelta = sim.generation - tstart;
@@ -256,7 +257,7 @@ s6 {
 
 // Changing interaction distances and dispersals
 s7 late() {
-  events = filter(INTERACTIONS, "time", sim.generation);
+  events = filter(INTERACTIONS, "tdispersal", sim.generation);
   for (i in iter(events)) {
     event = events.getRowValues(i);
 
@@ -405,7 +406,7 @@ function (void) evaluate_interactions(void) {
 
 // Assign a spatial map to a given population
 function (void) set_map(i$ id, i$ generation) {
-  map = filter(filter(MAPS, "pop_id", id), "time", generation);
+  map = filter(filter(MAPS, "pop_id", id), "tmap", generation);
   img = map.getValue("image");
   pop = get_pop(map.getValue("pop"));
   pop.defineSpatialMap("world", "xy", 1.0 - img.floatK,
@@ -627,9 +628,10 @@ function (ifsl) convert_type(s$ column_name, s string_values) {
   // vectors of all possible column names in tables defined by slendr `compile()`
 	string = c("pop", "parent", "how", "path", "from", "to", "how");
 	integer = c("pop_id", "parent_id", "from_id", "to_id", "N", "prev_N",
-	            "time_orig", "time_gen", "tsplit_orig", "tsplit_gen",
+	            "time_orig", "time_gen", "tmap_orig", "tmap_gen",
+	            "tsplit_orig", "tsplit_gen", "tdispersal_orig", "tdispersal_gen",
 	            "tremove_orig", "tremove_gen", "tstart_orig", "tstart_gen",
-	            "tend_orig", "tend_gen", "end_orig", "end_gen");
+	            "tend_orig", "tend_gen", "tresize_orig", "tresize_gen");
 	float = c("rate", "competition_dist", "mate_dist", "dispersal_dist");
 	logical = c("overlap");
 
@@ -654,7 +656,8 @@ function (ifsl) convert_type(s$ column_name, s string_values) {
 function (void) slim_time(No<Dictionary>$ table) {
   if (!isNULL(table)) {
     // list of all possible time columns to look for
-    time_columns = c("time", "tsplit", "tremove", "tstart", "tend");
+    time_columns = c("time", "tsplit", "tmap", "tremove",
+                     "tresize", "tstart", "tend", "tdispersal");
 
     // get time columns present in the current table
     columns = setIntersection(table.allKeys, time_columns + "_gen");
@@ -663,6 +666,18 @@ function (void) slim_time(No<Dictionary>$ table) {
       // shift the time by the burnin length
       new_times = table.getValue(col);
       new_times[new_times != -1] = BURNIN_LENGTH + new_times[new_times != -1];
+
+      // for ancestral populations, restore 'split times' and times of
+      // the first map update back to 1
+      if (col == "tsplit_gen")
+        new_times[POPULATIONS.getValue("parent") == "ancestor"] = 1;
+      else if (col == "tmap_gen") {
+        for (id in filter(POPULATIONS, "parent", "ancestor").getValue("pop_id"))
+          new_times[which(MAPS.getValue("pop_id") == id)[0]] = 1;
+      } else if (col == "tdispersal_gen") {
+        for (id in filter(POPULATIONS, "parent", "ancestor").getValue("pop_id"))
+          new_times[which(INTERACTIONS.getValue("pop_id") == id)[0]] = 1;
+      }
 
       // add the new shifted time column to the table
       new_col = strsplit(col, "_gen")[0]; // remove the "_gen" suffix
