@@ -223,10 +223,6 @@ gf <- list(
 
 #### 5. Compile the model to a set of configuration files
 
-```{r, include = F}
-unlink("/tmp/example-model", recursive = TRUE, force = TRUE)
-```
-
 ```{r}
 model <- compile(
   populations = list(afr, ooa, ehg, eur, ana, yam), # populations defined above
@@ -235,7 +231,7 @@ model <- compile(
   resolution = 10e3, # resolution in meters per pixel
   competition_dist = 130e3, mate_dist = 100e3, # spatial interaction in SLiM
   dispersal_dist = 70e3, # how far will offspring end up from their parents
-  dir = "/tmp/example-model/"
+  dir = file.path(tempdir(), "readme-model"), overwrite = TRUE
 )
 ```
 

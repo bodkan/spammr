@@ -175,7 +175,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpKCs1vt", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -311,11 +311,7 @@
 <span class="co">#&gt; map: internal coordinate reference system: EPSG 3035</span></code></pre></div>
 <p>Checking the result visually again, we see:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ooa</span>, title <span class="op">=</span> <span class="st">"Intermediate migration maps"</span><span class="op">)</span>
-<span class="co">#&gt; Warning: Attempting to plot population ranges at multiple time points on</span>
-<span class="co">#&gt; a single map. This is very hard to do in a satisfying way. Please</span>
-<span class="co">#&gt; consider using the function `explore()` to plot the model dynamics</span>
-<span class="co">#&gt; interactively.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ooa</span>, title <span class="op">=</span> <span class="st">"Intermediate migration maps"</span><span class="op">)</span></code></pre></div>
 <p><img src="slendr_files/figure-html/plot_ooa_migration-1.png" width="480"></p>
 <p>Let’s create a population of Eastern Hunter Gatherers (EHG), which split from the first non-Africans 28000 years ago:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
@@ -370,19 +366,11 @@
 <span class="co">#&gt; map: internal coordinate reference system: EPSG 3035</span></code></pre></div>
 <p>We can (and should) check the results visually:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ana</span>, title <span class="op">=</span> <span class="st">"Anatolian expansion into Europe"</span><span class="op">)</span>
-<span class="co">#&gt; Warning: Attempting to plot population ranges at multiple time points on</span>
-<span class="co">#&gt; a single map. This is very hard to do in a satisfying way. Please</span>
-<span class="co">#&gt; consider using the function `explore()` to plot the model dynamics</span>
-<span class="co">#&gt; interactively.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ana</span>, title <span class="op">=</span> <span class="st">"Anatolian expansion into Europe"</span><span class="op">)</span></code></pre></div>
 <p><img src="slendr_files/figure-html/plot_ana-1.png" width="480"></p>
 <p>To visually see what is really going on behind the scenes, we can plot the raw form of the expansion:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ana</span>, title <span class="op">=</span> <span class="st">"Anatolian expansion into Europe (not intersected)"</span>, intersect <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
-<span class="co">#&gt; Warning: Attempting to plot population ranges at multiple time points on</span>
-<span class="co">#&gt; a single map. This is very hard to do in a satisfying way. Please</span>
-<span class="co">#&gt; consider using the function `explore()` to plot the model dynamics</span>
-<span class="co">#&gt; interactively.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ana</span>, title <span class="op">=</span> <span class="st">"Anatolian expansion into Europe (not intersected)"</span>, intersect <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
 <p><img src="slendr_files/figure-html/plot_ana_raw-1.png" width="480"></p>
 <p>We can see that the population of Anatolian farmers at some point invades the spatial boundary of the EUR population. On its own, this doesn’t imply geneflow. In the section on geneflow below, we will see how <em>slendr</em> implements geneflow of overlapping (but also non-overlapping) populations.</p>
 <p>Let’s add a couple of more populations and migrations before we move on to implementing geneflow between them,</p>
@@ -404,11 +392,7 @@
     start <span class="op">=</span> <span class="fl">5000</span>, end <span class="op">=</span> <span class="fl">3000</span>, snapshots <span class="op">=</span> <span class="fl">8</span>
   <span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">yam</span><span class="op">)</span>
-<span class="co">#&gt; Warning: Attempting to plot population ranges at multiple time points on</span>
-<span class="co">#&gt; a single map. This is very hard to do in a satisfying way. Please</span>
-<span class="co">#&gt; consider using the function `explore()` to plot the model dynamics</span>
-<span class="co">#&gt; interactively.</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">yam</span><span class="op">)</span></code></pre></div>
 <p><img src="slendr_files/figure-html/plot_yam_migr-1.png" width="480"></p>
 </div>
 <div id="plotting-multiple-slendr-objects" class="section level2">
@@ -416,11 +400,7 @@
 <a href="#plotting-multiple-slendr-objects" class="anchor"></a>Plotting multiple <code>slendr</code> objects</h2>
 <p>In addition to plotting individual population ranges, the generic function <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> can handle a combination of population ranges, and can also partition them in individual facets. This is useful for visual inspection of the specified model and for looking for potential issues before the export of individual spatio-temporal maps. Obviously, this is a lot of multi-dimensional information:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">afr</span>, <span class="va">ooa</span>, <span class="va">ehg</span>, <span class="va">eur</span>, <span class="va">ana</span>, <span class="va">yam</span><span class="op">)</span>
-<span class="co">#&gt; Warning: Attempting to plot population ranges at multiple time points on</span>
-<span class="co">#&gt; a single map. This is very hard to do in a satisfying way. Please</span>
-<span class="co">#&gt; consider using the function `explore()` to plot the model dynamics</span>
-<span class="co">#&gt; interactively.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">afr</span>, <span class="va">ooa</span>, <span class="va">ehg</span>, <span class="va">eur</span>, <span class="va">ana</span>, <span class="va">yam</span><span class="op">)</span></code></pre></div>
 <p><img src="slendr_files/figure-html/plot_maps-1.png" width="480"></p>
 <p>Below you will see a better way to explore a <em>slendr</em> model interactively.</p>
 </div>
@@ -443,11 +423,7 @@ will instruct slendr to simulate geneflow without spatial overlap
 between populations.</code></pre>
 <p>The error message instructs us to visually verify that this is the case, which can be done by <code>slendr</code>’s <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function and the optional parameter <code>pop_facets = F</code> (which is set to <code>TRUE</code> by default):</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">eur</span>, <span class="va">afr</span><span class="op">)</span>
-<span class="co">#&gt; Warning: Attempting to plot population ranges at multiple time points on</span>
-<span class="co">#&gt; a single map. This is very hard to do in a satisfying way. Please</span>
-<span class="co">#&gt; consider using the function `explore()` to plot the model dynamics</span>
-<span class="co">#&gt; interactively.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">eur</span>, <span class="va">afr</span><span class="op">)</span></code></pre></div>
 <p><img src="slendr_files/figure-html/plot_nonoverlapping-1.png" width="480"></p>
 <p>Many models will include multiple geneflow events, which we can collect in a simple R list:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
@@ -483,13 +459,12 @@ between populations.</code></pre>
   resolution <span class="op">=</span> <span class="fl">10e3</span>, <span class="co"># resolution in meters per pixel</span>
   competition_dist <span class="op">=</span> <span class="fl">130e3</span>, mate_dist <span class="op">=</span> <span class="fl">100e3</span>, <span class="co"># spatial interaction in SLiM</span>
   dispersal_dist <span class="op">=</span> <span class="fl">70e3</span>, <span class="co"># how far will offspring end up from their parents</span>
-  dir <span class="op">=</span> <span class="st">"/tmp/test-model/"</span>,
-  overwrite <span class="op">=</span> <span class="cn">TRUE</span>
+  dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"tutorial-model"</span><span class="op">)</span>,  overwrite <span class="op">=</span> <span class="cn">TRUE</span>
 <span class="op">)</span></code></pre></div>
 <p>What do the files in the model directory look like? In an ideal case, you as a user should never worry about these things. In fact, the whole purpose of <code>slendr</code> is to let you work on much higher level of abstraction without worrying about these low-level details. That said, you might find it useful to see how things are stored in the background…</p>
 <p>First of all, we can inspect the contents of the directory and see that it does, indeed, contain all defined spatial maps (now PNG files, which is what SLiM requires).</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">"/tmp/test-model"</span>, pattern <span class="op">=</span> <span class="st">"*.png"</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"tutorial-model"</span><span class="op">)</span>, pattern <span class="op">=</span> <span class="st">"*.png"</span><span class="op">)</span>
 <span class="co">#&gt;  [1] "1.png"  "10.png" "11.png" "12.png" "13.png" "14.png" "15.png" "16.png"</span>
 <span class="co">#&gt;  [9] "17.png" "18.png" "19.png" "2.png"  "20.png" "21.png" "22.png" "23.png"</span>
 <span class="co">#&gt; [17] "24.png" "25.png" "26.png" "27.png" "28.png" "29.png" "3.png"  "30.png"</span>
@@ -503,26 +478,26 @@ between populations.</code></pre>
 <li>the table of population splits:</li>
 </ul>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"/tmp/test-model/populations.tsv"</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="co">#&gt;   pop   parent    N competition_dist mate_dist dispersal_dist tsplit_gen</span>
-<span class="co">#&gt; 1 AFR ancestor 3000               13        10              7          1</span>
-<span class="co">#&gt; 2 OOA      AFR  500               13        10              7         34</span>
-<span class="co">#&gt; 3 EHG      OOA 1000               13        10              7        801</span>
-<span class="co">#&gt; 4 ANA      OOA 3000               13        10              7        801</span>
-<span class="co">#&gt; 5 EUR      EHG 2000               13        10              7        901</span>
-<span class="co">#&gt; 6 YAM      EHG  500               13        10              7       1501</span>
-<span class="co">#&gt;   tsplit_orig tremove_gen tremove_orig pop_id parent_id</span>
-<span class="co">#&gt; 1       52000          -1           -1      0        -1</span>
-<span class="co">#&gt; 2       51000         901        25000      1         0</span>
-<span class="co">#&gt; 3       28000        1534         6000      2         1</span>
-<span class="co">#&gt; 4       28000        1601         4000      3         1</span>
-<span class="co">#&gt; 5       25000          -1           -1      4         2</span>
-<span class="co">#&gt; 6        7000        1651         2500      5         2</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"tutorial-model"</span>, <span class="st">"populations.tsv"</span><span class="op">)</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt;   pop   parent    N tsplit_gen tsplit_orig tremove_gen tremove_orig pop_id</span>
+<span class="co">#&gt; 1 AFR ancestor 3000          1       52000          -1           -1      0</span>
+<span class="co">#&gt; 2 OOA      AFR  500         34       51000         901        25000      1</span>
+<span class="co">#&gt; 3 EHG      OOA 1000        801       28000        1534         6000      2</span>
+<span class="co">#&gt; 4 ANA      OOA 3000        801       28000        1601         4000      3</span>
+<span class="co">#&gt; 5 EUR      EHG 2000        901       25000          -1           -1      4</span>
+<span class="co">#&gt; 6 YAM      EHG  500       1501        7000        1651         2500      5</span>
+<span class="co">#&gt;   parent_id</span>
+<span class="co">#&gt; 1        -1</span>
+<span class="co">#&gt; 2         0</span>
+<span class="co">#&gt; 3         1</span>
+<span class="co">#&gt; 4         1</span>
+<span class="co">#&gt; 5         2</span>
+<span class="co">#&gt; 6         2</span></code></pre></div>
 <ul>
 <li>the table of geneflow events:</li>
 </ul>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"/tmp/test-model/geneflow.tsv"</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"tutorial-model"</span>, <span class="st">"geneflow.tsv"</span><span class="op">)</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 <span class="co">#&gt;   from  to rate overlap tstart_gen tstart_orig tend_gen tend_orig from_id to_id</span>
 <span class="co">#&gt; 1  ANA YAM 0.50       0       1518        6500     1521      6400       3     5</span>
 <span class="co">#&gt; 2  ANA EUR 0.50       1       1468        8000     1534      6000       3     4</span>
@@ -531,18 +506,25 @@ between populations.</code></pre>
 <li>and finally, the table of populations whose spatial maps will be updated throughout the simulation, as well as the times of those updates (this table is rather long, so we’re taking a peek at only the first couple of lines):</li>
 </ul>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"/tmp/test-model/maps.tsv"</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt;   pop pop_id time_orig time_gen                  path</span>
-<span class="co">#&gt; 1 AFR      0  52000.00        1 /tmp/test-model/1.png</span>
-<span class="co">#&gt; 2 OOA      1  51000.00       34 /tmp/test-model/2.png</span>
-<span class="co">#&gt; 3 OOA      1  50000.00       68 /tmp/test-model/3.png</span>
-<span class="co">#&gt; 4 OOA      1  49615.38       80 /tmp/test-model/4.png</span>
-<span class="co">#&gt; 5 OOA      1  49230.77       93 /tmp/test-model/5.png</span>
-<span class="co">#&gt; 6 OOA      1  48846.15      106 /tmp/test-model/6.png</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"tutorial-model"</span>, <span class="st">"maps.tsv"</span><span class="op">)</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt;   pop pop_id tmap_orig tmap_gen</span>
+<span class="co">#&gt; 1 AFR      0  52000.00        1</span>
+<span class="co">#&gt; 2 OOA      1  51000.00       34</span>
+<span class="co">#&gt; 3 OOA      1  50000.00       68</span>
+<span class="co">#&gt; 4 OOA      1  49615.38       80</span>
+<span class="co">#&gt; 5 OOA      1  49230.77       93</span>
+<span class="co">#&gt; 6 OOA      1  48846.15      106</span>
+<span class="co">#&gt;                                                                               path</span>
+<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/1.png</span>
+<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/2.png</span>
+<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/3.png</span>
+<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/4.png</span>
+<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/5.png</span>
+<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/6.png</span></code></pre></div>
 <p>The object returned by the <code><a href="../reference/compile.html">compile()</a></code> function (called <code>model</code> here) binds all of this information together. In fact, for easier debugging and sanity checks, it carries the locations of these tables (as well as other important information) in it as elements of a list <code>model$splits</code>, <code>model$geneflows</code>, etc.</p>
 <p>In case you’d want to separate model specification and running into different scripts, <em>slendr</em> includes a function <code><a href="../reference/read.html">read()</a></code> just for this purpose:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">loaded_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read.html">read</a></span><span class="op">(</span><span class="st">"/tmp/test-model"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="va">loaded_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read.html">read</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"tutorial-model"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="visualize-the-entire-history-of-splits-and-geneflows" class="section level2">
 <h2 class="hasAnchor">

@@ -21,9 +21,11 @@ knitr::opts_chunk$set(
 devtools::load_all(".")
 ```
 
-In this vignette, we will build a simple model of isolated populations laid out on a two-dimensional grid, each exchanging migrants with its immediate neighbors. The purpose of the vignette is to demonstrate the power of R as a foundation for specifying *slendr* models. Although there is not built in functionality for such models in the R package, the fact that we have the complete functionality of R at our disposal makes it possible. By exposing a couple of simple model building primitives such as `population`, `geneflow`, `move`, etc, we can program spatiotemporal models of arbitrary complexity using R, and automatically execute them in SLiM.
+In this vignette, we will build a simple model of isolated populations laid out on a two-dimensional grid, each exchanging migrants with its immediate neighbors.
 
-If you have worked with SLiM before, you will recognize that a nearly identical idea is implemented in Eidos language in section 5.3.3. of the SLiM manual. One difference in this example is that our model is explicitly spatial, unlike the example from the manual where spatiality is only approximated.
+The purpose of the vignette is to demonstrate the power of R as a foundation for building complex *slendr* models from simpler components. Although there is no built in functionality for such classic "demes on a regular grid" models in the R package, the fact that we have the complete functionality of R at our disposal makes it possible to easily program relatively complex models from the convenient environment of R using a couple of simple model building primitives and automatically execute such models in SLiM.
+
+If you have worked with SLiM before, you will recognize that a nearly identical idea is implemented in Eidos language in section 5.3.3. of the SLiM manual. One difference in this example is that our model is explicitly spatial, unlike the example from the manual where spatiality is only approximated using a random-mating model.
 
 ## Simple two-dimensional grid model
 
@@ -41,7 +43,7 @@ map <- world(
 )
 ```
 
-Next, we define a helper function which will a) create a single *slendr* population object, b) place that population on an appropriate coordinate on the lattice on the world map based on the numeric identifier of the population *i*:
+Next, we define a helper function which will a) create a single *slendr* population object, b) place that population on an appropriate coordinate on the lattice on the world map based on the numeric identifier of the population *i* (where *i* runs from 1 to $n \times n$ , *n* being the total number of demes along one side of the regular grid):
 
 ```{r}
 create_pop <- function(i, n_side, map, N, radius) {
@@ -79,7 +81,7 @@ Let's plot the whole spatial population configuration, to make sure we set up th
 do.call(plot, populations) + ggplot2::theme(legend.position = "none")
 ```
 
-So far, the way the model is specified, individuals of each population would be stuck on its own island. We can fix that by programming geneflow events using the *slendr* function `geneflow()`. Again, let's first program a simple helper function which will generate geneflow events according to neighborhood relationships on the two-dimensional grid, allowing each population to exchange migrants with each of its members.
+So far, the way the model is specified, individuals of each population would be stuck on its own circular "island". We can change that by programming geneflow events using the *slendr* function `geneflow()`. Again, let's first program a simple helper function which will generate geneflow events according to neighborhood relationships on the two-dimensional grid, allowing each population to exchange migrants with each of its members (making sure the coordinates of each population stays within the grid using simple modulo arithmetic on the population index *i*).
 
 ```{r}
 set_geneflow <- function(i, n_side, rate, start, end, populations) {
@@ -111,13 +113,13 @@ set_geneflow <- function(i, n_side, rate, start, end, populations) {
 }
 ```
 
-Let's test this function. What would be the geneflow events of the population in the lower left corner of the grid (so, the first population in the series)? If everything works, this population should only be allowed to exchange migrants with its neighbor to the right (population number 2) and its neighbor above (population number `{r} n + 1`, because we defined a grid with `{r} n` populations on one side).
+Let's test this function. What would be the geneflow events of the population in the lower left corner of the grid (so, the very first population in the series)? If everything works, this population should only be allowed to exchange migrants with its neighbor to the right (population number 2) and its neighbor above (population number `r n + 1`, because we defined a grid with `r n` populations on one side).
 
 ```{r}
 set_geneflow(1, n, rate = 0.1, start = 2, end = 1000, populations)
 ```
 
-Looks right! Lets generate the entire set of geneflow events:
+Looks right! Lets generate the entire set of continuous geneflow events:
 
 ```{r}
 geneflows <-
@@ -127,6 +129,8 @@ geneflows <-
   unique # filter out duplicate events due to symmetries
 ```
 
+The total number of individual geneflow events is:
+
 ```{r}
 nrow(geneflows)
 ```
@@ -135,7 +139,7 @@ Finally, we can compile the whole model:
 
 ```{r}
 model <- compile(
-  dir = "/tmp/grid-model/", 
+  dir = file.path(tempdir(), "grid-model"), 
   populations = populations, geneflow = geneflows,
   generation_time = 1, resolution = 10,
   competition_dist = 10, mate_dist = 10, dispersal_dist = 10,
@@ -143,7 +147,7 @@ model <- compile(
 )
 ```
 
-We can use the function `graph()` to plot the layout of the population history graph in order to verify that the geneflow events have been specified correctly. The layout of the graph is a little bit wonky and crowded (not that due to the complexity of spatiotemporal models, the `graph()` function plots not just populations as nodes but also times of geneflow events and other demographic processes). Still, we can see that the geneflow events between populations have been specified correctly:
+We can use the function `graph()` to plot the layout of the population history graph in order to verify that the geneflow events have been specified correctly. The layout of the graph is a little bit wonky and crowded (that due to the complexity of spatiotemporal models, the `graph()` function plots not just populations as nodes but also times of geneflow events and other demographic processes). Still, we can see that the geneflow events between populations have been specified correctly as all arrows are bidirectional and point only between immediate neighboring demes:
 
 ```{r, fig.width = 8, fig.height = 6}
 graph(model, show_cleanups = FALSE) + ggplot2::theme(legend.position = "none")
@@ -157,15 +161,14 @@ Finally, we can run our simulation using the `slim()` function.
 slim(model, seq_length = 1, recomb_rate = 0, method = "gui")
 ```
 
-
 ## Population grid on a real geographic landscape
 
-We can take things one step further. What if we wanted to do a similar thing (i.e. simulate regularly spaced subpopulations) but in a real geographic context? 
+We can take things one step further. What if we wanted to do a similar thing (i.e. simulate regularly spaced demes) but in a real geographic context?
 
-Let's zoom in an some interesting part of the world and then create a `grid of populations using the same helper function `create_pop` we defined above (each population boundary being 300 km in diameter):
+Let's zoom in an some interesting part of the world and then create a grid of demes using the same helper function `create_pop` we defined above (each population boundary being 300 km in diameter):
 
 ```{r, message = FALSE}
-africa <- world(
+map <- world(
   xrange = c(-25, 55),
   yrange = c(-32, 35),
   crs = 4326
@@ -175,22 +178,40 @@ n <- 20
 
 populations <-
   seq(1, n * n) %>%
-  lapply(create_pop, n_side = n, map = africa, N = 100, radius = 150e3)
+  lapply(create_pop, n_side = n, map = map, N = 100, radius = 150e3)
 ```
 
-Of course, when we lay out a regular grid across a map of the world, some population boundaries will fall outside the continent. In the following step we solve this problem by going through the list of all population boundaries we just created and filter to just those whose at least 80% area falls on land using another helper function defined here:
+Of course, when we lay out a regular grid across a map of the world, some population boundaries would fall outside the African continent. To solve this issue, we will go through the list of all populations and filter to those whose at least 50% area falls on land using another helper function (called `check_area` below).
+
+This is also a good opportunity to show that because *slendr* is built on top of the [*sf*](https://r-spatial.github.io/sf/) R package, we have all its geospatial functions at our disposal (in this case, functions handling geographic areas and intersections called with the prefix `sf::`). Any geometrical or geospatial operation you can do with a *sf* ("simple features") object will work on *slendr* objects too!
 
 ```{r}
-check_area <- function(pop, map) {
-  pop_area <- as.numeric(sum(sf::st_area(pop)))
-  intersected_area <- as.numeric(sum(sf::st_area(sf::st_intersection(pop, map))))
-  if ((intersected_area / pop_area) < 0.5)
+continent <- region(
+  map = map, polygon = list(
+    c(-10, 35), c(-20, 20), c(-15, 8), c(-10, 5), c(0, 2),
+    c(20, -40), c(35, -32), c(50, -25), c(55, -10), c(50, 0),
+    c(53, 13), c(45, 10), c(37, 20), c(32, 30), c(16, 38), c(0, 38)
+  )
+)
+
+check_area <- function(pop, map, continent) {
+  # total population area
+  pop_area <- sum(sf::st_area(pop))
+  # population area overlapping a map
+  map_area <- sum(sf::st_area(sf::st_intersection(pop, map)))
+  # population area overlapping African continent
+  continent_area <- as.numeric(sum(sf::st_area(sf::st_intersection(pop, continent))))
+
+  # at least 50% of population's boundary be on land, and it must fall
+  # on to the African continent itself
+  if (continent_area == 0 || as.numeric(map_area / pop_area) < 0.5)
     return(NULL)
   else
     return(pop)
 }
 
-filtered <- lapply(populations, check_area, africa) %>% Filter(Negate(is.null), .)
+filtered <- lapply(populations, check_area, map, continent) %>% 
+  Filter(Negate(is.null), .)
 ```
 
 Let's plot the layout of the population grid on the real geographic background:

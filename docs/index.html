@@ -217,11 +217,7 @@
   <span class="fu"><a href="reference/move.html">move</a></span><span class="op">(</span>trajectory <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>, start <span class="op">=</span> <span class="fl">5000</span>, end <span class="op">=</span> <span class="fl">3000</span>, snapshots <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></code></pre></div>
 <p>We can use the function <code>plot</code> again, but we get a warning informing us that plotting complex model dynamics over time on a single map is not a good idea. Below, we show a better way to do this using a built-in interactive R shiny app.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">afr</span>, <span class="va">ooa</span>, <span class="va">ehg</span>, <span class="va">eur</span>, <span class="va">ana</span>, <span class="va">yam</span><span class="op">)</span>
-<span class="co">#&gt; Warning: Attempting to plot population ranges at multiple time points on</span>
-<span class="co">#&gt; a single map. This is very hard to do in a satisfying way. Please</span>
-<span class="co">#&gt; consider using the function `explore()` to plot the model dynamics</span>
-<span class="co">#&gt; interactively.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">afr</span>, <span class="va">ooa</span>, <span class="va">ehg</span>, <span class="va">eur</span>, <span class="va">ana</span>, <span class="va">yam</span><span class="op">)</span></code></pre></div>
 <p><img src="reference/figures/README-plot_popmaps-1.png" alt="plot of chunk plot_popmaps"></p>
 </div>
 <div id="4-define-geneflow-events" class="section level4">
@@ -246,7 +242,7 @@
   resolution <span class="op">=</span> <span class="fl">10e3</span>, <span class="co"># resolution in meters per pixel</span>
   competition_dist <span class="op">=</span> <span class="fl">130e3</span>, mate_dist <span class="op">=</span> <span class="fl">100e3</span>, <span class="co"># spatial interaction in SLiM</span>
   dispersal_dist <span class="op">=</span> <span class="fl">70e3</span>, <span class="co"># how far will offspring end up from their parents</span>
-  dir <span class="op">=</span> <span class="st">"/tmp/example-model/"</span>
+  dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"readme-model"</span><span class="op">)</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span>
 <span class="op">)</span></code></pre></div>
 <p>Compiled model is kept as an R object which can be passed to different functions, most importantly the <code><a href="reference/slim.html">slim()</a></code> function shown below. Evaluating it in the console prints its brief summary:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -260,7 +256,7 @@
 <span class="co">#&gt; number of spatial maps: 60 </span>
 <span class="co">#&gt; resolution: 10000 distance unit per pixel</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; configuration files in: /private/tmp/example-model </span>
+<span class="co">#&gt; configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpbEElhN/readme-model </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; A detailed model specification can be found in `$splits`, `$geneflows`,</span>
 <span class="co">#&gt; `$maps`, `$populations`, and other components of the model object (for</span>

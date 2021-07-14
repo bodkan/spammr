@@ -196,10 +196,6 @@ app.
 
 ```r
 plot(afr, ooa, ehg, eur, ana, yam)
-#> Warning: Attempting to plot population ranges at multiple time points on
-#> a single map. This is very hard to do in a satisfying way. Please
-#> consider using the function `explore()` to plot the model dynamics
-#> interactively.
 ```
 
 ![plot of chunk plot_popmaps](man/figures/README-plot_popmaps-1.png)
@@ -223,8 +219,6 @@ gf <- list(
 #### 5. Compile the model to a set of configuration files
 
 
-
-
 ```r
 model <- compile(
   populations = list(afr, ooa, ehg, eur, ana, yam), # populations defined above
@@ -233,7 +227,7 @@ model <- compile(
   resolution = 10e3, # resolution in meters per pixel
   competition_dist = 130e3, mate_dist = 100e3, # spatial interaction in SLiM
   dispersal_dist = 70e3, # how far will offspring end up from their parents
-  dir = "/tmp/example-model/"
+  dir = file.path(tempdir(), "readme-model"), overwrite = TRUE
 )
 ```
 
@@ -253,7 +247,7 @@ model
 #> number of spatial maps: 60 
 #> resolution: 10000 distance unit per pixel
 #> 
-#> configuration files in: /private/tmp/example-model 
+#> configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpbEElhN/readme-model 
 #> 
 #> A detailed model specification can be found in `$splits`, `$geneflows`,
 #> `$maps`, `$populations`, and other components of the model object (for

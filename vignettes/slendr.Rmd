@@ -651,8 +651,7 @@ model <- compile(
   resolution = 10e3, # resolution in meters per pixel
   competition_dist = 130e3, mate_dist = 100e3, # spatial interaction in SLiM
   dispersal_dist = 70e3, # how far will offspring end up from their parents
-  dir = "/tmp/test-model/",
-  overwrite = TRUE
+  dir = file.path(tempdir(), "tutorial-model"),  overwrite = TRUE
 )
 ```
 
@@ -668,7 +667,7 @@ that it does, indeed, contain all defined spatial maps (now PNG files,
 which is what SLiM requires).
 
 ```{r}
-list.files("/tmp/test-model", pattern = "*.png")
+list.files(file.path(tempdir(), "tutorial-model"), pattern = "*.png")
 ```
 
 It also contains a series of tab-separated configuration tables. These
@@ -678,13 +677,13 @@ graphically above, namely:
 - the table of population splits:
 
 ```{r}
-read.table("/tmp/test-model/populations.tsv", header = TRUE)
+read.table(file.path(tempdir(), "tutorial-model", "populations.tsv"), header = TRUE)
 ```
 
 - the table of geneflow events:
 
 ```{r}
-read.table("/tmp/test-model/geneflow.tsv", header = TRUE)
+read.table(file.path(tempdir(), "tutorial-model", "geneflow.tsv"), header = TRUE)
 ```
 
 - and finally, the table of populations whose spatial maps will be
@@ -693,7 +692,7 @@ read.table("/tmp/test-model/geneflow.tsv", header = TRUE)
   the first couple of lines):
 
 ```{r}
-head(read.table("/tmp/test-model/maps.tsv", header = TRUE))
+head(read.table(file.path(tempdir(), "tutorial-model", "maps.tsv"), header = TRUE))
 ```
 
 The object returned by the `compile()` function (called `model` here) binds all of this information together. In fact, for easier debugging and sanity checks, it carries the locations of these tables (as well as other important information) in it as elements of a list `model$splits`, `model$geneflows`, etc.
@@ -701,7 +700,7 @@ The object returned by the `compile()` function (called `model` here) binds all 
 In case you'd want to separate model specification and running into different scripts, _slendr_ includes a function `read()` just for this purpose:
 
 ```{r}
-loaded_model <- read("/tmp/test-model")
+loaded_model <- read(file.path(tempdir(), "tutorial-model"))
 ```
 
 
