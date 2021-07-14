@@ -612,7 +612,7 @@ region <- function(name = NULL, map = NULL, center = NULL, radius = NULL, polygo
   region <- sf::st_sf(
     region = name,
     geometry = define_boundary(map, center, radius, polygon)
-  )
+  ) %>% sf::st_make_valid()
   sf::st_agr(region) <- "constant"
 
   # keep the map as an internal attribute
