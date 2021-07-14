@@ -38,52 +38,41 @@ a polygon need to be specified, but not both", fixed = TRUE
   )
 })
 
+# set operations
+
 test_that("union of a region with itself gives the same region", {
-  map <- world(xrange = c(-15, 60), yrange = c(20, 65), landscape = "blank")
+  map <- world(xrange = c(-15, 60), yrange = c(-20, 65), landscape = "blank")
   coords <- list(c(-18, 20), c(40, 20), c(30, 33), c(20, 32), c(10, 35), c(-8, 35))
   africa <- region("Africa", map, polygon = coords)
   expect_true(all(africa == join(africa, africa, name = "Africa")))
 })
 
 test_that("intersection of a region with itself gives the same region", {
-  map <- world(xrange = c(-15, 60), yrange = c(20, 65), landscape = "blank")
+  map <- world(xrange = c(-15, 60), yrange = c(-20, 65), landscape = "blank")
   coords <- list(c(-18, 20), c(40, 20), c(30, 33), c(20, 32), c(10, 35), c(-8, 35))
   africa <- region("Africa", map, polygon = coords)
   expect_true(all(africa == overlap(africa, africa, name = "Africa")))
 })
 
 test_that("subtraction of a region from itself gives an empty region", {
-  map <- world(xrange = c(-15, 60), yrange = c(20, 65), landscape = "blank")
+  map <- world(xrange = c(-15, 60), yrange = c(-20, 65), landscape = "blank")
   coords <- list(c(-18, 20), c(40, 20), c(30, 33), c(20, 32), c(10, 35), c(-8, 35))
   africa <- region("Africa", map, polygon = coords)
-  expect_error(
-    subtract(africa, africa, name = ""),
-    "No region left after subtraction"
-  )
-})
-
-test_that("empty subtraction result gives an error", {
-  map <- world(xrange = c(-15, 60), yrange = c(20, 65), landscape = "blank")
-  coords <- list(c(-18, 20), c(40, 20), c(30, 33), c(20, 32), c(10, 35), c(-8, 35))
-  africa <- region("Africa", map, polygon = coords)
-  expect_error(
-    subtract(africa, africa, name = ""),
-    "No region left after subtraction"
-  )
+  expect_true(nrow(subtract(africa, africa)) == 0)
 })
 
 test_that("subtraction of a non-overlapping region does not change the result", {
-  map <- world(xrange = c(-15, 60), yrange = c(20, 65), landscape = "blank")
-  r1 <- region("r1", map, center = c(0, 0), radius = 1)
-  r2 <- region("r2", map, center = c(10, 10), radius = 1)
+  map <- world(xrange = c(-15, 60), yrange = c(-20, 65), landscape = "blank")
+  r1 <- region("r1", map, center = c(0, 0), radius = 5)
+  r2 <- region("r2", map, center = c(10, 10), radius = 5)
   expect_true(all(subtract(r1, r2, name = "r1") == r1))
 })
 
-test_that("empty intersection gives an error", {
-  map <- world(xrange = c(-15, 60), yrange = c(20, 65), landscape = "blank")
-  r1 <- region("r1", map, center = c(0, 0), radius = 1)
-  r2 <- region("r2", map, center = c(10, 10), radius = 1)
-  expect_error(overlap(r1, r2, ""), "No region left after intersection")
+test_that("nonoverlapping join gives empty intersection", {
+  map <- world(xrange = c(-15, 60), yrange = c(-20, 65), landscape = "blank")
+  r1 <- region("r1", map, center = c(0, 0), radius = 5)
+  r2 <- region("r2", map, center = c(10, 10), radius = 5)
+  expect_true(nrow(overlap(r1, r2, "")) == 0)
 })
 
 test_that("custom landscapes can be specified", {

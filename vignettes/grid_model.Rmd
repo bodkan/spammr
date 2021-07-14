@@ -158,7 +158,7 @@ Again, those familiar with the SLiM manual will recognize a similar figure in se
 Finally, we can run our simulation using the `slim()` function.
 
 ```{r, eval = FALSE}
-slim(model, seq_length = 1, recomb_rate = 0, method = "gui")
+slim(model, seq_length = 1, recomb_rate = 0, method = "batch")
 ```
 
 ## Population grid on a real geographic landscape
@@ -183,8 +183,6 @@ populations <-
 
 Of course, when we lay out a regular grid across a map of the world, some population boundaries would fall outside the African continent. To solve this issue, we will go through the list of all populations and filter to those whose at least 50% area falls on land using another helper function (called `check_area` below).
 
-This is also a good opportunity to show that because *slendr* is built on top of the [*sf*](https://r-spatial.github.io/sf/) R package, we have all its geospatial functions at our disposal (in this case, functions handling geographic areas and intersections called with the prefix `sf::`). Any geometrical or geospatial operation you can do with a *sf* ("simple features") object will work on *slendr* objects too!
-
 ```{r}
 continent <- region(
   map = map, polygon = list(
@@ -196,15 +194,15 @@ continent <- region(
 
 check_area <- function(pop, map, continent) {
   # total population area
-  pop_area <- sum(sf::st_area(pop))
+  pop_area <- area(pop)
   # population area overlapping a map
-  map_area <- sum(sf::st_area(sf::st_intersection(pop, map)))
+  map_area <- area(overlap(pop, map))
   # population area overlapping African continent
-  continent_area <- as.numeric(sum(sf::st_area(sf::st_intersection(pop, continent))))
+  continent_area <- area(overlap(pop, continent))
 
   # at least 50% of population's boundary be on land, and it must fall
   # on to the African continent itself
-  if (continent_area == 0 || as.numeric(map_area / pop_area) < 0.5)
+  if (continent_area == 0 || (map_area / pop_area) < 0.5)
     return(NULL)
   else
     return(pop)

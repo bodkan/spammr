@@ -21,10 +21,11 @@ reference:
     - overlap
     - subtract
 
-  - title: Coordinate conversion and distances
+  - title: Coordinate conversion and various metrics
     contents:
     - convert
     - distance
+    - area
     - dimension
 
   - title: Model visualization and diagnostics

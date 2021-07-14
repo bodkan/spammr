@@ -214,7 +214,7 @@
 <p>Again, those familiar with the SLiM manual will recognize a similar figure in section 5.3.3.</p>
 <p>Finally, we can run our simulation using the <code><a href="../reference/slim.html">slim()</a></code> function.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/slim.html">slim</a></span><span class="op">(</span><span class="va">model</span>, seq_length <span class="op">=</span> <span class="fl">1</span>, recomb_rate <span class="op">=</span> <span class="fl">0</span>, method <span class="op">=</span> <span class="st">"gui"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/slim.html">slim</a></span><span class="op">(</span><span class="va">model</span>, seq_length <span class="op">=</span> <span class="fl">1</span>, recomb_rate <span class="op">=</span> <span class="fl">0</span>, method <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="population-grid-on-a-real-geographic-landscape" class="section level2">
 <h2 class="hasAnchor">
@@ -228,7 +228,7 @@
   crs <span class="op">=</span> <span class="fl">4326</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpbHrBeG", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpZoXiFf", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span>
 
@@ -238,7 +238,6 @@
   <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">n</span> <span class="op">*</span> <span class="va">n</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">create_pop</span>, n_side <span class="op">=</span> <span class="va">n</span>, map <span class="op">=</span> <span class="va">map</span>, N <span class="op">=</span> <span class="fl">100</span>, radius <span class="op">=</span> <span class="fl">150e3</span><span class="op">)</span></code></pre></div>
 <p>Of course, when we lay out a regular grid across a map of the world, some population boundaries would fall outside the African continent. To solve this issue, we will go through the list of all populations and filter to those whose at least 50% area falls on land using another helper function (called <code>check_area</code> below).</p>
-<p>This is also a good opportunity to show that because <em>slendr</em> is built on top of the <a href="https://r-spatial.github.io/sf/"><em>sf</em></a> R package, we have all its geospatial functions at our disposal (in this case, functions handling geographic areas and intersections called with the prefix <code>sf::</code>). Any geometrical or geospatial operation you can do with a <em>sf</em> (“simple features”) object will work on <em>slendr</em> objects too!</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">continent</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/region.html">region</a></span><span class="op">(</span>
   map <span class="op">=</span> <span class="va">map</span>, polygon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
@@ -250,15 +249,15 @@
 
 <span class="va">check_area</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pop</span>, <span class="va">map</span>, <span class="va">continent</span><span class="op">)</span> <span class="op">{</span>
   <span class="co"># total population area</span>
-  <span class="va">pop_area</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_area</a></span><span class="op">(</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span>
+  <span class="va">pop_area</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/area.html">area</a></span><span class="op">(</span><span class="va">pop</span><span class="op">)</span>
   <span class="co"># population area overlapping a map</span>
-  <span class="va">map_area</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_area</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_binary_ops.html">st_intersection</a></span><span class="op">(</span><span class="va">pop</span>, <span class="va">map</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+  <span class="va">map_area</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/area.html">area</a></span><span class="op">(</span><span class="fu"><a href="../reference/overlap.html">overlap</a></span><span class="op">(</span><span class="va">pop</span>, <span class="va">map</span><span class="op">)</span><span class="op">)</span>
   <span class="co"># population area overlapping African continent</span>
-  <span class="va">continent_area</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_area</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_binary_ops.html">st_intersection</a></span><span class="op">(</span><span class="va">pop</span>, <span class="va">continent</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+  <span class="va">continent_area</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/area.html">area</a></span><span class="op">(</span><span class="fu"><a href="../reference/overlap.html">overlap</a></span><span class="op">(</span><span class="va">pop</span>, <span class="va">continent</span><span class="op">)</span><span class="op">)</span>
 
   <span class="co"># at least 50% of population's boundary be on land, and it must fall</span>
   <span class="co"># on to the African continent itself</span>
-  <span class="kw">if</span> <span class="op">(</span><span class="va">continent_area</span> <span class="op">==</span> <span class="fl">0</span> <span class="op">||</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">map_area</span> <span class="op">/</span> <span class="va">pop_area</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0.5</span><span class="op">)</span>
+  <span class="kw">if</span> <span class="op">(</span><span class="va">continent_area</span> <span class="op">==</span> <span class="fl">0</span> <span class="op">||</span> <span class="op">(</span><span class="va">map_area</span> <span class="op">/</span> <span class="va">pop_area</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0.5</span><span class="op">)</span>
     <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span>
   <span class="kw">else</span>
     <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">pop</span><span class="op">)</span>

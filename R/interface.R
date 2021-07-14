@@ -693,7 +693,7 @@ convert <- function(from, to, x = NULL, y = NULL, coords = NULL, model = NULL, a
     newx <- abs((point_coords[, "X"] - bbox["xmin"])) / map_dim[1] * raster_dim[1]
     newy <- abs((point_coords[, "Y"] - bbox["ymin"])) / map_dim[2] * raster_dim[2]
     new_point <- data.frame(newx = round(as.vector(newx)), newy = round(as.vector(newy)))
-  } else if (!is.na(to)){
+  } else if (!is.na(to)) {
     new_point <- sf::st_transform(point, crs = to) %>% sf::st_coordinates()
     colnames(new_point) <- c("newx", "newy")
   } else {
@@ -710,19 +710,19 @@ convert <- function(from, to, x = NULL, y = NULL, coords = NULL, model = NULL, a
 }
 
 
-#' Combine two \code{slendr_region} objects into a single geographic
-#' region
+#' Combine two \code{slendr_region} objects into a single geographic region
 #'
-#' @param x Object of the class \code{slendr_region}
-#' @param y Object of the class \code{slendr_region}
-#' @param name Name of the resulting geographic region
+#' @param x Object of the class \code{slendr}
+#' @param y Object of the class \code{slendr}
+#' @param name Optional name of the resulting geographic region. If missing,
+#'   name will be constructed from the function arguments.
 #'
 #' @return Object of the class \code{slendr_region}
 #'
 #' @export
 join <- function(x, y, name = NULL) {
-  if (!inherits(x, "slendr_region")) x <- region(polygon = x)
-  if (!inherits(y, "slendr_region")) y <- region(polygon = y)
+  if (!inherits(x, "slendr")) x <- region(polygon = x)
+  if (!inherits(y, "slendr")) y <- region(polygon = y)
 
   result <- sf::st_union(x, y)
   result$region.1 <- NULL
@@ -737,7 +737,7 @@ join <- function(x, y, name = NULL) {
 }
 
 
-#' Generate the overlap of two \code{slendr_region} objects
+#' Generate the overlap of two \code{slendr} objects
 #'
 #' @inheritParams join
 #'
@@ -745,24 +745,35 @@ join <- function(x, y, name = NULL) {
 #'
 #' @export
 overlap <- function(x, y, name = NULL) {
-  if (!inherits(x, "slendr_region")) x <- region(polygon = x)
-  if (!inherits(y, "slendr_region")) y <- region(polygon = y)
+  if (!inherits(x, "slendr")) x <- region(polygon = x)
+  if (!inherits(y, "slendr")) y <- region(polygon = y)
 
   result <- sf::st_intersection(x, y)
-  if (nrow(result) == 0) stop("No region left after intersection", call. = FALSE)
-  result$region.1 <- NULL
-  if (is.null(name))
-    result$region <- sprintf("(overlap of %s and %s)", x$region, y$region)
-  else
-    result$region <- name
-  attrs <- if (!is.null(attr(x, "map"))) "map" else NULL
-  result <- copy_attributes(result, x, attrs)
+
+  if (nrow(result)) {
+    if (nrow(result) > 1)
+      result <- sf::st_sf(geometry = sf::st_combine(result))
+
+    if (is.null(name)) {
+      xname <- deparse(substitute(x))
+      yname <- deparse(substitute(y))
+      result$region <- sprintf("(overlap of %s and %s)", xname, yname)
+    } else
+      result$region <- name
+    result <- result[, c("region", "geometry")]
+  }
+
+  map <- attr(x, "map")
+
+  class(result) <- set_class(result, "region")
+  attr(result, "map") <- map
   sf::st_agr(result) <- "constant"
+
   result
 }
 
 
-#' Generate the difference between two \code{slendr_region} objects
+#' Generate the difference between two \code{slendr} objects
 #'
 #' @inheritParams join
 #'
@@ -770,19 +781,27 @@ overlap <- function(x, y, name = NULL) {
 #'
 #' @export
 subtract <- function(x, y, name = NULL) {
-  if (!inherits(x, "slendr_region")) x <- region(polygon = x)
-  if (!inherits(y, "slendr_region")) y <- region(polygon = y)
+  if (!inherits(x, "slendr")) x <- region(polygon = x)
+  if (!inherits(y, "slendr")) y <- region(polygon = y)
 
   result <- sf::st_difference(x, y)
-  if (nrow(result) == 0) stop("No region left after subtraction", call. = FALSE)
-  result$region.1 <- NULL
-  if (is.null(name))
-    result$region <- sprintf("(%s minus %s)", x$region, y$region)
-  else
-    result$region <- name
-  attrs <- if (!is.null(attr(x, "map"))) "map" else NULL
-  result <- copy_attributes(result, x, attrs)
+
+  if (nrow(result)) {
+    if (is.null(name)) {
+      xname <- deparse(substitute(x))
+      yname <- deparse(substitute(y))
+      result$region <- sprintf("(%s minus %s)", xname, yname)
+    } else
+      result$region <- name
+  }
+
+  map <- attr(x, "map")
+
+  result <- result[, c("region", "geometry")]
+  class(result) <- set_class(result, "region")
+  attr(result, "map") <- map
   sf::st_agr(result) <- "constant"
+
   result
 }
 
@@ -819,6 +838,26 @@ distance between population boundaries", call. = FALSE)
   }
 
   as.vector(sf::st_distance(x, y))
+}
+
+
+#' Calculate the area covered by the given slendr object
+#'
+#' @param x Object of the class \code{slendr}
+#'
+#' @return Area covered by the input object. If the coordinate reference system
+#'   was specified, the area in projected units (i.e. m^2) is returned.
+#'   Otherwise the function returns area without units.
+#'
+#' @export
+area <- function(x) {
+  if (!inherits(x, "slendr") & !inherits(x, "sf"))
+    stop("Input must be of the type 'slendr' or 'sf'", call. = FALSE)
+
+  if (!has_crs(x) & !nrow(x))
+    return(prod(dimension(x)))
+
+  as.numeric(sum(sf::st_area(x)))
 }
 
 

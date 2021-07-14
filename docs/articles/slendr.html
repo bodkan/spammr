@@ -175,7 +175,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -515,12 +515,12 @@ between populations.</code></pre>
 <span class="co">#&gt; 5 OOA      1  49230.77       93</span>
 <span class="co">#&gt; 6 OOA      1  48846.15      106</span>
 <span class="co">#&gt;                                                                               path</span>
-<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/1.png</span>
-<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/2.png</span>
-<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/3.png</span>
-<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/4.png</span>
-<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/5.png</span>
-<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp9JimC8/tutorial-model/6.png</span></code></pre></div>
+<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/1.png</span>
+<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/2.png</span>
+<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/3.png</span>
+<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/4.png</span>
+<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/5.png</span>
+<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/6.png</span></code></pre></div>
 <p>The object returned by the <code><a href="../reference/compile.html">compile()</a></code> function (called <code>model</code> here) binds all of this information together. In fact, for easier debugging and sanity checks, it carries the locations of these tables (as well as other important information) in it as elements of a list <code>model$splits</code>, <code>model$geneflows</code>, etc.</p>
 <p>In case you’d want to separate model specification and running into different scripts, <em>slendr</em> includes a function <code><a href="../reference/read.html">read()</a></code> just for this purpose:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">

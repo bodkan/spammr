@@ -60,7 +60,10 @@ print.slendr_pop <- function(x, ...) {
 print.slendr_region <- function(x, ...) {
   print_header_info(x)
 
-  cat("name:", x$region, "\n\n")
+  if (nrow(x))
+    cat("name:", x$region, "\n\n")
+  else
+    cat("[this region object is empty]\n\n")
 
   print_map_info(x)
 }

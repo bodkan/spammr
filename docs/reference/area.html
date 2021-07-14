@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Generate the difference between two slendr objects — subtract • slendr</title>
+<title>Calculate the area covered by the given slendr object — area • slendr</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -46,8 +46,8 @@
 
 
 
-<meta property="og:title" content="Generate the difference between two slendr objects — subtract" />
-<meta property="og:description" content="Generate the difference between two slendr objects" />
+<meta property="og:title" content="Calculate the area covered by the given slendr object — area" />
+<meta property="og:description" content="Calculate the area covered by the given slendr object" />
 <meta property="og:image" content="https://bodkan.net/slendr/logo.png" />
 
 
@@ -137,16 +137,16 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Generate the difference between two <code>slendr</code> objects</h1>
+    <h1>Calculate the area covered by the given slendr object</h1>
     <small class="dont-index">Source: <a href='https://github.com/bodkan/slendr/blob/master/R/interface.R'><code>R/interface.R</code></a></small>
-    <div class="hidden name"><code>subtract.Rd</code></div>
+    <div class="hidden name"><code>area.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Generate the difference between two <code>slendr</code> objects</p>
+    <p>Calculate the area covered by the given slendr object</p>
     </div>
 
-    <pre class="usage"><span class='fu'>subtract</span><span class='op'>(</span><span class='va'>x</span>, <span class='va'>y</span>, name <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>area</span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -155,20 +155,13 @@
       <th>x</th>
       <td><p>Object of the class <code>slendr</code></p></td>
     </tr>
-    <tr>
-      <th>y</th>
-      <td><p>Object of the class <code>slendr</code></p></td>
-    </tr>
-    <tr>
-      <th>name</th>
-      <td><p>Optional name of the resulting geographic region. If missing,
-name will be constructed from the function arguments.</p></td>
-    </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Object of the class <code>slendr_region</code></p>
+    <p>Area covered by the input object. If the coordinate reference system
+was specified, the area in projected units (i.e. m^2) is returned.
+Otherwise the function returns area without units.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
