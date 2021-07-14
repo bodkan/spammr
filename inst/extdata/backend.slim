@@ -76,6 +76,8 @@ initialize() {
 
 // Schedule script block events
 1 early() {
+  sim.rescheduleScriptBlock(s0, generations = SIM_START);
+
   // population splits
   sim.rescheduleScriptBlock(s1, generations = unique(POPULATIONS.getValue("tsplit")));
 
@@ -154,6 +156,12 @@ initialize() {
 //////////////////////////////////////////////////////////////////////
 // Scheduled script blocks
 //////////////////////////////////////////////////////////////////////
+
+// Dummy script block to log the start of the simulation
+s0 {
+  if (sim.generation == 1 & BURNIN_LENGTH > 0) log_output("start of burnin");
+  else log_output("starting the simulation");
+}
 
 // Population splits
 s1 late() {
