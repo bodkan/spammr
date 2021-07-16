@@ -1,8 +1,8 @@
 ---
-title: "Spatial interaction dynamics"
+title: "Programming dispersion dynamics"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Spatial interaction dynamics}
+  %\VignetteIndexEntry{Programming dispersion dynamics}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

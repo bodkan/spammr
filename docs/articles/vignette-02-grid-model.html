@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spatial population grid example • slendr</title>
+<title>Demes on a regular spatial grid • slendr</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Spatial population grid example">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Demes on a regular spatial grid">
 <meta property="og:description" content="slendr">
 <meta property="og:image" content="https://bodkan.net/slendr/logo.png">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
@@ -46,43 +46,57 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
+    <span class="fa fa-home"></span>
      
   </a>
 </li>
 <li>
-  <a href="../articles/slendr.html">Get started</a>
-</li>
-<li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">
+    <span class="fa fa-question-circle"></span>
+     
+    Reference
+  </a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-book"></span>
+     
     Articles
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/grid_model.html">Spatial population grid example</a>
+      <a href="../articles/vignette-01-tutorial.html">Introduction and basic tutorial</a>
     </li>
     <li>
-      <a href="../articles/spatial_interactions.html">Spatial interaction dynamics</a>
+      <a href="../articles/vignette-02-grid-model.html">Demes on a regular spatial grid</a>
+    </li>
+    <li>
+      <a href="../articles/vignette-03-interactions.html">Programming dispersion dynamics</a>
+    </li>
+    <li>
+      <a href="../articles/vignette-04-nonspatial-models.html">Traditional non-spatial models</a>
     </li>
   </ul>
 </li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
-      </ul>
-<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/bodkan/slendr/">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
+<li>
+  <a href="https://twitter.com/fleventy5">
+    <span class="fa fa-twitter"></span>
+     
+  </a>
+</li>
       </ul>
+<ul class="nav navbar-nav navbar-right"></ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -92,14 +106,14 @@
 
       
 
-      </header><script src="grid_model_files/header-attrs-2.9/header-attrs.js"></script><div class="row">
+      </header><script src="vignette-02-grid-model_files/header-attrs-2.9/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Spatial population grid example</h1>
+      <h1 data-toc-skip>Demes on a regular spatial grid</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/bodkan/slendr/blob/master/vignettes/grid_model.Rmd"><code>vignettes/grid_model.Rmd</code></a></small>
-      <div class="hidden name"><code>grid_model.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/bodkan/slendr/blob/master/vignettes/vignette-02-grid-model.Rmd"><code>vignettes/vignette-02-grid-model.Rmd</code></a></small>
+      <div class="hidden name"><code>vignette-02-grid-model.Rmd</code></div>
 
     </div>
 
@@ -149,7 +163,7 @@
 <p>Let’s plot the whole spatial population configuration, to make sure we set up things correctly:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">plot</span>, <span class="va">populations</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></code></pre></div>
-<p><img src="grid_model_files/figure-html/unnamed-chunk-7-1.png" width="480"></p>
+<p><img src="vignette-02-grid-model_files/figure-html/unnamed-chunk-7-1.png" width="480"></p>
 <p>So far, the way the model is specified, individuals of each population would be stuck on its own circular “island”. We can change that by programming geneflow events using the <em>slendr</em> function <code><a href="../reference/geneflow.html">geneflow()</a></code>. Again, let’s first program a simple helper function which will generate geneflow events according to neighborhood relationships on the two-dimensional grid, allowing each population to exchange migrants with each of its members (making sure the coordinates of each population stays within the grid using simple modulo arithmetic on the population index <em>i</em>).</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">set_geneflow</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">i</span>, <span class="va">n_side</span>, <span class="va">rate</span>, <span class="va">start</span>, <span class="va">end</span>, <span class="va">populations</span><span class="op">)</span> <span class="op">{</span>
@@ -210,7 +224,7 @@
 <p>We can use the function <code><a href="../reference/graph.html">graph()</a></code> to plot the layout of the population history graph in order to verify that the geneflow events have been specified correctly. The layout of the graph is a little bit wonky and crowded (that due to the complexity of spatiotemporal models, the <code><a href="../reference/graph.html">graph()</a></code> function plots not just populations as nodes but also times of geneflow events and other demographic processes). Still, we can see that the geneflow events between populations have been specified correctly as all arrows are bidirectional and point only between immediate neighboring demes:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span>, show_cleanups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></code></pre></div>
-<p><img src="grid_model_files/figure-html/unnamed-chunk-13-1.png" width="640"></p>
+<p><img src="vignette-02-grid-model_files/figure-html/unnamed-chunk-13-1.png" width="640"></p>
 <p>Again, those familiar with the SLiM manual will recognize a similar figure in section 5.3.3.</p>
 <p>Finally, we can run our simulation using the <code><a href="../reference/slim.html">slim()</a></code> function.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -228,7 +242,7 @@
   crs <span class="op">=</span> <span class="fl">4326</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpZoXiFf", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpDiWfIH", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span>
 
@@ -268,7 +282,7 @@
 <p>Let’s plot the layout of the population grid on the real geographic background:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">plot</span>, <span class="va">filtered</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></code></pre></div>
-<p><img src="grid_model_files/figure-html/unnamed-chunk-17-1.png" width="480"></p>
+<p><img src="vignette-02-grid-model_files/figure-html/unnamed-chunk-17-1.png" width="480"></p>
 <p>If this were an example in a real study, we would probably set up some scenario of geneflow between subpopulations, perhaps we would be interested in studying how a selected allele spreads throughout the continent based on some factors of interest. Then, if we were to simulate data from this spatial model, we would first have to <code><a href="../reference/compile.html">compile()</a></code> it and them run it in SLiM via our <code><a href="../reference/slim.html">slim()</a></code> function. Given that this is the same process we described in the abstract example above, we won’t be repeating it here.</p>
 </div>
   </div>

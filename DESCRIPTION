@@ -1,5 +1,5 @@
 Package: slendr
-Title: Spatio-temporal Population Genetics Simulations Using SLiM
+Title: Spatiotemporal Population Genetics Simulations in R and SLiM
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Martin",

@@ -8,7 +8,7 @@ compile(
   populations,
   dir,
   generation_time,
-  resolution,
+  resolution = NULL,
   competition_dist = NULL,
   mate_dist = NULL,
   dispersal_dist = NULL,

@@ -1,8 +1,8 @@
 ---
-title: "Spatial population grid example"
+title: "Demes on a regular spatial grid"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Spatial population grid example}
+  %\VignetteIndexEntry{Demes on a regular spatial grid}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

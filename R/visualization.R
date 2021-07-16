@@ -11,10 +11,12 @@
 #' @import ggplot2 data.table
 #' @export
 animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
+  if (!inherits(model$world, "slendr_map"))
+    stop("Cannot animate non-spatial models", call. = FALSE)
+
   locations <- file.path(model$directory, "output_ind_locations.tsv.gz")
   locs <- fread(locations, header = TRUE)
-  pop_names <- scan(file.path(model$directory, "names.txt"),
-    what = "character", quiet = TRUE)
+  pop_names <- model$splits$pop
 
   # label populations based on their original identifiers from the user
   locs$pop <- factor(
@@ -418,6 +420,9 @@ objects are specified", call. = FALSE)
 
     regions <- lapply(args, function(i) if (!is.null(i$region)) i) %>% Filter(Negate(is.null), .)
     pops <- lapply(args, function(i) if (!is.null(i$pop)) i) %>% Filter(Negate(is.null), .)
+
+    if (!all(sapply(pops, has_map)))
+      stop("Cannot plot spatial maps for non-spatial models", call. = FALSE)
   }
 
   if (graticules == "original" & has_crs(map)) {

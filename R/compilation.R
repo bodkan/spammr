@@ -31,7 +31,7 @@
 #'
 #' @return Compiled \code{slendr_model} model object
 #' @export
-compile <- function(populations, dir, generation_time, resolution,
+compile <- function(populations, dir, generation_time, resolution = NULL,
                     competition_dist = NULL, mate_dist = NULL, dispersal_dist = NULL,
                     geneflow = list(), overwrite = FALSE,
                     sim_length = NULL, direction = NULL) {
@@ -52,6 +52,9 @@ compile <- function(populations, dir, generation_time, resolution,
   dir.create(dir)
 
   if (is.data.frame(geneflow)) geneflow <- list(geneflow)
+
+  if (length(unique(sapply(populations, has_map))) != 1)
+    stop("Populations must be either all spatial or non-spatial, but not both", call. = FALSE)
 
   # make sure all populations share the same direction of time
   time_dir <- setdiff(unique(sapply(populations, get_time_direction)), "unknown")
@@ -76,25 +79,35 @@ setting `direction = 'backward'.`", call. = FALSE)
   }
 
   if (time_dir == "backward" | is.null(sim_length))
-    max_time <- max(unlist(c(sapply(populations, function(x) max(x$tmap)),
-                             sapply(geneflow, function(x) max(x$tstart)),
-                             sapply(geneflow, function(x) max(x$tend)))))
+    max_time <- c(sapply(populations, function(pop) {
+      sapply(attr(pop, "history"), function(event)
+        c(event$time, event$tsplit, event$tstart, event$tend))
+      }),
+      sapply(geneflow, function(x) max(x$tstart)),
+      sapply(geneflow, function(x) max(x$tend))) %>% unlist %>% max(na.rm = TRUE)
   else
     max_time <- sim_length
 
-  map <- attr(populations[[1]], "map")
-
-  if (!is.null(competition_dist)) check_resolution(map, competition_dist)
-  if (!is.null(mate_dist)) check_resolution(map, mate_dist)
-  if (!is.null(dispersal_dist)) check_resolution(map, dispersal_dist)
-  check_resolution(map, resolution)
+  map <- get_map(populations[[1]])
 
   split_table <- compile_splits(populations, generation_time, time_dir, max_time)
   admix_table <- compile_geneflows(geneflow, split_table, generation_time, time_dir, max_time)
-  map_table <- compile_maps(populations, split_table, resolution, generation_time, time_dir, max_time, dir)
   resize_table <- compile_resizes(populations, generation_time, time_dir, max_time, split_table)
-  dispersal_table <- compile_dispersals(populations, generation_time, time_dir, max_time, split_table,
+
+  if (inherits(map, "slendr_map")) {
+    if (!is.null(competition_dist)) check_resolution(map, competition_dist)
+    if (!is.null(mate_dist)) check_resolution(map, mate_dist)
+    if (!is.null(dispersal_dist)) check_resolution(map, dispersal_dist)
+    check_resolution(map, resolution)
+
+    map_table <- compile_maps(populations, split_table, resolution, generation_time, time_dir, max_time, dir)
+    dispersal_table <- compile_dispersals(populations, generation_time, time_dir, max_time, split_table,
                                         resolution, competition_dist, mate_dist, dispersal_dist)
+
+    return_maps <-  map_table[, c("pop", "pop_id", "tmap_orig", "tmap_gen", "path")]
+  } else {
+    map_table <- return_maps <- dispersal_table <- NULL
+  }
 
   # compile the result
   result <- list(
@@ -103,7 +116,8 @@ setting `direction = 'backward'.`", call. = FALSE)
     populations = populations,
     splits = split_table,
     geneflow = admix_table,
-    maps = map_table[, c("pop", "pop_id", "tmap_orig", "tmap_gen", "path")],
+    maps = return_maps,
+    interactions = dispersal_table,
     generation_time = generation_time,
     resolution = resolution,
     length = if (is.null(sim_length)) max_time else sim_length,
@@ -133,7 +147,6 @@ read <- function(dir) {
   path_splits <- file.path(dir, "populations.tsv")
   path_geneflow <- file.path(dir, "geneflow.tsv")
   path_maps <- file.path(dir, "maps.tsv")
-  path_names <- file.path(dir, "names.txt")
   path_generation_time <- file.path(dir, "generation_time.txt")
   path_resolution <- file.path(dir, "resolution.txt")
   path_length <- file.path(dir, "length.txt")
@@ -142,7 +155,7 @@ read <- function(dir) {
   if (!dir.exists(dir))
     stop(sprintf("Model directory '%s' does not exist", dir), call. = FALSE)
 
-  if (!all(file.exists(c(path_populations, path_splits, path_maps, path_names))))
+  if (!all(file.exists(c(path_populations, path_splits, path_maps))))
     stop(sprintf("Directory '%s' does not contain all slendr configuration files.
 Please make sure that populations.rds, {splits,geneflow,maps}.tsv, names.txt
 and generation_time.txt are all present", dir), call. = FALSE)
@@ -219,19 +232,11 @@ configuration (%s)", dir, map_table$map), call. = FALSE)
 slim <- function(model, seq_length, recomb_rate,
                  save_locations = FALSE, track_ancestry = FALSE,
                  keep_pedigrees = FALSE, ts_recording = FALSE,
-                 method = "gui", verbose = FALSE, include = NULL, burnin = 0,
+                 method, verbose = FALSE, include = NULL, burnin = 0,
                  seed = NULL, slim_path = NULL) {
   dir <- model$directory
   if (!dir.exists(dir))
     stop(sprintf("Model directory '%s' does not exist", dir), call. = FALSE)
-
-  if (!all(file.exists(file.path(dir, c("populations.tsv", "maps.tsv")))))
-    stop(sprintf("Directory '%s' does not contain slendr configuration files", dir),
-    call. = FALSE)
-
-  if (!length(list.files(dir, pattern = "*.png") == 0))
-    stop(sprintf("Directory '%s' does not contain any slendr spatial raster maps", dir),
-    call. = FALSE)
 
   if (!method %in% c("gui", "batch", "script"))
     stop("Only 'gui', 'batch', and 'script' are recognized as values of
@@ -252,6 +257,7 @@ a non-zero integer number (number of neutral ancestry markers)", call. = FALSE)
   backend_script <- system.file("extdata", "backend.slim", package = "slendr")
 
   base_script <- script(
+    spatial = if (inherits(model$world, "slendr_map")) "T" else "F",
     path = backend_script,
     model_dir = dir,
     output_prefix = output_prefix,
@@ -343,35 +349,34 @@ write_model <- function(dir, populations, admix_table, map_table, split_table,
                        sep = "\t", quote = FALSE, row.names = FALSE)
   }
 
-  for (i in seq_len(nrow(map_table))) {
-    map_row <- map_table[i, ]
-    path <- file.path(dir, sprintf("%d.png", i))
-    save_png(map_row$map[[1]], path)
+  if (!is.null(map_table)) {
+    for (i in seq_len(nrow(map_table))) {
+      map_row <- map_table[i, ]
+      path <- file.path(dir, sprintf("%d.png", i))
+      save_png(map_row$map[[1]], path)
+    }
+
+    utils::write.table(map_table[, c("pop", "pop_id", "tmap_orig", "tmap_gen", "path")],
+                       file.path(dir, "maps.tsv"), sep = "\t", quote = FALSE,
+                       row.names = FALSE)
+
+    base::write(resolution, file.path(dir, "resolution.txt"))
   }
+
+  if (!is.null(dispersal_table))
+    utils::write.table(dispersal_table, file.path(dir, "dispersals.tsv"),
+                       sep = "\t", quote = FALSE, row.names = FALSE)
 
   saveRDS(populations, file.path(dir, "populations.rds"))
 
   utils::write.table(split_table, file.path(dir, "populations.tsv"),
                      sep = "\t", quote = FALSE, row.names = FALSE)
 
-  utils::write.table(map_table[, c("pop", "pop_id", "tmap_orig", "tmap_gen", "path")],
-                     file.path(dir, "maps.tsv"), sep = "\t", quote = FALSE,
-                     row.names = FALSE  )
-
   if (!is.null(resize_table))
     utils::write.table(resize_table, file.path(dir, "resizes.tsv"),
                        sep = "\t", quote = FALSE, row.names = FALSE)
 
-  if (!is.null(dispersal_table))
-    utils::write.table(dispersal_table, file.path(dir, "dispersals.tsv"),
-                       sep = "\t", quote = FALSE, row.names = FALSE)
-
-  # save the population names (SLiM doesn't do data frames with mixed numeric
-  # and character types, so this needs to be saved separately)
-  writeLines(split_table$pop, con = file.path(dir, "names.txt"))
-
   base::write(generation_time, file.path(dir, "generation_time.txt"))
-  base::write(resolution, file.path(dir, "resolution.txt"))
   base::write(length, file.path(dir, "length.txt"))
   base::write(direction, file.path(dir, "direction.txt"))
 }

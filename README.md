@@ -4,7 +4,7 @@
 
 
 
-## Spatio-temporal Population Genetics Simulations in R & SLiM
+## Spatiotemporal Population Genetics Simulations in R and SLiM
 
 **This software is still under development!** <a href='https://bodkan.net/slendr'>
 <img src="man/figures/logo.png" align="right" height="139"/></a>
@@ -40,12 +40,12 @@ first. At the very least, you will need the most recent version of the
 ### Example
 
 Here is a small demonstration of what *slendr* is designed to do. We want
-to simulate spatio-temporal data representing the history of modern humans
+to simulate spatiotemporal data representing the history of modern humans
 in Eurasia after the Out of Africa migration. This example will be quite
 brief, for more details, please see the
 [tutorial](https://bodkan.net/slendr/articles/slendr.html) vignette.
 
-The package is designed to allow the building of complex spatio-temporal
+The package is designed to allow the building of complex spatiotemporal
 population genetics models in a single R script and then feeding such models
 to SLiM using a template SLiM script.
 
@@ -244,10 +244,11 @@ model
 #> geneflow events: [no geneflow]
 #> generation time: 30 
 #> time direction: backward 
-#> number of spatial maps: 60 
-#> resolution: 10000 distance unit per pixel
+#> model type: spatial
+#>   - number of spatial maps: 60 
+#>   - resolution: 10000 distance units per pixel
 #> 
-#> configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFRQKTM/readme-model 
+#> configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpJWFvyA/readme-model 
 #> 
 #> A detailed model specification can be found in `$splits`, `$geneflows`,
 #> `$maps`, `$populations`, and other components of the model object (for

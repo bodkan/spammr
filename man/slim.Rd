@@ -12,7 +12,7 @@ slim(
   track_ancestry = FALSE,
   keep_pedigrees = FALSE,
   ts_recording = FALSE,
-  method = "gui",
+  method,
   verbose = FALSE,
   include = NULL,
   burnin = 0,

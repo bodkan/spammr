@@ -76,7 +76,7 @@ p <- ggplot() +
 
 sticker(
   p, package = "slendr",
-  p_size = 7, p_y = 0.37, p_color = "black",
+  p_size = 23, p_y = 0.37, p_color = "black",
   h_color = "black", h_fill = "#0077be",
   s_y = 0.9, s_x = 0.99, s_width = 2.7, s_height = 2.7,
   white_around_sticker = TRUE,

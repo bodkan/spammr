@@ -14,7 +14,8 @@
 #'   population does not have an ancestor, and that it is the first population
 #'   in its "lineage")
 #' @param map Object of the type \code{slendr_map} which defines the world
-#'   context (created using the \code{world} function)
+#'   context (created using the \code{world} function). If the value
+#'   \code{FALSE} is provided, a non-spatial model will be run.
 #' @param center Two-dimensional vector specifying the center of the circular
 #'   range
 #' @param radius Radius of the circular range
@@ -34,14 +35,14 @@
 #' @return Object of the class \code{slendr_pop}
 #'
 #' @export
-population <- function(name, time, N, parent = "ancestor", map = NULL,
+population <- function(name, time, N, parent = "ancestor", map = FALSE,
                        center = NULL, radius = NULL, polygon = NULL,
                        remove = NULL, intersect = TRUE,
                        competition_dist = NA, mate_dist = NA, dispersal_dist = NA,
                        aquatic = FALSE) {
   # is this the first population defined in the model?
   if (is.character(parent) && parent == "ancestor") {
-    if (is.null(map))
+    if (!is.logical(map) && !inherits(map, "slendr_map"))
       stop("Ancestral population must specify its 'map'", call. = FALSE)
     else
       map <- map
@@ -50,35 +51,36 @@ population <- function(name, time, N, parent = "ancestor", map = NULL,
     map <- attr(parent, "map")
   }
 
-  # define the population range as a simple geometry object
-  # and bind it with the annotation info into an sf object
-  if (!is.null(polygon) & inherits(polygon, "slendr_region"))
-    geometry <- sf::st_geometry(polygon)
-  else
-    geometry <- define_boundary(map, center, radius, polygon)
+  if (inherits(map, "slendr_map")) {
+    # define the population range as a simple geometry object
+    # and bind it with the annotation info into an sf object
+    if (!is.null(polygon) & inherits(polygon, "slendr_region"))
+      geometry <- sf::st_geometry(polygon)
+    else
+      geometry <- define_boundary(map, center, radius, polygon)
 
-  pop <- sf::st_sf(
-    data.frame(pop = name, tmap = time, stringsAsFactors = FALSE),
-    geometry = geometry
-  )
-  sf::st_agr(pop) <- "constant"
+    pop <- sf::st_sf(
+      data.frame(pop = name, tmap = time, stringsAsFactors = FALSE),
+      geometry = geometry
+    )
+    sf::st_agr(pop) <- "constant"
+    attr(pop, "intersect") <- intersect
+    attr(pop, "aquatic") <- aquatic
+  } else
+    pop <- list(pop = name, time = time, stringsAsFactors = FALSE)
 
   # when to clean up the population?
   attr(pop, "remove") <- if (!is.null(remove)) remove else -1
 
   # keep a record of the parent population
-  if (inherits(parent, "slendr_pop")) {
+  if (inherits(parent, "slendr_pop"))
     attr(pop, "parent") <- parent
-    # keep the map as an internal attribute
-    attr(pop, "map") <- map
-  } else if (is.character(parent) & parent == "ancestor") {
+  else if (is.character(parent) & parent == "ancestor")
     attr(pop, "parent") <- "ancestor"
-    attr(pop, "map") <- map
-  } else
+  else
     stop("Suspicious parent population", call. = FALSE)
 
-  attr(pop, "intersect") <- intersect
-  attr(pop, "aquatic") <- aquatic
+  attr(pop, "map") <- map
 
   # create the first population history event - population split
   attr(pop, "history") <- list(data.frame(
@@ -117,6 +119,8 @@ population <- function(name, time, N, parent = "ancestor", map = NULL,
 #' @export
 move <- function(pop, trajectory, end, start, overlap = 0.8, snapshots = NULL,
                  verbose = TRUE) {
+  if (!has_map(pop)) stop("This operation is only allowed for spatial models", call. = FALSE)
+
   check_event_time(c(start, end), pop)
   check_removal_time(start, pop)
   check_removal_time(end, pop)
@@ -251,6 +255,7 @@ move <- function(pop, trajectory, end, start, overlap = 0.8, snapshots = NULL,
 #' @export
 expand <- function(pop, by, end, start, overlap = 0.8, snapshots = NULL,
                    polygon = NULL, verbose = TRUE) {
+  if (!has_map(pop)) stop("This operation is only allowed for spatial models", call. = FALSE)
   shrink_or_expand(pop, by, end, start, overlap, snapshots, polygon, verbose)
 }
 
@@ -295,6 +300,7 @@ shrink <- function(pop, by, end, start, overlap = 0.8, snapshots = NULL, verbose
 #' @export
 boundary <- function(pop, time, center = NULL, radius = NULL,
                      polygon = NULL, overlap = 0.8) {
+  if (!has_map(pop)) stop("This operation is only allowed for spatial models", call. = FALSE)
   check_event_time(time, pop)
   check_removal_time(time, pop)
 
@@ -408,6 +414,8 @@ resize <- function(pop, N, how, time, end = NULL) {
 #'
 #' @export
 dispersal <- function(pop, time, competition_dist = NA, mate_dist = NA, dispersal_dist = NA) {
+  if (!has_map(pop)) stop("This operation is only allowed for spatial models", call. = FALSE)
+
   if (is.na(competition_dist) & is.na(mate_dist) & is.na(dispersal_dist))
     stop("At least one spatial interaction parameter must be specified", call. = FALSE)
 
@@ -450,6 +458,9 @@ dispersal <- function(pop, time, competition_dist = NA, mate_dist = NA, dispersa
 #'
 #' @export
 geneflow <- function(from, to, rate, start, end, overlap = TRUE) {
+  if ((has_map(from) && !has_map(to)) || (!has_map(from) && has_map(to)))
+    stop("Both or neither populations must be spatial", call. = FALSE)
+
   # make sure the population is not removed during the the admixture period
   check_removal_time(start, from)
   check_removal_time(end, from)
@@ -459,45 +470,48 @@ geneflow <- function(from, to, rate, start, end, overlap = TRUE) {
   from_name <- unique(from$pop)
   to_name <- unique(to$pop)
 
-  if (from$tmap[1] <= start & from$tmap[1] <= end &
-      to$tmap[1] <= start & to$tmap[1] <= end)
-    comp <- `<=`
-  else if (from$tmap[1] >= start & from$tmap[1] >= end &
-           to$tmap[1] >= start & to$tmap[1] >= end)
-    comp <- `>=`
-  else
-    stop(sprintf("Specified times are not consistent with the assumed direction of time (geneflow %s -> %s in the time window %s-%s)",
-                 from_name, to_name, start, end),
-         call. = FALSE)
+  if (has_map(from) && has_map(to)) {
+    if (from$tmap[1] <= start & from$tmap[1] <= end &
+        to$tmap[1] <= start & to$tmap[1] <= end)
+      comp <- `<=`
+    else if (from$tmap[1] >= start & from$tmap[1] >= end &
+             to$tmap[1] >= start & to$tmap[1] >= end)
+      comp <- `>=`
+    else
+      stop(sprintf("Specified times are not consistent with the assumed direction of time (geneflow %s -> %s in the time window %s-%s)",
+                   from_name, to_name, start, end),
+           call. = FALSE)
 
-  # get the last specified spatial maps before the geneflow time
-  region_from <- intersect_features(from[comp(from$tmap, start), ] %>% .[nrow(.), ])
-  region_to <- intersect_features(to[comp(to$tmap, start), ] %>% .[nrow(.), ])
+    # get the last specified spatial maps before the geneflow time
+    region_from <- intersect_features(from[comp(from$tmap, start), ] %>% .[nrow(.), ])
+    region_to <- intersect_features(to[comp(to$tmap, start), ] %>% .[nrow(.), ])
 
-  if (nrow(region_from) == 0)
-    stop(sprintf("No spatial map defined for %s at/before the time %d",
-                 from_name, start),
-         call. = FALSE)
-  if (nrow(region_to) == 0)
-    stop(sprintf("No spatial map defined for %s at/before the time %d",
-                 to_name, start),
-         call. = FALSE)
+    if (nrow(region_from) == 0)
+      stop(sprintf("No spatial map defined for %s at/before the time %d",
+                   from_name, start),
+           call. = FALSE)
+    if (nrow(region_to) == 0)
+      stop(sprintf("No spatial map defined for %s at/before the time %d",
+                   to_name, start),
+           call. = FALSE)
 
-  # calculate the overlap of spatial ranges between source and target
-  region_overlap <- sf::st_intersection(region_from, region_to)
-  area_overlap <- as.numeric(sum(sf::st_area(region_overlap)))
+    # calculate the overlap of spatial ranges between source and target
+    region_overlap <- sf::st_intersection(region_from, region_to)
+    area_overlap <- as.numeric(sum(sf::st_area(region_overlap)))
 
-  if (overlap & area_overlap == 0) {
-    stop(sprintf("No overlap between population ranges of %s and %s at time %d.
+    if (overlap & area_overlap == 0) {
+      stop(sprintf("No overlap between population ranges of %s and %s at time %d.
 
-Please check the spatial maps of both populations by running
-`plot(%s, %s)` and adjust them accordingly. Alternatively, in case
-this makes sense for your model, you can add `overlap = F` which
-will instruct slendr to simulate geneflow without spatial overlap
-between populations.",
-from_name, to_name, start, deparse(substitute(from)),
-deparse(substitute(to))), call. = FALSE)
-  }
+  Please check the spatial maps of both populations by running
+  `plot(%s, %s)` and adjust them accordingly. Alternatively, in case
+  this makes sense for your model, you can add `overlap = F` which
+  will instruct slendr to simulate geneflow without spatial overlap
+  between populations.",
+  from_name, to_name, start, deparse(substitute(from)),
+  deparse(substitute(to))), call. = FALSE)
+    }
+  } else
+    overlap <- FALSE
 
   data.frame(
     from_name = from_name,

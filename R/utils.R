@@ -311,6 +311,18 @@ set_distances <- function(dispersal_table, resolution,
   dispersal_table
 }
 
+# Return the map attribute of a slendr object
+get_map <- function(x) {
+  if (!inherits(x, "slendr"))
+    stop("Can't access a map attribute of a non-slendr type object", call. = FALSE)
+
+  attr(x, "map")
+}
+
+# Does a given object have an attribute map?
+has_map <- function(x) {
+  inherits(get_map(x), "slendr_map")
+}
 
 #' Pipe operator
 #'

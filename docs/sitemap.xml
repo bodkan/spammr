@@ -103,12 +103,15 @@
     <loc>https://bodkan.net/slendr/reference/world.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/slendr/articles/grid_model.html</loc>
+    <loc>https://bodkan.net/slendr/articles/vignette-01-tutorial.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/slendr/articles/slendr.html</loc>
+    <loc>https://bodkan.net/slendr/articles/vignette-02-grid-model.html</loc>
   </url>
   <url>
-    <loc>https://bodkan.net/slendr/articles/spatial_interactions.html</loc>
+    <loc>https://bodkan.net/slendr/articles/vignette-03-interactions.html</loc>
+  </url>
+  <url>
+    <loc>https://bodkan.net/slendr/articles/vignette-04-nonspatial-models.html</loc>
   </url>
 </urlset>

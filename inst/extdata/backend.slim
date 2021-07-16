@@ -3,9 +3,10 @@ initialize() {
   setSeed(SIM_SEED); catn("SEED: " + SIM_SEED);
 
   // optional behavior switches set by the R frontend
+  defineConstant("SPATIAL", {{spatial}});
   defineConstant("KEEP_PEDIGREES", {{keep_pedigrees}});
   defineConstant("TS_RECORDING", {{ts_recording}});
-  defineConstant("SAVE_LOCATIONS", {{save_locations}});
+  defineConstant("SAVE_LOCATIONS", {{save_locations}}  & SPATIAL);
   defineConstant("TRACK_ANCESTRY", {{track_ancestry}});
   defineConstant("N_MARKERS", {{ancestry_markers}});
 
@@ -21,10 +22,31 @@ initialize() {
   defineConstant("POPULATIONS", read_table(config_path("populations.tsv")));
   defineConstant("GENEFLOWS", read_table(config_path("geneflow.tsv")));
   defineConstant("RESIZES", read_table(config_path("resizes.tsv")));
-  defineConstant("INTERACTIONS", read_table(config_path("dispersals.tsv")));
-  defineConstant("MAPS", read_table(config_path("maps.tsv")));
-  // load all spatial maps (image objects)
-  MAPS.setValue("image", sapply(MAPS.getValue("path"), "Image(applyValue);"));
+  if (SPATIAL) {
+    defineConstant("INTERACTIONS", read_table(config_path("dispersals.tsv")));
+    defineConstant("MAPS", read_table(config_path("maps.tsv")));
+    // load all spatial maps (image objects)
+    MAPS.setValue("image", sapply(MAPS.getValue("path"), "Image(applyValue);"));
+
+    // world map dimensions
+    defineConstant("WIDTH", MAPS.getValue("image")[0].width);
+    defineConstant("HEIGHT", MAPS.getValue("image")[0].height);
+
+    initializeSLiMOptions(keepPedigrees = KEEP_PEDIGREES, dimensionality = "xy");
+
+    // generate interaction types (two for each population - competition and mating)
+    for (i in POPULATIONS.getValue("pop_id")) {
+      competition = filter(INTERACTIONS, "pop_id", i).getValue("competition_dist")[0];
+      mating = filter(INTERACTIONS, "pop_id", i).getValue("mate_dist")[0];
+
+      initializeInteractionType(2*i, "xy", reciprocal = T, maxDistance = competition);
+      initializeInteractionType(2*i+1, "xy", reciprocal = T, maxDistance = mating);
+    }
+  } else {
+    initializeSLiMOptions(keepPedigrees = KEEP_PEDIGREES);
+    defineConstant("INTERACTIONS", NULL);
+    defineConstant("MAPS", NULL);
+  }
 
   // convert times from generations (starting at 1) to absolute SLiM times
   // (shifted by the burnin length)
@@ -37,11 +59,7 @@ initialize() {
   defineConstant("SIM_START", BURNIN_LENGTH + min(POPULATIONS.getValue("tsplit_gen")));
   defineConstant("SIM_END", SIM_START + SIM_LENGTH);
 
-  // world map dimensions
-  defineConstant("WIDTH", MAPS.getValue("image")[0].width);
-  defineConstant("HEIGHT", MAPS.getValue("image")[0].height);
 
-  initializeSLiMOptions(keepPedigrees = KEEP_PEDIGREES, dimensionality = "xy");
   if (TS_RECORDING) initializeTreeSeq();
 
   // mutation types of neutral ancestry-informative markers
@@ -63,15 +81,6 @@ initialize() {
 
   initializeRecombinationRate({{recomb_rate}});
   initializeMutationRate(0.0);
-
-  // generate interaction types (two for each population - competition and mating)
-  for (i in POPULATIONS.getValue("pop_id")) {
-    competition = filter(INTERACTIONS, "pop_id", i).getValue("competition_dist")[0];
-    mating = filter(INTERACTIONS, "pop_id", i).getValue("mate_dist")[0];
-
-    initializeInteractionType(2*i, "xy", reciprocal = T, maxDistance = competition);
-    initializeInteractionType(2*i+1, "xy", reciprocal = T, maxDistance = mating);
-  }
 }
 
 // Schedule script block events
@@ -356,16 +365,20 @@ s12 late() {
 }
 
 2: fitness(NULL) {
+  if (!SPATIAL) return 1.0;
   interaction = sim.interactionTypes[2 * subpop.id];
   totalStrength = interaction.totalOfNeighborStrengths(individual);
   return 1.1 - totalStrength / subpop.individualCount;
 }
 
 2: mateChoice() {
+  if (!SPATIAL) return NULL;
   return sim.interactionTypes[2 * subpop.id + 1].strength(individual);
 }
 
 modifyChild() {
+  if (!SPATIAL) return T;
+
   // assign locations uniformly in spatially non-overlapping geneflow
   if (child.migrant) {
     // get indices of the currently active geneflow events
@@ -409,7 +422,7 @@ modifyChild() {
 //////////////////////////////////////////////////////////////////////
 
 function (void) evaluate_interactions(void) {
-  sim.interactionTypes.evaluate();
+  if (SPATIAL) sim.interactionTypes.evaluate();
 }
 
 // Assign a spatial map to a given population

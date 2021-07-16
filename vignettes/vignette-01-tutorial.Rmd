@@ -1,9 +1,9 @@
 ---
-title: "Introduction and tutorial"
+title: "Introduction and basic tutorial"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{Introduction and tutorial}
+  %\VignetteIndexEntry{Introduction and basic tutorial}
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
@@ -31,15 +31,11 @@ knitr::opts_chunk$set(
 **What we want to do is simulate this kind of population history
   (splits and geneflow events):**
 
-![](./figures/geneflow_graph.png){width="80%"}
+![](figures/geneflow_graph.png){width="80%"}
 
 **in the context of this:**
 
-![](./figures/haak_map.png){width="80%"}
-
-**to produce this kind of data:**
-
-![](./figures/sim_data.png){width="80%"}
+![](figures/haak_map.png){width="80%"}
 
 This is possible to do in [SLiM](https://messerlab.org/slim/) using
 its `defineSpatialMap()` functionality. However, there is currently no

@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spatio-temporal Population Genetics Simulations Using SLiM • slendr</title>
+<title>Spatiotemporal Population Genetics Simulations in R and SLiM • slendr</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
-<script src="pkgdown.js"></script><meta property="og:title" content="Spatio-temporal Population Genetics Simulations Using SLiM">
+<script src="pkgdown.js"></script><meta property="og:title" content="Spatiotemporal Population Genetics Simulations in R and SLiM">
 <meta property="og:description" content="A framework for simulating spatially-explicit genomic
     data which leverages real cartographic information to programmatically
     and visually encode spatial population boundaries and temporal dynamics
@@ -53,43 +53,57 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="index.html">
-    <span class="fas fa-home fa-lg"></span>
+    <span class="fa fa-home"></span>
      
   </a>
 </li>
 <li>
-  <a href="articles/slendr.html">Get started</a>
-</li>
-<li>
-  <a href="reference/index.html">Reference</a>
+  <a href="reference/index.html">
+    <span class="fa fa-question-circle"></span>
+     
+    Reference
+  </a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-book"></span>
+     
     Articles
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/grid_model.html">Spatial population grid example</a>
+      <a href="articles/vignette-01-tutorial.html">Introduction and basic tutorial</a>
     </li>
     <li>
-      <a href="articles/spatial_interactions.html">Spatial interaction dynamics</a>
+      <a href="articles/vignette-02-grid-model.html">Demes on a regular spatial grid</a>
+    </li>
+    <li>
+      <a href="articles/vignette-03-interactions.html">Programming dispersion dynamics</a>
+    </li>
+    <li>
+      <a href="articles/vignette-04-nonspatial-models.html">Traditional non-spatial models</a>
     </li>
   </ul>
 </li>
 <li>
   <a href="news/index.html">Changelog</a>
 </li>
-      </ul>
-<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/bodkan/slendr/">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
+<li>
+  <a href="https://twitter.com/fleventy5">
+    <span class="fa fa-twitter"></span>
+     
+  </a>
+</li>
       </ul>
+<ul class="nav navbar-nav navbar-right"></ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -101,9 +115,9 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div id="spatio-temporal-population-genetics-simulations-in-r--slim" class="section level2">
+<div id="spatiotemporal-population-genetics-simulations-in-r-and-slim" class="section level2">
 <h2 class="hasAnchor">
-<a href="#spatio-temporal-population-genetics-simulations-in-r--slim" class="anchor"></a>Spatio-temporal Population Genetics Simulations in R &amp; SLiM</h2>
+<a href="#spatiotemporal-population-genetics-simulations-in-r-and-slim" class="anchor"></a>Spatiotemporal Population Genetics Simulations in R and SLiM</h2>
 <p><strong>This software is still under development!</strong> <a href="https://bodkan.net/slendr"> <img src="reference/figures/logo.png" align="right" height="139"></a> I have been making a good progress towards the first beta version, but the package still has some way to go before being production ready. If you are interested, you can see the list of changes between versions <a href="https://bodkan.net/slendr/news/index.html">here</a>.</p>
 <p>That said, if you would like to learn more, or if you’re feeling brave and would like to test the package yourself, take a look at the <a href="https://bodkan.net/slendr/articles/slendr.html">tutorial</a>. Note that getting it installed with all the geospatial dependencies can be a little bit tricky at this point (see the relevant section in the tutorial). If loading the package fails, check the error messages for missing software and install it using the package manager of your choice (on a Mac I recommend <em>homebrew</em>).</p>
 <p>If you would like to stay updated with the developments:</p>
@@ -119,8 +133,8 @@
 <div id="example" class="section level3">
 <h3 class="hasAnchor">
 <a href="#example" class="anchor"></a>Example</h3>
-<p>Here is a small demonstration of what <em>slendr</em> is designed to do. We want to simulate spatio-temporal data representing the history of modern humans in Eurasia after the Out of Africa migration. This example will be quite brief, for more details, please see the <a href="https://bodkan.net/slendr/articles/slendr.html">tutorial</a> vignette.</p>
-<p>The package is designed to allow the building of complex spatio-temporal population genetics models in a single R script and then feeding such models to SLiM using a template SLiM script.</p>
+<p>Here is a small demonstration of what <em>slendr</em> is designed to do. We want to simulate spatiotemporal data representing the history of modern humans in Eurasia after the Out of Africa migration. This example will be quite brief, for more details, please see the <a href="https://bodkan.net/slendr/articles/slendr.html">tutorial</a> vignette.</p>
+<p>The package is designed to allow the building of complex spatiotemporal population genetics models in a single R script and then feeding such models to SLiM using a template SLiM script.</p>
 <div id="1-setup-the-spatial-context" class="section level4">
 <h4 class="hasAnchor">
 <a href="#1-setup-the-spatial-context" class="anchor"></a>1. Setup the spatial context</h4>
@@ -253,10 +267,11 @@
 <span class="co">#&gt; geneflow events: [no geneflow]</span>
 <span class="co">#&gt; generation time: 30 </span>
 <span class="co">#&gt; time direction: backward </span>
-<span class="co">#&gt; number of spatial maps: 60 </span>
-<span class="co">#&gt; resolution: 10000 distance unit per pixel</span>
+<span class="co">#&gt; model type: spatial</span>
+<span class="co">#&gt;   - number of spatial maps: 60 </span>
+<span class="co">#&gt;   - resolution: 10000 distance units per pixel</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFRQKTM/readme-model </span>
+<span class="co">#&gt; configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpJWFvyA/readme-model </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; A detailed model specification can be found in `$splits`, `$geneflows`,</span>
 <span class="co">#&gt; `$maps`, `$populations`, and other components of the model object (for</span>

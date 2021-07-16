@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Introduction and tutorial • slendr</title>
+<title>Introduction and basic tutorial • slendr</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Introduction and tutorial">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Introduction and basic tutorial">
 <meta property="og:description" content="slendr">
 <meta property="og:image" content="https://bodkan.net/slendr/logo.png">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
@@ -46,43 +46,57 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
+    <span class="fa fa-home"></span>
      
   </a>
 </li>
 <li>
-  <a href="../articles/slendr.html">Get started</a>
-</li>
-<li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">
+    <span class="fa fa-question-circle"></span>
+     
+    Reference
+  </a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-book"></span>
+     
     Articles
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/grid_model.html">Spatial population grid example</a>
+      <a href="../articles/vignette-01-tutorial.html">Introduction and basic tutorial</a>
     </li>
     <li>
-      <a href="../articles/spatial_interactions.html">Spatial interaction dynamics</a>
+      <a href="../articles/vignette-02-grid-model.html">Demes on a regular spatial grid</a>
+    </li>
+    <li>
+      <a href="../articles/vignette-03-interactions.html">Programming dispersion dynamics</a>
+    </li>
+    <li>
+      <a href="../articles/vignette-04-nonspatial-models.html">Traditional non-spatial models</a>
     </li>
   </ul>
 </li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
-      </ul>
-<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/bodkan/slendr/">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
+<li>
+  <a href="https://twitter.com/fleventy5">
+    <span class="fa fa-twitter"></span>
+     
+  </a>
+</li>
       </ul>
+<ul class="nav navbar-nav navbar-right"></ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -92,14 +106,14 @@
 
       
 
-      </header><script src="slendr_files/header-attrs-2.9/header-attrs.js"></script><div class="row">
+      </header><script src="vignette-01-tutorial_files/header-attrs-2.9/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Introduction and tutorial</h1>
+      <h1 data-toc-skip>Introduction and basic tutorial</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/bodkan/slendr/blob/master/vignettes/slendr.Rmd"><code>vignettes/slendr.Rmd</code></a></small>
-      <div class="hidden name"><code>slendr.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/bodkan/slendr/blob/master/vignettes/vignette-01-tutorial.Rmd"><code>vignettes/vignette-01-tutorial.Rmd</code></a></small>
+      <div class="hidden name"><code>vignette-01-tutorial.Rmd</code></div>
 
     </div>
 
@@ -116,8 +130,6 @@
 <p><img src="figures/geneflow_graph.png" style="width:80.0%"></p>
 <p><strong>in the context of this:</strong></p>
 <p><img src="figures/haak_map.png" style="width:80.0%"></p>
-<p><strong>to produce this kind of data:</strong></p>
-<p><img src="figures/sim_data.png" style="width:80.0%"></p>
 <p>This is possible to do in <a href="https://messerlab.org/slim/">SLiM</a> using its <code>defineSpatialMap()</code> functionality. However, there is currently no way to define spatial maps programmatically, let alone build spatio-temporal models which include population splits, geneflow, migration, and expansion. The package <code>slendr</code> is designed to do exactly this, and feed the generated spatial maps into a dedicated back-end SLiM script.</p>
 </div>
 <div id="philosophy" class="section level2">
@@ -127,7 +139,7 @@
 <p>Luckily, most of the technical issues with <a href="https://en.wikipedia.org/wiki/Spatial_reference_system">Coordinate Reference Systems</a>, transformations between them and manipulation of geometric objects are pretty much solved now. Unfortunately, dealing with these issues in practice is quite challenging and requires non-trivial amount of domain expertise. Programming even a simple task in this context also requires a lot of code and there are no tools dedicated to programming population complex spatial population genetic simulations.</p>
 <p>This R package is designed to provide a collection of primitives (a <a href="https://en.wikipedia.org/wiki/Domain-specific_language">Domain Specific Language</a> of sorts) for programming population dynamics (splits, movement, geneflow, and expansion of spatial boundaries) across space and time <em>without having to explicitly deal with many of the challenges inherent to geospatial analyses</em>.</p>
 <p>Another goal is to make these spatio-temporal models fully reproducible, easy to write and debug by inspecting each step of the configuration visually, and finally to allow automated feeding of defined spatial maps into the <a href="https://messerlab.org/slim/">SLiM</a> population genetics simulation framework.</p>
-<p><img src="slendr_files/figure-html/world-map-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/world-map-1.png" width="480"></p>
 </div>
 <div id="installation-and-setup" class="section level2">
 <h2 class="hasAnchor">
@@ -175,7 +187,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpWIMEAn", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -197,7 +209,7 @@
 <p>More on that below, but here we will just plot the world context we just created:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">map</span>, title <span class="op">=</span> <span class="st">"Zoomed-in world map context"</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_world-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_world-1.png" width="480"></p>
 </div>
 <div id="defining-smaller-geographic-regions" class="section level2">
 <h2 class="hasAnchor">
@@ -238,7 +250,7 @@
 <p>Again, we can use the generic <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function to plot both geographic regions in the context of the defined section of the world map:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">africa</span>, <span class="va">europe</span>, <span class="va">anatolia</span>, title <span class="op">=</span> <span class="st">"Geographic regions"</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_europe_anatolia-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_europe_anatolia-1.png" width="480"></p>
 <p>Note that the <code>map</code> object is no longer explicitly specified. It is not needed, because each other class of objects provided to the <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function must carry it as a “map” attribute. In fact, each such object must carry the same map context - <code>slendr</code> complains whenever this is not the case.</p>
 <p>We can check that the component is really there, although hidden, using the built-in <code>attr</code> function and verify that it is the same as the map object we created at the beginning:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -263,7 +275,7 @@
 <span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">afr</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_afr-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_afr-1.png" width="480"></p>
 </div>
 <div id="circular-population-ranges" class="section level3">
 <h3 class="hasAnchor">
@@ -279,10 +291,10 @@
 <p>The intersected form is what is ultimately exported in a serialized form (see below) to be loaded as a spatial map into SLiM. This is why the <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function renders intersected population ranges by default.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ooa</span>, intersect <span class="op">=</span> <span class="cn">FALSE</span>, title <span class="op">=</span> <span class="st">"'Raw' population range"</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_ooa-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_ooa-1.png" width="480"></p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ooa</span>, title <span class="op">=</span> <span class="st">"'Intersected' population range"</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_ooa-2.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_ooa-2.png" width="480"></p>
 </div>
 </div>
 <div id="population-movement-across-a-landscape" class="section level2">
@@ -300,19 +312,19 @@
 <span class="co">#&gt; slendr 'population' object </span>
 <span class="co">#&gt; -------------------------- </span>
 <span class="co">#&gt; name: OOA </span>
-<span class="co">#&gt; scheduled removal at time  25000 </span>
 <span class="co">#&gt; habitat: terrestrial</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; number of spatial maps: 28 </span>
+<span class="co">#&gt; map: internal coordinate reference system: EPSG 3035 </span>
+<span class="co">#&gt; scheduled removal at time  25000 </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; population history overview:</span>
 <span class="co">#&gt;   - time 51000: split from AFR</span>
-<span class="co">#&gt;   - time 50000-40000: movement across a landscape</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; number of spatial maps: 28 </span>
-<span class="co">#&gt; map: internal coordinate reference system: EPSG 3035</span></code></pre></div>
+<span class="co">#&gt;   - time 50000-40000: movement across a landscape</span></code></pre></div>
 <p>Checking the result visually again, we see:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ooa</span>, title <span class="op">=</span> <span class="st">"Intermediate migration maps"</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_ooa_migration-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_ooa_migration-1.png" width="480"></p>
 <p>Let’s create a population of Eastern Hunter Gatherers (EHG), which split from the first non-Africans 28000 years ago:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ehg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/population.html">population</a></span><span class="op">(</span>
@@ -323,7 +335,7 @@
 <span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ehg</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_ehg-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_ehg-1.png" width="480"></p>
 <p>While we’re at it, let’s also create a population of Western Hunter Gatherers (WHG). Because the people living in this region eventually became present day Europeans after receiving geneflow from other groups over time (see below), we will call them “EUR” to simplify the modeling code a little bit:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">eur</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/population.html">population</a></span><span class="op">(</span> <span class="co"># European population</span>
@@ -332,7 +344,7 @@
 <span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">eur</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_eur-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_eur-1.png" width="480"></p>
 </div>
 <div id="spatial-population-expansion" class="section level2">
 <h2 class="hasAnchor">
@@ -355,23 +367,23 @@
 <span class="co">#&gt; slendr 'population' object </span>
 <span class="co">#&gt; -------------------------- </span>
 <span class="co">#&gt; name: ANA </span>
-<span class="co">#&gt; scheduled removal at time  4000 </span>
 <span class="co">#&gt; habitat: terrestrial</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; number of spatial maps: 17 </span>
+<span class="co">#&gt; map: internal coordinate reference system: EPSG 3035 </span>
+<span class="co">#&gt; scheduled removal at time  4000 </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; population history overview:</span>
 <span class="co">#&gt;   - time 28000: split from OOA</span>
-<span class="co">#&gt;   - time 10000-7000: range expansion</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; number of spatial maps: 17 </span>
-<span class="co">#&gt; map: internal coordinate reference system: EPSG 3035</span></code></pre></div>
+<span class="co">#&gt;   - time 10000-7000: range expansion</span></code></pre></div>
 <p>We can (and should) check the results visually:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ana</span>, title <span class="op">=</span> <span class="st">"Anatolian expansion into Europe"</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_ana-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_ana-1.png" width="480"></p>
 <p>To visually see what is really going on behind the scenes, we can plot the raw form of the expansion:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">ana</span>, title <span class="op">=</span> <span class="st">"Anatolian expansion into Europe (not intersected)"</span>, intersect <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_ana_raw-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_ana_raw-1.png" width="480"></p>
 <p>We can see that the population of Anatolian farmers at some point invades the spatial boundary of the EUR population. On its own, this doesn’t imply geneflow. In the section on geneflow below, we will see how <em>slendr</em> implements geneflow of overlapping (but also non-overlapping) populations.</p>
 <p>Let’s add a couple of more populations and migrations before we move on to implementing geneflow between them,</p>
 <p>Yamnaya steppe herders:</p>
@@ -383,7 +395,7 @@
 <span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">yam</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_yam-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_yam-1.png" width="480"></p>
 <p>Yamnaya invading Europe:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">yam</span> <span class="op">&lt;-</span> <span class="va">yam</span> <span class="op">%&gt;%</span>
@@ -393,7 +405,7 @@
   <span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">yam</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_yam_migr-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_yam_migr-1.png" width="480"></p>
 </div>
 <div id="plotting-multiple-slendr-objects" class="section level2">
 <h2 class="hasAnchor">
@@ -401,7 +413,7 @@
 <p>In addition to plotting individual population ranges, the generic function <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> can handle a combination of population ranges, and can also partition them in individual facets. This is useful for visual inspection of the specified model and for looking for potential issues before the export of individual spatio-temporal maps. Obviously, this is a lot of multi-dimensional information:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">afr</span>, <span class="va">ooa</span>, <span class="va">ehg</span>, <span class="va">eur</span>, <span class="va">ana</span>, <span class="va">yam</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_maps-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_maps-1.png" width="480"></p>
 <p>Below you will see a better way to explore a <em>slendr</em> model interactively.</p>
 </div>
 <div id="define-geneflow-events" class="section level2">
@@ -424,7 +436,7 @@ between populations.</code></pre>
 <p>The error message instructs us to visually verify that this is the case, which can be done by <code>slendr</code>’s <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function and the optional parameter <code>pop_facets = F</code> (which is set to <code>TRUE</code> by default):</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">eur</span>, <span class="va">afr</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_nonoverlapping-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_nonoverlapping-1.png" width="480"></p>
 <p>Many models will include multiple geneflow events, which we can collect in a simple R list:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">gf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
@@ -515,12 +527,12 @@ between populations.</code></pre>
 <span class="co">#&gt; 5 OOA      1  49230.77       93</span>
 <span class="co">#&gt; 6 OOA      1  48846.15      106</span>
 <span class="co">#&gt;                                                                               path</span>
-<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/1.png</span>
-<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/2.png</span>
-<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/3.png</span>
-<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/4.png</span>
-<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/5.png</span>
-<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpFndxPV/tutorial-model/6.png</span></code></pre></div>
+<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpWIMEAn/tutorial-model/1.png</span>
+<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpWIMEAn/tutorial-model/2.png</span>
+<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpWIMEAn/tutorial-model/3.png</span>
+<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpWIMEAn/tutorial-model/4.png</span>
+<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpWIMEAn/tutorial-model/5.png</span>
+<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpWIMEAn/tutorial-model/6.png</span></code></pre></div>
 <p>The object returned by the <code><a href="../reference/compile.html">compile()</a></code> function (called <code>model</code> here) binds all of this information together. In fact, for easier debugging and sanity checks, it carries the locations of these tables (as well as other important information) in it as elements of a list <code>model$splits</code>, <code>model$geneflows</code>, etc.</p>
 <p>In case you’d want to separate model specification and running into different scripts, <em>slendr</em> includes a function <code><a href="../reference/read.html">read()</a></code> just for this purpose:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
@@ -534,7 +546,7 @@ between populations.</code></pre>
 <p>One important thing to note here is that unlike traditional admixture graphs where each node/population is present only once, in the full <em>slendr</em> graph, a single population can participate in many geneflow events over the course of history. This is visualized by assigning a color to each population, and different nodes of the same color representing snapshots in time when a demographic event affecting that population happens.</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span>, show_cleanups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_graph-1.png" width="960"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_graph-1.png" width="960"></p>
 </div>
 <div id="interactive-exploration-of-spatio-temporal-models" class="section level2">
 <h2 class="hasAnchor">
@@ -568,11 +580,11 @@ between populations.</code></pre>
 <p>In case we instructed <code>slendr</code> to track ancestry proportions, we can visualize them after the simulation is over using the built-in <code>diagnostics()</code> function. This is quite bare-bones for now and the way diagnostics are generated is subject to change…</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/ancestries.html">ancestries</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_ancestries-1.png" width="480"></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_ancestries-1.png" width="480"></p>
 <p>Similarly, we can recapitulate the spatial dynamics with the <em>slendr</em> function <code><a href="../reference/animate.html">animate()</a></code> (this functions is also very bare-bones at the moment and is mostly useful as a proof of concept rather than anything else):</p>
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/animate.html">animate</a></span><span class="op">(</span><span class="va">model</span>, steps <span class="op">=</span> <span class="fl">100</span>, width <span class="op">=</span> <span class="fl">500</span>, height <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></code></pre></div>
-<p><img src="slendr_files/figure-html/plot_gif-1.gif"><!-- --></p>
+<p><img src="vignette-01-tutorial_files/figure-html/plot_gif-1.gif"><!-- --></p>
 <p>In case an argument <code>gif = ...</code> was provided, the function will save the animation to the specified location as a GIF file. Note that unless your simulation is very short and/or involves only a small population, rendering of the animation can take several minutes.</p>
 </div>
   </div>

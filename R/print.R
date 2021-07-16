@@ -20,23 +20,25 @@ print.slendr_pop <- function(x, ...) {
 
   cat("name:", unique(x$pop), "\n")
 
+  if (has_map(x)) {
+    # aquatic or terrestrial?
+    if (attr(x, "aquatic") == FALSE)
+      cat("habitat: terrestrial\n")
+    else
+      cat("habitat: aquatic\n")
+
+    cat("\nnumber of spatial maps:", nrow(x), "\n")
+    print_map_info(x)
+  } else
+    cat("non-spatial population\n")
+
   # removal time of the population
   if (attr(x, "remove") == -1)
     cat("stays until the end of the simulation\n")
   else
     cat("scheduled removal at time ", attr(x, "remove"), "\n")
 
-  # aquatic or terrestrial?
-  if (attr(x, "aquatic") == FALSE)
-    cat("habitat: terrestrial\n")
-  else
-    cat("habitat: aquatic\n")
-
   print_pop_history(x)
-
-  cat("\nnumber of spatial maps:", nrow(x), "\n")
-
-  print_map_info(x)
 }
 
 
@@ -120,8 +122,15 @@ print.slendr_model <- function(x, ...) {
     cat("[no geneflow]\n")
   cat("generation time:", x$generation_time, "\n")
   cat("time direction:", x$direction, "\n")
-  cat("number of spatial maps:", nrow(x$maps), "\n")
-  cat("resolution:", x$resolution, "distance unit per pixel\n\n")
+
+  cat("model type: ")
+  if (inherits(x$world, "slendr_map")) {
+    cat("spatial\n")
+    cat("  - number of spatial maps:", nrow(x$maps), "\n")
+    cat("  - resolution:", x$resolution, "distance units per pixel\n\n")
+  } else
+    cat("non-spatial\n\n")
+
   cat("configuration files in:", normalizePath(x$directory), "\n\n")
   cat(
     "A detailed model specification can be found in `$splits`, `$geneflows`,
@@ -153,7 +162,7 @@ print_map_info <- function(x) {
   type <- get_slendr_type(x)
 
   cat("map: ")
-  if (type == "map" | !is.null(attr(x, "map"))) {
+  if (type == "map" | has_map(x)) {
     crs <- sf::st_crs(x)$epsg
     if (is.na(crs)) {
       cat("abstract spatial landscape ")

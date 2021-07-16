@@ -9,7 +9,7 @@ population(
   time,
   N,
   parent = "ancestor",
-  map = NULL,
+  map = FALSE,
   center = NULL,
   radius = NULL,
   polygon = NULL,
@@ -33,7 +33,8 @@ population does not have an ancestor, and that it is the first population
 in its "lineage")}
 
 \item{map}{Object of the type \code{slendr_map} which defines the world
-context (created using the \code{world} function)}
+context (created using the \code{world} function). If the value
+\code{FALSE} is provided, a non-spatial model will be run.}
 
 \item{center}{Two-dimensional vector specifying the center of the circular
 range}

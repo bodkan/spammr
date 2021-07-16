@@ -87,42 +87,58 @@
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
+    <span class="fa fa-home"></span>
      
   </a>
 </li>
 <li>
-  <a href="../articles/slendr.html">Get started</a>
-</li>
-<li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">
+    <span class="fa fa-question-circle"></span>
+     
+    Reference
+  </a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-book"></span>
+     
     Articles
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/grid_model.html">Spatial population grid example</a>
+      <a href="../articles/vignette-01-tutorial.html">Introduction and basic tutorial</a>
     </li>
     <li>
-      <a href="../articles/spatial_interactions.html">Spatial interaction dynamics</a>
+      <a href="../articles/vignette-02-grid-model.html">Demes on a regular spatial grid</a>
+    </li>
+    <li>
+      <a href="../articles/vignette-03-interactions.html">Programming dispersion dynamics</a>
+    </li>
+    <li>
+      <a href="../articles/vignette-04-nonspatial-models.html">Traditional non-spatial models</a>
     </li>
   </ul>
 </li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right">
-        <li>
+<li>
   <a href="https://github.com/bodkan/slendr/">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
+<li>
+  <a href="https://twitter.com/fleventy5">
+    <span class="fa fa-twitter"></span>
+     
+  </a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -160,6 +176,14 @@
 <li><p>A new <code><a href="../reference/shrink.html">shrink()</a></code> function (analogous to <code><a href="../reference/expand.html">expand()</a></code>) is implemented.</p></li>
 <li><p>Spatial interaction distances (translated to <code>maxDistance</code> on the SLiM side) as well as offspring distances from parents (i.e. the standard deviations of their normal distributions) can now be specified for each population individually. The users can still provide default values for all populations (or just those which did not have their own dedicated parameter values) in the main <code><a href="../reference/compile.html">compile()</a></code> call. These parameters can also change dynamically over time by calling the <code><a href="../reference/dispersal.html">dispersal()</a></code> function.</p></li>
 <li><p>Two knew vignettes have been added. <a href="../articles/grid_example.html">One</a> demonstrates a simple use case of simulating the history of populations as demes laid out on a regular abstract grid. The <a href="../articles/spatial_interactions.html">other one</a> demonstrates the spatial interaction dynamics described in the previous point.</p></li>
+</ul>
+</div>
+<div id="nonspatial-simulations" class="section level2">
+<h2 class="hasAnchor">
+<a href="#nonspatial-simulations" class="anchor"></a>Nonspatial simulations</h2>
+<ul>
+<li>
+<em>slendr</em> can now simulate “normal” nonspatial models. This is triggered by setting the <code>map = FALSE</code> in the <code><a href="../reference/population.html">population()</a></code> “constructor” function call. All populations descending from that population will then be nonspatial, and the whole compiled model will be run in the nonspatial model on the SLiM side. A short <a href="../articles/nonspatial_models.html">example vignette</a> demonstrating this feature has been added.</li>
 </ul>
 </div>
 <div id="changes-to-the-r-interface" class="section level2">

@@ -1,16 +1,16 @@
 map <- readRDS("map.rds")
 
-run_sim <- function(pop, direction, sim_length = NULL) {
+run_sim <- function(pop, direction, sim_length = NULL, method = "batch") {
   model_dir <- "/tmp/test_resize"
   unlink(model_dir, recursive = TRUE, force = TRUE)
 
   model <- compile(
     populations = list(pop), generation_time = 1,
-    resolution = 10e3, competition_dist = 130e3, mate_dist = 100e3, dispersal_dist = 70e3, # how far will offspring end up from their parents
+    resolution = 10e3, competition_dist = 130e3, mate_dist = 100e3, dispersal_dist = 70e3,
     dir = model_dir, direction = direction, sim_length = sim_length
   )
 
-  slim(model, seq_length = 1, recomb_rate = 0, save_locations = TRUE, method = "batch")
+  slim(model, seq_length = 1, recomb_rate = 0, save_locations = TRUE, method = method)
 
   dt <- fread(file.path(model$directory, "output_ind_locations.tsv.gz"))
 
