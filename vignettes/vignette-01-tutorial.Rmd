@@ -118,7 +118,6 @@ devtools::install_github("bodkan/slendr")
 
 ```{r, echo = FALSE, message = FALSE}
 devtools::load_all(".")
-set.seed(31415926)
 ```
 
 4. That's it! You can now load the package with the usual:

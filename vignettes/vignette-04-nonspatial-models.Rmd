@@ -16,7 +16,6 @@ comment = "#>"
 
 ```{r, echo = FALSE, message = FALSE}
 devtools::load_all(".")
-set.seed(31415926)
 ```
 
 The biggest selling point of the *slendr* package is programming spatiotemporal population genetics models and executing them automatically by SLiM. However, there are several reasons why you might be interested in using *slendr* even for non-spatial models. First, R is a language that many scientist already know and being able to simulate data from the comfort of the R interface significantly lowers the barrier of entry. Second, because *slendr* makes SLiM appear almost as if it were just another R library, running simulations (spatial *and* non-spatial), fitting models, exploring parameter grids, calculating statistics and visualization of results can be all performed without leaving the R interface.

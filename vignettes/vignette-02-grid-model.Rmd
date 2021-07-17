@@ -19,7 +19,6 @@ knitr::opts_chunk$set(
 
 ```{r, echo = FALSE, message = FALSE}
 devtools::load_all(".")
-set.seed(31415926)
 ```
 
 In this vignette, we will build a simple model of isolated populations laid out on a two-dimensional grid, each exchanging migrants with its immediate neighbors.
