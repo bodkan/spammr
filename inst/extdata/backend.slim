@@ -19,7 +19,7 @@ initialize() {
   defineConstant("SIM_LENGTH", {{length}});
 
   // load model definition tables
-  defineConstant("POPULATIONS", read_table(config_path("populations.tsv")));
+  defineConstant("POPULATIONS", read_table(config_path("splits.tsv")));
   defineConstant("GENEFLOWS", read_table(config_path("geneflow.tsv")));
   defineConstant("RESIZES", read_table(config_path("resizes.tsv")));
   if (SPATIAL) {

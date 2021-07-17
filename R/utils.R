@@ -316,7 +316,11 @@ get_map <- function(x) {
   if (!inherits(x, "slendr"))
     stop("Can't access a map attribute of a non-slendr type object", call. = FALSE)
 
-  attr(x, "map")
+  map <- attr(x, "map")
+  if (inherits(map, "slendr_map"))
+    map
+  else
+    NULL
 }
 
 # Does a given object have an attribute map?

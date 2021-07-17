@@ -1,4 +1,4 @@
-# map <- readRDS("tests/testthat/map.rds")
+# spatial models ----------------------------------------------------------
 
 test_that("read() restores a single-map model object", {
   map <- readRDS("map.rds")
@@ -8,11 +8,11 @@ test_that("read() restores a single-map model object", {
   model_dir <- file.path(tempdir(), "tmp-single-map-model-serialization")
   model1 <- compile(pop, dir = model_dir, resolution = 10000, generation_time = 1, overwrite = TRUE,
                     competition_dist = 100e3, mate_dist = 100e3, dispersal_dist = 10e3, direction = "backward")
-  model2 <- read(model1$directory)
+  model2 <- read(model1$path)
 
   # make sure that all components of the model list object before and after
   # serialization are equal
-  components <- c("splits", "geneflow", "maps", "direction", "length", "generation_time", "resolution", "world")
+  components <- c("checksums", "splits", "geneflow", "maps", "direction", "length", "generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
   expect_true(all(sapply(seq_along(model1$populations), function(i) all(model1$populations[[i]] == model2$populations[[i]]))))
 })
@@ -44,9 +44,9 @@ test_that("read() restores a complex model object", {
     overwrite = TRUE,
     competition_dist = 100e3, mate_dist = 100e3, dispersal_dist = 10e3
   )
-  model2 <- read(model1$directory)
+  model2 <- read(model1$path)
 
-  components <- c("splits", "geneflow", "maps", "length", "direction", "generation_time", "resolution", "world")
+  components <- c("checksums", "splits", "geneflow", "maps", "length", "direction", "generation_time", "resolution", "world")
   expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
   expect_true(all(sapply(seq_along(model1$populations), function(i) all(model1$populations[[i]] == model2$populations[[i]]))))
 })
@@ -59,7 +59,7 @@ test_that("non-unique population names lead to error", {
   p3 <- population(name = "pop2", N = 700, time = 1, radius = 600000, center = c(10, 25), map = map)
   model_dir <- file.path(tempdir(), "tmp-name-uniqueness")
   expect_error(
-    compile( dir = model_dir, populations = list(p1, p2, p3), generation_time = 30, resolution = 10000, overwrite = TRUE, sim_length = 10, competition_dist = 100e3, mate_dist = 100e3, dispersal_dist = 10e3),
+    compile(dir = model_dir, populations = list(p1, p2, p3), generation_time = 30, resolution = 10000, overwrite = TRUE, sim_length = 10, competition_dist = 100e3, mate_dist = 100e3, dispersal_dist = 10e3),
     "All populations must have unique names"
   )
 
@@ -67,5 +67,79 @@ test_that("non-unique population names lead to error", {
   p2 <- population(name = "pop2", N = 700, time = 1, radius = 600000, center = c(10, 25), map = map)
   p3 <- population(name = "pop3", N = 700, time = 1, radius = 600000, center = c(10, 25), map = map)
   model_dir <- file.path(tempdir(), "tmp-name-uniqueness")
-  expect_silent(compile( dir = model_dir, populations = list(p1, p2, p3), generation_time = 30, resolution = 10000, overwrite = TRUE, sim_length = 10, competition_dist = 100e3, mate_dist = 100e3, dispersal_dist = 10e3))
+  expect_silent(compile(dir = model_dir, populations = list(p1, p2, p3), generation_time = 30, resolution = 10000, overwrite = TRUE, sim_length = 10, competition_dist = 100e3, mate_dist = 100e3, dispersal_dist = 10e3))
+})
+
+# non-spatial models ------------------------------------------------------
+
+test_that("read() restores a single-map model object (nonspatial)", {
+  pop <- population("pop", N = 10, time = 100)
+
+  model_dir <- file.path(tempdir(), "tmp-single-map-model-serialization")
+  model1 <- compile(pop, dir = model_dir, generation_time = 1, overwrite = TRUE, direction = "backward")
+  model2 <- read(model1$path)
+
+  # make sure that all components of the model list object before and after
+  # serialization are equal
+  components <- c("checksums", "splits", "geneflow", "maps", "direction", "length", "generation_time", "resolution", "world")
+  expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
+  expect_true(all(sapply(seq_along(model1$populations), function(i) all(unlist(model1$populations[[i]]) == unlist(model2$populations[[i]])))))
+})
+
+test_that("read() restores a complex model object (nonspatial)", {
+  p1 <- population(name = "pop1", N = 700, time = 40000)
+  p2 <- population(name = "pop2", parent = p1, time = 30000, N = 500)
+  p3 <- population(name = "pop3", parent = p2, time = 20000, N = 2000)
+  p4 <- population(name = "pop4", parent = p2, time = 15000, N = 2000)
+  p5 <- population(name = "pop5", parent = p1, time = 10000, N = 300)
+
+  geneflow <- list(
+    geneflow(from = p5, to = p4, rate = 0.2, start = 2000, end = 0),
+    geneflow(from = p5, to = p3, rate = 0.3, start = 2000, end = 0)
+  )
+
+  model_dir <- file.path(tempdir(), "tmp-complex-map-model-serialization-nonspatial")
+  model1 <- compile(
+    dir = model_dir,
+    populations = list(p1, p2, p3, p4, p5),
+    geneflow = geneflow,
+    generation_time = 30,
+    overwrite = TRUE
+  )
+  model2 <- read(model1$path)
+
+  components <- c("checksums", "splits", "geneflow", "maps", "length", "direction", "generation_time", "resolution", "world")
+  expect_true(all(sapply(components, function(i) all.equal(model1[[i]], model2[[i]]))))
+  expect_true(all(sapply(seq_along(model1$populations), function(i) all(unlist(model1$populations[[i]]) == unlist(model2$populations[[i]])))))
+})
+
+test_that("non-unique population names lead to error (nonspatial)", {
+  p1 <- population(name = "pop1", N = 700, time = 1)
+  p2 <- population(name = "pop2", N = 700, time = 1)
+  p3 <- population(name = "pop2", N = 700, time = 1)
+  model_dir <- file.path(tempdir(), "tmp-name-uniqueness-nonspatial")
+  expect_error(
+    compile(dir = model_dir, populations = list(p1, p2, p3), generation_time = 30, resolution = 10000, overwrite = TRUE, sim_length = 10),
+    "All populations must have unique names"
+  )
+
+  p1 <- population(name = "pop1", N = 700, time = 1)
+  p2 <- population(name = "pop2", N = 700, time = 1)
+  p3 <- population(name = "pop3", N = 700, time = 1)
+  model_dir <- file.path(tempdir(), "tmp-name-uniqueness-nonspatial")
+  expect_silent(compile(dir = model_dir, populations = list(p1, p2, p3), generation_time = 30, resolution = 10000, overwrite = TRUE, sim_length = 10))
+})
+
+test_that("checksums are enforced", {
+  pop <- population("pop", N = 10, time = 100)
+
+  model_dir <- file.path(tempdir(), "tmp-checksums")
+  model1 <- compile(pop, dir = model_dir, generation_time = 1, overwrite = TRUE, direction = "backward")
+  model2 <- read(model_dir)
+  expect_error(
+    suppressMessages(verify_checksums(file.path(model_dir, model1$checksums$file),
+                                      paste0(model1$checksums$hash, "asdf"))),
+    "Checksum test of some slendr configuration files failed"
+  )
+  expect_equal(model1$checksums$hash, model2$checksums$hash)
 })

@@ -131,7 +131,7 @@ print.slendr_model <- function(x, ...) {
   } else
     cat("non-spatial\n\n")
 
-  cat("configuration files in:", normalizePath(x$directory), "\n\n")
+  cat("configuration files in:", normalizePath(x$path), "\n\n")
   cat(
     "A detailed model specification can be found in `$splits`, `$geneflows`,
 `$maps`, `$populations`, and other components of the model object (for

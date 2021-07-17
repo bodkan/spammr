@@ -35,7 +35,7 @@ compile <- function(populations, dir, generation_time, resolution = NULL,
                     competition_dist = NULL, mate_dist = NULL, dispersal_dist = NULL,
                     geneflow = list(), overwrite = FALSE,
                     sim_length = NULL, direction = NULL) {
-  if (!inherits(populations, "list"))  populations <- list(populations)
+  if (inherits(populations, "slendr_pop"))  populations <- list(populations)
 
   if (length(populations) != length(unique(sapply(populations, `[[`, "pop"))))
     stop("All populations must have unique names", call. = FALSE)
@@ -109,26 +109,55 @@ setting `direction = 'backward'.`", call. = FALSE)
     map_table <- return_maps <- dispersal_table <- NULL
   }
 
+  checksums <- write_model(
+    dir, populations, admix_table, map_table, split_table, resize_table,
+    dispersal_table, generation_time, resolution, max_time, time_dir
+  )
+
   # compile the result
   result <- list(
-    directory = dir,
+    path = dir,
     world = map,
     populations = populations,
     splits = split_table,
     geneflow = admix_table,
     maps = return_maps,
-    interactions = dispersal_table,
+    dispersals = dispersal_table,
     generation_time = generation_time,
     resolution = resolution,
     length = if (is.null(sim_length)) max_time else sim_length,
-    direction = time_dir
+    direction = time_dir,
+    checksums = checksums
   )
   class(result) <- set_class(result, "model")
 
-  write_model(dir, populations, admix_table, map_table, split_table, resize_table,
-              dispersal_table, generation_time, resolution, max_time, time_dir)
-
   result
+}
+
+
+calculate_checksums <- function(files) {
+  if (!all(file.exists(files)))
+    stop("Not all compiled files are present", call. = FALSE)
+
+  data.frame(
+    file = basename(files),
+    hash = as.vector(tools::md5sum(files))
+  )
+}
+
+
+# Make sure the checksums of a given set of files matches the expectation
+verify_checksums <- function(files, hashes) {
+  failed <- FALSE
+  for (i in seq_along(files)) {
+    if (tools::md5sum(files[i]) != hashes[i]) {
+      message(sprintf("Checksum of '%s' does not match", basename(files[i])))
+      failed <- TRUE
+    }
+  }
+  if (failed)
+    stop("Checksum test of some slendr configuration files failed -- see above.
+Please make sure that the configuration files have not been changed, overwritten, or otherwise tampered with.", call. = FALSE)
 }
 
 
@@ -144,7 +173,7 @@ read <- function(dir) {
   # paths to files which are saved by the compile() function and are necessary
   # for running the backend script using the run() function
   path_populations <- file.path(dir, "populations.rds")
-  path_splits <- file.path(dir, "populations.tsv")
+  path_splits <- file.path(dir, "splits.tsv")
   path_geneflow <- file.path(dir, "geneflow.tsv")
   path_maps <- file.path(dir, "maps.tsv")
   path_generation_time <- file.path(dir, "generation_time.txt")
@@ -155,13 +184,11 @@ read <- function(dir) {
   if (!dir.exists(dir))
     stop(sprintf("Model directory '%s' does not exist", dir), call. = FALSE)
 
-  if (!all(file.exists(c(path_populations, path_splits, path_maps))))
-    stop(sprintf("Directory '%s' does not contain all slendr configuration files.
-Please make sure that populations.rds, {splits,geneflow,maps}.tsv, names.txt
-and generation_time.txt are all present", dir), call. = FALSE)
+  # verify checksums of serialized model configuration files
+  checksums <- read.table(file.path(dir, "checksums.tsv"), header = TRUE)
+  verify_checksums(file.path(dir, checksums$file), checksums$hash)
 
   generation_time <- scan(path_generation_time, what = integer(), quiet = TRUE)
-  resolution <- scan(path_resolution, what = integer(), quiet = TRUE)
   sim_length <- scan(path_length, what = integer(), quiet = TRUE)
 
   split_table <- utils::read.table(path_splits, header = TRUE, stringsAsFactors = FALSE)
@@ -172,25 +199,29 @@ and generation_time.txt are all present", dir), call. = FALSE)
     admix_table$overlap <- admix_table$overlap == 1
   }
 
-  map_table <- read.table(path_maps, header = TRUE, stringsAsFactors = FALSE)
-  if (!all(file.exists(map_table$path)))
-    stop(sprintf("Directory '%s' does not contain all maps required by the model
-configuration (%s)", dir, map_table$map), call. = FALSE)
-
   populations <- readRDS(path_populations)
+
+  if (file.exists(path_maps)) {
+    maps <- read.table(path_maps, header = TRUE, stringsAsFactors = FALSE)
+    resolution <- scan(path_resolution, what = integer(), quiet = TRUE)
+    world <- attr(populations[[1]], "map")
+  } else
+    maps <- world <- resolution <- NULL
+
   direction <- scan(path_direction, what = character(), quiet = TRUE)
 
   result <- list(
-    directory = dir,
-    world = attr(populations[[1]], "map"),
+    path = dir,
+    world = world,
     populations = populations,
     splits = split_table,
     geneflow = admix_table,
-    maps = map_table,
+    maps = maps,
     generation_time = generation_time,
     resolution = resolution,
     length = sim_length,
-    direction = direction
+    direction = direction,
+    checksums = checksums
   )
   class(result) <- set_class(result, "model")
   result
@@ -234,7 +265,7 @@ slim <- function(model, seq_length, recomb_rate,
                  keep_pedigrees = FALSE, ts_recording = FALSE,
                  method, verbose = FALSE, include = NULL, burnin = 0,
                  seed = NULL, slim_path = NULL) {
-  dir <- model$directory
+  dir <- model$path
   if (!dir.exists(dir))
     stop(sprintf("Model directory '%s' does not exist", dir), call. = FALSE)
 
@@ -251,8 +282,8 @@ a non-zero integer number (number of neutral ancestry markers)", call. = FALSE)
   } else
     markers_count <- as.integer(track_ancestry)
 
-  script_path <- file.path(model$directory, "script.slim")
-  output_prefix <- file.path(model$directory, "output")
+  script_path <- file.path(model$path, "script.slim")
+  output_prefix <- file.path(model$path, "output")
 
   backend_script <- system.file("extdata", "backend.slim", package = "slendr")
 
@@ -339,46 +370,75 @@ script <- function(path, output = NULL, ...) {
 }
 
 
-# Write a compiled slendr model to disk
+# Write a compiled slendr model to disk and return a table of
+# checksums
 write_model <- function(dir, populations, admix_table, map_table, split_table,
                         resize_table, dispersal_table,
                         generation_time, resolution, length, direction) {
+  saved_files <- c()
+
+  # table of split times and initial population sizes
+  saved_files["splits"] <- file.path(dir, "splits.tsv")
+  utils::write.table(split_table, saved_files[["splits"]],
+                     sep = "\t", quote = FALSE, row.names = FALSE)
+
+  # table of geneflow events
   if (!is.null(admix_table)) {
+    saved_files["geneflow"] <- file.path(dir, "geneflow.tsv")
     admix_table$overlap <- as.integer(admix_table$overlap)
-    utils::write.table(admix_table, file.path(dir, "geneflow.tsv"),
+    utils::write.table(admix_table, saved_files[["geneflow"]],
                        sep = "\t", quote = FALSE, row.names = FALSE)
   }
 
   if (!is.null(map_table)) {
+    # rasterized spatial maps
     for (i in seq_len(nrow(map_table))) {
+      saved_files[paste0("map", i)] <- file.path(dir, sprintf("%d.png", i))
       map_row <- map_table[i, ]
-      path <- file.path(dir, sprintf("%d.png", i))
-      save_png(map_row$map[[1]], path)
+      save_png(map_row$map[[1]], saved_files[paste0("map", i)])
     }
 
-    utils::write.table(map_table[, c("pop", "pop_id", "tmap_orig", "tmap_gen", "path")],
-                       file.path(dir, "maps.tsv"), sep = "\t", quote = FALSE,
-                       row.names = FALSE)
+    # table of paths to raster files
+    saved_files["maps"] <- file.path(dir, "maps.tsv")
+    utils::write.table(
+      map_table[, c("pop", "pop_id", "tmap_orig", "tmap_gen", "path")],
+      saved_files[["maps"]], sep = "\t", quote = FALSE, row.names = FALSE
+    )
 
-    base::write(resolution, file.path(dir, "resolution.txt"))
+    saved_files["resolution"] <- file.path(dir, "resolution.txt")
+    base::write(resolution, saved_files[["resolution"]])
   }
 
-  if (!is.null(dispersal_table))
-    utils::write.table(dispersal_table, file.path(dir, "dispersals.tsv"),
+  # table of interaction and dispersal distances
+  if (!is.null(dispersal_table)) {
+    saved_files["dispersal"] <- file.path(dir, "dispersals.tsv")
+    utils::write.table(dispersal_table, saved_files[["dispersal"]],
                        sep = "\t", quote = FALSE, row.names = FALSE)
+  }
 
-  saveRDS(populations, file.path(dir, "populations.rds"))
+  # serialized population objects
+  saved_files["populations"] <- file.path(dir, "populations.rds")
+  saveRDS(populations, saved_files[["populations"]])
 
-  utils::write.table(split_table, file.path(dir, "populations.tsv"),
-                     sep = "\t", quote = FALSE, row.names = FALSE)
+  # table of scheduled resize events
+  if (!is.null(resize_table)) {
+    saved_files["resizes"] <- file.path(dir, "resizes.tsv")
+    utils::write.table(resize_table, saved_files["resizes"], sep = "\t",
+                       quote = FALSE, row.names = FALSE)
+  }
 
-  if (!is.null(resize_table))
-    utils::write.table(resize_table, file.path(dir, "resizes.tsv"),
-                       sep = "\t", quote = FALSE, row.names = FALSE)
-
+  saved_files["generation_time"] <- file.path(dir, "generation_time.txt")
+  saved_files["length"] <- file.path(dir, "length.txt")
+  saved_files["direction"] <- file.path(dir, "direction.txt")
   base::write(generation_time, file.path(dir, "generation_time.txt"))
   base::write(length, file.path(dir, "length.txt"))
   base::write(direction, file.path(dir, "direction.txt"))
+
+  checksums <- calculate_checksums(saved_files)
+  utils::write.table(checksums, file.path(dir, "checksums.tsv"), sep = "\t",
+                     quote = FALSE, row.names = FALSE)
+
+  checksums
 }
 
 

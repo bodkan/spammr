@@ -12,7 +12,7 @@ run_sim <- function(pop, direction, sim_length = NULL, method = "batch") {
 
   slim(model, seq_length = 1, recomb_rate = 0, save_locations = TRUE, method = method)
 
-  dt <- fread(file.path(model$directory, "output_ind_locations.tsv.gz"))
+  dt <- fread(file.path(model$path, "output_ind_locations.tsv.gz"))
 
   dt[, .N, by = .(gen, time, pop)]
 }

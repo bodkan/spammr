@@ -115,18 +115,84 @@ test_that("forward and backward models yield the same simulation result", {
   slim(backward, seq_length = 1, recomb_rate = 0, save_locations = TRUE, method = "batch", seed = 123)
 
   # make sure the scripts are the same
-  f_script <- file.path(forward$directory, "script.slim") %>%
+  f_script <- file.path(forward$path, "script.slim") %>%
     readLines %>% grep("DIRECTION|MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
-  b_script <- file.path(backward$directory, "script.slim") %>%
+  b_script <- file.path(backward$path, "script.slim") %>%
     readLines %>% grep("DIRECTION|MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
   expect_equal(f_script, b_script)
 
   # make sure that the simulated location data is the same
-  f_loc <- data.table::fread(file.path(forward$directory, "output_ind_locations.tsv.gz"))
-  b_loc <- data.table::fread(file.path(backward$directory, "output_ind_locations.tsv.gz"))
+  f_loc <- data.table::fread(file.path(forward$path, "output_ind_locations.tsv.gz"))
+  b_loc <- data.table::fread(file.path(backward$path, "output_ind_locations.tsv.gz"))
   f_loc[, time := NULL]; b_loc[, time := NULL]
 
   expect_equal(f_loc, b_loc)
+})
+
+test_that("forward and backward models yield the same simulation result (nonspatial)", {
+  # forward simulation ------------------------------------------------------
+  p1 <- population(name = "pop1", N = 100, time = 1)
+  p2 <- population(name = "pop2", parent = p1, time = 10, N = 100)
+  p3 <- population(name = "pop3", parent = p2, time = 200, N = 100)
+  p4 <- population(name = "pop4", parent = p2, time = 200, N = 100)
+  p5 <- population(name = "pop5", parent = p1, time = 300, N = 100)
+
+  geneflow <- list(
+    geneflow(from = p5, to = p4, rate = 0.2, start = 310, end = 350, overlap = F),
+    geneflow(from = p5, to = p3, rate = 0.3, start = 340, end = 480, overlap = F)
+  )
+
+  forward <- compile(
+    dir = file.path(tempdir(), "tmp-forward"),
+    populations = list(p1, p2, p3, p4, p5),
+    geneflow = geneflow,
+    generation_time = 1,
+    overwrite = TRUE,
+    sim_length = 480
+  )
+
+  # backward simulation -----------------------------------------------------
+  p1 <- population(name = "pop1", N = 100, time = 480)
+  p2 <- population(name = "pop2", parent = p1, time = 471, N = 100)
+  p3 <- population(name = "pop3", parent = p2, time = 281, N = 100)
+  p4 <- population(name = "pop4", parent = p2, time = 281, N = 100)
+  p5 <- population(name = "pop5", parent = p1, time = 181, N = 100)
+
+  geneflow <- list(
+    geneflow(from = p5, to = p4, rate = 0.2, start = 171, end = 131, overlap = F),
+    geneflow(from = p5, to = p3, rate = 0.3, start = 141, end = 1, overlap = F)
+  )
+
+  backward <- compile(
+    dir = file.path(tempdir(), "tmp-backward"),
+    populations = list(p1, p2, p3, p4, p5),
+    geneflow = geneflow,
+    generation_time = 1,
+    overwrite = TRUE,
+  )
+
+  expect_true(all.equal(forward$splits[, grep("_orig", colnames(forward$splits), value = TRUE, invert = TRUE)],
+                        backward$splits[, grep("_orig", colnames(backward$splits), value = TRUE, invert = TRUE)]))
+  expect_true(all.equal(forward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)],
+                        backward$geneflow[, grep("_orig", colnames(forward$geneflow), value = TRUE, invert = TRUE)]))
+  expect_true(all.equal(forward$maps[, c("pop", "pop_id", "tmap_gen")],
+                        backward$maps[, c("pop", "pop_id","tmap_gen")]))
+
+  components <- c("generation_time", "resolution", "world")
+  expect_true(all(sapply(components, function(i) all.equal(forward[[i]], backward[[i]]))))
+
+  # simulation runs are the same
+  slim(forward, seq_length = 1, recomb_rate = 0, save_locations = TRUE, method = "batch", seed = 123)
+  slim(backward, seq_length = 1, recomb_rate = 0, save_locations = TRUE, method = "batch", seed = 123)
+
+  # make sure the scripts are the same
+  f_script <- file.path(forward$path, "script.slim") %>%
+    readLines %>% grep("DIRECTION|MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
+  b_script <- file.path(backward$path, "script.slim") %>%
+    readLines %>% grep("DIRECTION|MODEL_DIR|OUTPUT_PREFIX", ., value = TRUE, invert = TRUE)
+  expect_equal(f_script, b_script)
+
+  # TODO after some output generation is implemented, test equivalence here
 })
 
 test_that("move preceding population split results in an error", {

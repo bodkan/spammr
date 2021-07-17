@@ -67,7 +67,7 @@ population <- function(name, time, N, parent = "ancestor", map = FALSE,
     attr(pop, "intersect") <- intersect
     attr(pop, "aquatic") <- aquatic
   } else
-    pop <- list(pop = name, time = time, stringsAsFactors = FALSE)
+    pop <- list(pop = name, time = time)
 
   # when to clean up the population?
   attr(pop, "remove") <- if (!is.null(remove)) remove else -1

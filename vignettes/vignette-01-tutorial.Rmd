@@ -116,8 +116,9 @@ a Mac, you can use homebrew again).
 devtools::install_github("bodkan/slendr")
 ```
 
-```{r}
+```{r, echo = FALSE, message = FALSE}
 devtools::load_all(".")
+set.seed(31415926)
 ```
 
 4. That's it! You can now load the package with the usual:
@@ -673,7 +674,7 @@ graphically above, namely:
 - the table of population splits:
 
 ```{r}
-read.table(file.path(tempdir(), "tutorial-model", "populations.tsv"), header = TRUE)
+read.table(file.path(tempdir(), "tutorial-model", "splits.tsv"), header = TRUE)
 ```
 
 - the table of geneflow events:

@@ -14,7 +14,7 @@ animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
   if (!inherits(model$world, "slendr_map"))
     stop("Cannot animate non-spatial models", call. = FALSE)
 
-  locations <- file.path(model$directory, "output_ind_locations.tsv.gz")
+  locations <- file.path(model$path, "output_ind_locations.tsv.gz")
   locs <- fread(locations, header = TRUE)
   pop_names <- model$splits$pop
 
@@ -82,7 +82,7 @@ animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
 #'
 #' @export
 ancestries <- function(model) {
-  anc_wide <- read_ancestries(model$directory)
+  anc_wide <- read_ancestries(model$path)
 
   # thank god for tidyverse, base R reshaping is truly awful...  but
   # it's not worth dragging along a huge dependency if we can do this
