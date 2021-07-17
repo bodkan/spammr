@@ -4,6 +4,8 @@ library(rnaturalearth)
 library(hexSticker)
 library(here)
 
+set.seet(3141592653)
+
 map <- ne_load(
   scale = 110, type = "land", category = "physical",
   destdir = "~/Google/postdoc/data/ne_data",
