@@ -90,11 +90,11 @@ get_geneflows <- function(model, time) {
   migr_coords <- lapply(seq_len(nrow(geneflows)), function(row_i) {
 
     from <- model$populations[pop_names == geneflows[row_i, ]$from][[1]] %>%
-      .[.$time >= time, ] %>%
+      .[.$tmap >= time, ] %>%
       .[nrow(.), ]
 
     to <- model$populations[pop_names == geneflows[row_i, ]$to][[1]] %>%
-      .[.$time >= time, ] %>%
+      .[.$tmap >= time, ] %>%
       .[nrow(.), ]
 
     from_center <- sf::st_centroid(from) %>% sf::st_coordinates()

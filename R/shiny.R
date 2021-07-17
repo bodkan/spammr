@@ -10,7 +10,7 @@ fill_maps <- function(pops, time = NULL) {
     0,
     time,
     removal_times,
-    unlist(sapply(pops, function(i) i$time))
+    unlist(sapply(pops, function(i) i$tmap))
   ))) %>% .[. != Inf & . != -1]
 
   all_maps <- lapply(seq_along(pops), function(i) {
@@ -19,16 +19,16 @@ fill_maps <- function(pops, time = NULL) {
     # needs to be filled in
     missing_times <- all_times[
       all_times >= removal_times[i] &
-        !all_times %in% pops[[i]]$time
+        !all_times %in% pops[[i]]$tmap
     ]
 
     # generate the missing maps
     new_maps <- lapply(missing_times, function(t) {
       # get all preceding maps
-      previous_map <- pops[[i]] %>% .[.$time > t, ]
+      previous_map <- pops[[i]] %>% .[.$tmap > t, ]
       if (!nrow(previous_map)) return(NULL)
       latest_map <- previous_map[nrow(previous_map), ]
-      latest_map$time <- t
+      latest_map$tmap <- t
       latest_map
     }) %>%
       do.call(rbind, .)
@@ -36,8 +36,8 @@ fill_maps <- function(pops, time = NULL) {
     if (!is.null(new_maps)) {
       combined_maps <-
         rbind(pops[[i]], new_maps) %>%
-        .[order(-.$time), ] %>%
-        .[.$time != Inf, ]
+        .[order(-.$tmap), ] %>%
+        .[.$tmap != Inf, ]
 
       attributes(combined_maps) <- attributes(pops[[i]])
     } else {
@@ -83,6 +83,12 @@ get_time_point <- function(times, current_value, what) {
 #' @import shiny
 #' @export
 explore <- function(model) {
+
+  if (!has_map(model$populations[[1]]))
+    stop("Cannot plot spatial map dynamics for non-spatial models.
+As an alternative, consider using the graph() function to explore
+the demographic history encapsulated in your model.",
+          call. = FALSE)
 
   # generate choices for the coordinate system graticules
   if (has_crs(model$world)) {
