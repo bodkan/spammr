@@ -196,6 +196,10 @@ app.
 
 ```r
 plot(afr, ooa, ehg, eur, ana, yam)
+#> Warning: Attempting to plot population ranges at multiple time points on
+#> a single map. This is very hard to do in a satisfying way. Please
+#> consider using the function `explore()` to plot the model dynamics
+#> interactively.
 ```
 
 ![plot of chunk plot_popmaps](man/figures/README-plot_popmaps-1.png)
@@ -248,7 +252,7 @@ model
 #>   - number of spatial maps: 60 
 #>   - resolution: 10000 distance units per pixel
 #> 
-#> configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpjTKMbI/readme-model 
+#> configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpXqQPKw/readme-model 
 #> 
 #> A detailed model specification can be found in `$splits`, `$geneflows`,
 #> `$maps`, `$populations`, and other components of the model object (for
