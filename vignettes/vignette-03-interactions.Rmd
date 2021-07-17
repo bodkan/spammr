@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
 
 ```{r, echo = FALSE, message = FALSE}
 devtools::load_all(".")
+set.seed(314159)
 ```
 
 In addition to buidling models that capture movement or expansion using a set of [simple R functions](../reference/index.html#section-population-dynamics), *slendr* makes it possible to program more subtle parameters of spatial population dynamics.

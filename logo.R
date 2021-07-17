@@ -4,7 +4,7 @@ library(rnaturalearth)
 library(hexSticker)
 library(here)
 
-set.seet(3141592653)
+set.seed(3141592)
 
 map <- ne_load(
   scale = 110, type = "land", category = "physical",

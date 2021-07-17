@@ -71,6 +71,7 @@ etc.
 
 ```{r, include = F}
 devtools::load_all(".")
+set.seed(314159)
 
 map <- world(
   xrange = c(-15, 60),
