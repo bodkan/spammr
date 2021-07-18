@@ -160,7 +160,7 @@
 <span class="op">)</span></code></pre></div>
 <p>Using the <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function doesn’t make sense, as there are no spatial maps to plot. However, we can still plot the demographic graph, verifying that the model has been specified correctly:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span>, show_cleanups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></code></pre></div>
 <p><img src="vignette-04-nonspatial-models_files/figure-html/non-spatial_graph-1.png" width="480"></p>
 <p>Even the final step—execution of the model in SLiM—is the same, using our builtin <code><a href="../reference/slim.html">slim()</a></code> function:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">

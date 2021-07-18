@@ -75,7 +75,7 @@ model <- compile(
 Using the `plot()` function doesn't make sense, as there are no spatial maps to plot. However, we can still plot the demographic graph, verifying that the model has been specified correctly:
 
 ```{r non-spatial_graph, fig.width = 6, fig.height = 6, dpi = 80}
-graph(model, show_cleanups = FALSE)
+graph(model)
 ```
 
 Even the final step---execution of the model in SLiM---is the same, using our builtin `slim()` function:

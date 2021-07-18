@@ -184,7 +184,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpg2qA16", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -548,12 +548,12 @@ between populations.</code></pre>
 <span class="co">#&gt; 5 OOA      1  49230.77       93</span>
 <span class="co">#&gt; 6 OOA      1  48846.15      106</span>
 <span class="co">#&gt;                                                                               path</span>
-<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpg2qA16/tutorial-model/1.png</span>
-<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpg2qA16/tutorial-model/2.png</span>
-<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpg2qA16/tutorial-model/3.png</span>
-<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpg2qA16/tutorial-model/4.png</span>
-<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpg2qA16/tutorial-model/5.png</span>
-<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpg2qA16/tutorial-model/6.png</span></code></pre></div>
+<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/1.png</span>
+<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/2.png</span>
+<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/3.png</span>
+<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/4.png</span>
+<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/5.png</span>
+<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/6.png</span></code></pre></div>
 <p>The object returned by the <code><a href="../reference/compile.html">compile()</a></code> function (called <code>model</code> here) binds all of this information together. In fact, for easier debugging and sanity checks, it carries the locations of these tables (as well as other important information) in it as elements of a list <code>model$splits</code>, <code>model$geneflows</code>, etc.</p>
 <p>In case you’d want to separate model specification and running into different scripts, <em>slendr</em> includes a function <code><a href="../reference/read.html">read()</a></code> just for this purpose:</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
@@ -566,7 +566,7 @@ between populations.</code></pre>
 <p>For this purpose, the package includes a function <code><a href="../reference/graph.html">graph()</a></code> which takes in all the information about the relationships between populations (i.e., the population and geneflow objects we defined above) and plots it all in the form of a so-called <em>admixture graph</em> (see <a href="https://academic.oup.com/genetics/article/192/3/1065/5935193">here</a> for a discussion of the admixture graph concept).</p>
 <p>One important thing to note here is that unlike traditional admixture graphs where each node/population is present only once, in the full <em>slendr</em> graph, a single population can participate in many geneflow events over the course of history. This is visualized by assigning a color to each population, and different nodes of the same color representing snapshots in time when a demographic event affecting that population happens.</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span>, show_cleanups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></code></pre></div>
 <p><img src="vignette-01-tutorial_files/figure-html/plot_graph-1.png" width="960"></p>
 </div>
 <div id="interactive-exploration-of-spatio-temporal-models" class="section level2">

@@ -120,12 +120,10 @@ ancestries <- function(model) {
 #' Plot geneflow graph based on given model configuration
 #'
 #' @param model Compiled \code{slendr_model} model object
-#' @param show_cleanups Show nodes indicating the times of population
-#'   removals?
 #'
 #' @import ggplot2 ggraph
 #' @export
-graph <- function(model, show_cleanups = TRUE) {
+graph <- function(model) {
   # plot times in their original direction
   split_table <- model$splits
   split_table[, c("tsplit", "tremove")] <-   split_table[, c("tsplit_orig", "tremove_orig")]
@@ -134,18 +132,13 @@ graph <- function(model, show_cleanups = TRUE) {
 
   split_edges <- get_split_edges(split_table)
   geneflow_edges <- get_geneflow_edges(geneflow_table)
-  terminal_edges <- get_terminal_edges(split_edges, geneflow_edges, split_table)
   intermediate_edges <- get_intermediate_edges(split_edges, geneflow_edges)
 
   edges <- rbind(
     split_edges,
     geneflow_edges,
-    terminal_edges,
     intermediate_edges
   )
-
-  if (!show_cleanups)
-    edges <- edges[edges$type != "terminal", ]
 
   nodes <- get_nodes(edges)
 
@@ -179,9 +172,6 @@ graph <- function(model, show_cleanups = TRUE) {
   # continuation edges
   geom_edge_link(aes(filter = type == "intermediate",
                      linetype = "continuation")) +
-
-  # population removal time stamp
-  geom_edge_link(aes(filter = type == "terminal"), alpha = 0.25) +
 
   geom_node_label(aes(fill = pop, label = label)) +
 
@@ -279,35 +269,6 @@ get_intermediate_edges <- function(split_edges, geneflow_edges) {
 }
 
 
-# Generate edges leading to the times of population removals in SLiM
-get_terminal_edges <- function(split_edges, geneflow_edges, split_table) {
-  edges <- rbind(split_edges, geneflow_edges)
-
-  # iterate over all populations and create a data frame of edges from the
-  # population split nodes, to the nodes of the population removal from the
-  # simulation
-  terminal_edges <- lapply(seq_len(nrow(split_table)), function(i) {
-    pop <- split_table[i, ]
-
-    times <- edges[grepl(pop$pop, edges$x) | grepl(pop$pop, edges$y), ]$time
-    prev_time <- if (length(times)) max(times) else .Machine$integer.max
-    prev_node <- paste0(pop$pop, "#####", prev_time)
-    tremove <- if (pop$tremove == -1) 0 else pop$tremove
-
-    data.frame(
-      x = prev_node,
-      y = paste0(pop$pop, "#####", tremove),
-      type = "terminal",
-      time = tremove,
-      rate = NA,
-      stringsAsFactors = FALSE
-    )
-  }) %>% do.call(rbind, .)
-
-  terminal_edges
-}
-
-
 #' Get table of node labels in the graph
 #' @import data.table
 get_nodes <- function(edges) {
@@ -344,9 +305,7 @@ get_nodes <- function(edges) {
     type == "split", sprintf("%s split at %s", pop, time),
     type == "ancestral", paste(pop, "(ancestor)"),
     type == "geneflow", sprintf("geneflow at %s", time),
-    type == "intermediate", sprintf("from %s", pop),
-    type == "terminal", sprintf("removed\nat %s",
-                                ifelse(time == 0, "the end", time))
+    type == "intermediate", sprintf("from %s", pop)
   )]
   nodes
 }

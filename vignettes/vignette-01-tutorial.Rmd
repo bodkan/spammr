@@ -733,7 +733,7 @@ representing snapshots in time when a demographic event affecting that
 population happens.
 
 ```{r plot_graph, fig.width = 12, fig.height = 12}
-graph(model, show_cleanups = FALSE)
+graph(model)
 ```
 
 

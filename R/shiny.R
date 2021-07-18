@@ -250,26 +250,12 @@ the demographic history encapsulated in your model.",
       tabPanel(
         "Population history graph",
 
-        sidebarLayout(
-
-          sidebarPanel(
-
-            checkboxInput(
-              inputId = "show_cleanups",
-              label = "Show removal times",
-              value = TRUE
-            ),
-            width = 3
-
-          ),
-
           mainPanel(
 
             plotOutput(outputId = "slendr_graph")
 
           )
 
-        )
 
       ) # tabPanel
 
@@ -332,8 +318,7 @@ the demographic history encapsulated in your model.",
       } else return(NULL)
     }, sanitize.text.function = identity)
 
-    output$slendr_graph <- renderPlot({ graph(model, input$show_cleanups) },
-                                      height = 600)
+    output$slendr_graph <- renderPlot({ graph(model) }, height = 600)
 
   }
 

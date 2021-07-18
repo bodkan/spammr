@@ -4,13 +4,10 @@
 \alias{graph}
 \title{Plot geneflow graph based on given model configuration}
 \usage{
-graph(model, show_cleanups = TRUE)
+graph(model)
 }
 \arguments{
 \item{model}{Compiled \code{slendr_model} model object}
-
-\item{show_cleanups}{Show nodes indicating the times of population
-removals?}
 }
 \description{
 Plot geneflow graph based on given model configuration

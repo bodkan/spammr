@@ -223,7 +223,7 @@
 <span class="op">)</span></code></pre></div>
 <p>We can use the function <code><a href="../reference/graph.html">graph()</a></code> to plot the layout of the population history graph in order to verify that the geneflow events have been specified correctly. The layout of the graph is a little bit wonky and crowded (that due to the complexity of spatiotemporal models, the <code><a href="../reference/graph.html">graph()</a></code> function plots not just populations as nodes but also times of geneflow events and other demographic processes). Still, we can see that the geneflow events between populations have been specified correctly as all arrows are bidirectional and point only between immediate neighboring demes:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span>, show_cleanups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/graph.html">graph</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></code></pre></div>
 <p><img src="vignette-02-grid-model_files/figure-html/unnamed-chunk-13-1.png" width="640"></p>
 <p>Again, those familiar with the SLiM manual will recognize a similar figure in section 5.3.3.</p>
 <p>Finally, we can run our simulation using the <code><a href="../reference/slim.html">slim()</a></code> function.</p>
@@ -242,7 +242,7 @@
   crs <span class="op">=</span> <span class="fl">4326</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpKZ53Ox", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpL0sI95", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span>
 

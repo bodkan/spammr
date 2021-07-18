@@ -151,7 +151,7 @@ model <- compile(
 We can use the function `graph()` to plot the layout of the population history graph in order to verify that the geneflow events have been specified correctly. The layout of the graph is a little bit wonky and crowded (that due to the complexity of spatiotemporal models, the `graph()` function plots not just populations as nodes but also times of geneflow events and other demographic processes). Still, we can see that the geneflow events between populations have been specified correctly as all arrows are bidirectional and point only between immediate neighboring demes:
 
 ```{r, fig.width = 8, fig.height = 6}
-graph(model, show_cleanups = FALSE) + ggplot2::theme(legend.position = "none")
+graph(model) + ggplot2::theme(legend.position = "none")
 ```
 
 Again, those familiar with the SLiM manual will recognize a similar figure in section 5.3.3.

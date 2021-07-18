@@ -252,7 +252,7 @@ model
 #>   - number of spatial maps: 60 
 #>   - resolution: 10000 distance units per pixel
 #> 
-#> configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmp6vJ0OT/readme-model 
+#> configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpvCdaAz/readme-model 
 #> 
 #> A detailed model specification can be found in `$splits`, `$geneflows`,
 #> `$maps`, `$populations`, and other components of the model object (for
