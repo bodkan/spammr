@@ -209,8 +209,8 @@ get_split_edges <- function(split_table) {
 
   split_edges$type <- "split"
   split_edges$rate <- NA
-  split_edges$x <- paste0(split_edges$from, "-", split_edges$time)
-  split_edges$y <- paste0(split_edges$to, "-", split_edges$time)
+  split_edges$x <- paste0(split_edges$from, "#####", split_edges$time)
+  split_edges$y <- paste0(split_edges$to, "#####", split_edges$time)
 
   split_edges <- split_edges[, c("x", "y", "type", "time", "rate")]
   rownames(split_edges) <- NULL
@@ -231,8 +231,8 @@ get_geneflow_edges <- function(admix_table) {
   names(admix_edges) <- c("from", "to", "rate", "time")
   admix_edges$type <- "geneflow"
   admix_edges$rate <- sprintf("%.1f%%", admix_edges$rate * 100)
-  admix_edges$x <- paste0(admix_edges$from, "-", admix_edges$time)
-  admix_edges$y <- paste0(admix_edges$to, "-", admix_edges$time)
+  admix_edges$x <- paste0(admix_edges$from, "#####", admix_edges$time)
+  admix_edges$y <- paste0(admix_edges$to, "#####", admix_edges$time)
 
   admix_edges[, c("x", "y", "type", "time", "rate")]
 }
@@ -250,11 +250,11 @@ get_intermediate_edges <- function(split_edges, geneflow_edges) {
   all_nodes <- c(edges$x, edges$y)
 
   intermediate_nodes <- lapply(
-    unique(gsub("-.*$", "", all_nodes)),
+    unique(gsub("#####.*$", "", all_nodes)),
     function(i) {
       # grab all nodes and their times belonging to the current population i
-      nodes <- all_nodes[grepl(paste0(i, "-"), all_nodes)]
-      times <- gsub(".*-", "", nodes)
+      nodes <- all_nodes[grepl(paste0(i, "#####"), all_nodes)]
+      times <- gsub(".*#####", "", nodes)
       # leave out the ancestral node/time from the sorting (in case it is even
       # present as a node with a non-integer "ancestral" time)
       ancestor <- nodes[times == "ancestral"]
@@ -271,7 +271,7 @@ get_intermediate_edges <- function(split_edges, geneflow_edges) {
       as.data.frame(stringsAsFactors = FALSE) %>%
       stats::setNames(c("x", "y"))
     pairs$type <- "intermediate"
-    pairs$time <- as.integer(gsub(".*-", "", pairs$y))
+    pairs$time <- as.integer(gsub(".*#####", "", pairs$y))
     pairs$rate <- NA
     pairs
   }) %>%
@@ -291,12 +291,12 @@ get_terminal_edges <- function(split_edges, geneflow_edges, split_table) {
 
     times <- edges[grepl(pop$pop, edges$x) | grepl(pop$pop, edges$y), ]$time
     prev_time <- if (length(times)) max(times) else .Machine$integer.max
-    prev_node <- paste0(pop$pop, "-", prev_time)
+    prev_node <- paste0(pop$pop, "#####", prev_time)
     tremove <- if (pop$tremove == -1) 0 else pop$tremove
 
     data.frame(
       x = prev_node,
-      y = paste0(pop$pop, "-", tremove),
+      y = paste0(pop$pop, "#####", tremove),
       type = "terminal",
       time = tremove,
       rate = NA,
@@ -315,8 +315,8 @@ get_nodes <- function(edges) {
 
   # find the first occurrence of a population in the model based
   # on the time label
-  pops <- gsub("-.*$", "", nodes)
-  times <- as.integer(gsub("^.*-", "", nodes))
+  pops <- gsub("#####.*$", "", nodes)
+  times <- as.integer(gsub("^.*#####", "", nodes))
 
   ordered <- order(times, decreasing = TRUE)
 
