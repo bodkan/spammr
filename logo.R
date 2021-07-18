@@ -8,7 +8,7 @@ set.seed(3141592)
 
 map <- ne_load(
   scale = 110, type = "land", category = "physical",
-  destdir = "~/Google/postdoc/data/ne_data",
+  destdir = "~/Documents/postdoc/data/ne_data",
   returnclass = "sf"
 ) %>% st_make_valid
 
