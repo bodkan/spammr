@@ -1,3 +1,6 @@
+restore-logo:
+	git restore man/figures/logo.png docs/reference/figures/logo.png
+
 website:
 	rm -rf docs/ man/; mkdir -p man/figures
 	cp vignettes/figures/shiny_graph.png man/figures/
