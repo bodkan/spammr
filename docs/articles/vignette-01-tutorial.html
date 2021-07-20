@@ -17,7 +17,9 @@
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Introduction and basic tutorial">
+<script src="../pkgdown.js"></script><!-- docsearch --><script src="../docsearch.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.3/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous">
+<link href="../docsearch.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script><meta property="og:title" content="Introduction and basic tutorial">
 <meta property="og:description" content="slendr">
 <meta property="og:image" content="https://bodkan.net/slendr/logo.png">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
@@ -83,6 +85,8 @@
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
+      </ul>
+<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/bodkan/slendr/">
     <span class="fab fa-github fa-lg"></span>
@@ -96,8 +100,13 @@
   </a>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<form class="navbar-form navbar-right hidden-xs hidden-sm" role="search">
+        <div class="form-group">
+          <input type="search" class="form-control" name="search-input" id="search-input" placeholder="Search..." aria-label="Search for..." autocomplete="off">
 </div>
+      </form>
+      
+    </div>
 <!--/.nav-collapse -->
   </div>
 <!--/.container -->
@@ -184,7 +193,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -548,12 +557,12 @@ between populations.</code></pre>
 <span class="co">#&gt; 5 OOA      1  49230.77       93</span>
 <span class="co">#&gt; 6 OOA      1  48846.15      106</span>
 <span class="co">#&gt;                                                                               path</span>
-<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/1.png</span>
-<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/2.png</span>
-<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/3.png</span>
-<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/4.png</span>
-<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/5.png</span>
-<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpQERpJ0/tutorial-model/6.png</span></code></pre></div>
+<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/1.png</span>
+<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/2.png</span>
+<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/3.png</span>
+<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/4.png</span>
+<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/5.png</span>
+<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/6.png</span></code></pre></div>
 <p>The object returned by the <code><a href="../reference/compile.html">compile()</a></code> function (called <code>model</code> here) binds all of this information together. In fact, for easier debugging and sanity checks, it carries the locations of these tables (as well as other important information) in it as elements of a list <code>model$splits</code>, <code>model$geneflows</code>, etc.</p>
 <p>In case you’d want to separate model specification and running into different scripts, <em>slendr</em> includes a function <code><a href="../reference/read.html">read()</a></code> just for this purpose:</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
@@ -632,7 +641,20 @@ between populations.</code></pre>
 </div>
 
   
-
-
-  </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.js" integrity="sha256-GKvGqXDznoRYHCwKXGnuchvKSwmx9SRMrZOTh2g4Sb0=" crossorigin="anonymous"></script><script>
+  docsearch({
+    
+    
+    apiKey: 'a895c93f0e9eda05eb10b29a9921d586',
+    indexName: 'slendr',
+    inputSelector: 'input#search-input.form-control',
+    transformData: function(hits) {
+      return hits.map(function (hit) {
+        hit.url = updateHitURL(hit);
+        return hit;
+      });
+    }
+  });
+</script>
+</body>
 </html>

@@ -3,7 +3,8 @@ url: https://bodkan.net/slendr
 
 navbar:
   structure:
-    left:  [home, reference, articles, tutorials, news, github, twitter]
+    left:  [home, reference, articles, news]
+    right: [github, twitter]
   components:
     home:
       icon: fa-home
@@ -72,3 +73,9 @@ reference:
 
 news:
   one_page: true
+
+template:
+  params:
+    docsearch:
+      api_key: a895c93f0e9eda05eb10b29a9921d586
+      index_name: slendr
