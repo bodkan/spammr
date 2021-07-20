@@ -39,7 +39,9 @@ Imports:
     shiny,
     R.utils,
     data.table,
-    tidygraph
+    tidygraph,
+    dplyr,
+    purrr
 Suggests: 
     testthat (>= 3.0.0),
     knitr,
