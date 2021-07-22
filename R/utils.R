@@ -243,10 +243,21 @@ check_event_time <- function(time, pop) {
 }
 
 
+check_present_time <- function(time, pop) {
+  direction <- get_time_direction(pop)
+  split_time <- get_lineage_splits(pop)[1]
+
+  if (direction == "backward" & time > split_time)
+    stop("Population ", pop$pop[1], " is not present at a time ", time, call. = FALSE)
+  else if (direction == "forward" & time < split_time)
+    stop("Population ", pop$pop[1], " is not present at a time ", time, call. = FALSE)
+}
+
+
 check_removal_time <- function(time, pop) {
   direction <- get_time_direction(pop)
-
   removal_time <- attr(pop, "remove")
+
   if (removal_time != -1 & direction == "forward" & any(time > removal_time)) {
     stop(sprintf("The specified event time (%d) is not consistent with the scheduled removal of %s (%s) given the assumed %s time direction",
                  time, pop$pop[1], removal_time, direction),
@@ -327,6 +338,32 @@ get_map <- function(x) {
 has_map <- function(x) {
   inherits(get_map(x), "slendr_map")
 }
+
+
+# Process the sampling schedue
+process_sampling <- function(samples, model, script_path) {
+  if (is.null(samples))
+    return("NULL")
+
+  df <- dplyr::group_by(samples, time, pop) %>%
+    dplyr::summarise(n = sum(n), .groups = "drop") %>%
+    dplyr::arrange(time) %>%
+    convert_time(direction = model$direction,
+                 columns = "time",
+                 generation_time = model$generation_time,
+                 max_time = model$length) %>%
+    dplyr::arrange(time_gen)
+
+  script_dir <- dirname(script_path)
+
+  sampling_file <- stringr::str_replace(basename(script_path), ".slim", "_samples.tsv")
+  sampling_path <- file.path(script_dir, sampling_file)
+
+  readr::write_tsv(df, sampling_path)
+
+  sampling_path
+}
+
 
 #' Pipe operator
 #'

@@ -249,6 +249,11 @@ read <- function(dir) {
 #'   throughout the simulations (default FALSE)? If a non-zero integer is
 #'   provided, ancestry will be tracked using the number number of neutral
 #'   ancestry markers equal to this number.
+#' @param samples A data frame of times at which a given number of individuals
+#'   should be remembered in the tree-sequence (see \code{sampling} for a function
+#'   that can generate the sampling schedule in the correct format). If missing,
+#'   only individuals present at the end of the simulation will be recorded in
+#'   the tree-sequence output file.
 #' @param method How to run the script? ("gui" - open in SLiMgui, "batch" - run
 #'   on the command-line, "script" - simply return the script)
 #' @param include Vector of paths to custom SLiM scripts which should be
@@ -263,6 +268,7 @@ read <- function(dir) {
 slim <- function(model, seq_length, recomb_rate,
                  save_locations = FALSE, track_ancestry = FALSE,
                  keep_pedigrees = FALSE, ts_recording = FALSE,
+                 sampling = NULL,
                  method, verbose = FALSE, include = NULL, burnin = 0,
                  seed = NULL, slim_path = NULL) {
   dir <- model$path
@@ -303,7 +309,8 @@ a non-zero integer number (number of neutral ancestry markers)", call. = FALSE)
     save_locations = if (save_locations) "T" else "F",
     generation_time = model$generation_time,
     direction = model$direction,
-    seed = if (is.null(seed)) "getSeed()" else seed
+    seed = if (is.null(seed)) "getSeed()" else seed,
+    sampling = process_sampling(sampling, model, script_path)
   )
 
   # compile all script components, including the backend script, into one file

@@ -22,6 +22,7 @@ initialize() {
   defineConstant("POPULATIONS", read_table(config_path("splits.tsv")));
   defineConstant("GENEFLOWS", read_table(config_path("geneflow.tsv")));
   defineConstant("RESIZES", read_table(config_path("resizes.tsv")));
+  defineConstant("SAMPLING", read_table(config_path("script_samples.tsv")));
   if (SPATIAL) {
     defineConstant("INTERACTIONS", read_table(config_path("dispersals.tsv")));
     defineConstant("MAPS", read_table(config_path("maps.tsv")));
@@ -55,12 +56,12 @@ initialize() {
   slim_time(MAPS);
   slim_time(RESIZES);
   slim_time(INTERACTIONS);
+  slim_time(SAMPLING);
 
   defineConstant("SIM_START", BURNIN_LENGTH + min(POPULATIONS.getValue("tsplit_gen")));
   defineConstant("SIM_END", SIM_START + SIM_LENGTH);
 
-
-  if (TS_RECORDING) initializeTreeSeq();
+  if (TS_RECORDING) initializeTreeSeq(retainCoalescentOnly=F);
 
   // mutation types of neutral ancestry-informative markers
   // (one for each population)
@@ -145,11 +146,11 @@ initialize() {
   } else
      sim.deregisterScriptBlock(s9);
 
-  // output tree sequence data
+  // remember individuals for tree-sequence recording
   if (TS_RECORDING) {
-    sim.rescheduleScriptBlock(s10, generations = SIM_END);
+     sim.rescheduleScriptBlock(s10, start = SIM_START, end = SIM_END);
   } else
-    sim.deregisterScriptBlock(s10);
+     sim.deregisterScriptBlock(s10);
 
   // removing populations from the simulation
   cleanups = filter(POPULATIONS, "tremove", -1, negate = T);
@@ -158,7 +159,7 @@ initialize() {
   else
      sim.deregisterScriptBlock(s11);
 
-  // stop the simulation
+  // save data and stop the simulation
   sim.rescheduleScriptBlock(s12, generations = SIM_END);
 }
 
@@ -310,14 +311,6 @@ s7 late() {
 
 // Save locations and remember ancient individuals
 s8 late() {
-  // explicitly sample individuals for later tree sequence analysis
-  // (one individual from each population)
-  // TODO: make this programmable by the user on the R side
-  if (sim.generation % 10 == 0) {
-    inds = sapply(sim.subpopulations, "sample(applyValue.individuals, 1);");
-    if (length(inds)) inds.setValue("sampled", 1);
-    if (TS_RECORDING) sim.treeSeqRememberIndividuals(inds);
-  }
   // save location of each individual present
   for (ind in sim.subpopulations.individuals) {
     write_locations(ind);
@@ -329,13 +322,28 @@ s9 late() {
   write_ancestries();
 }
 
-// Save tree sequences at the end of the simulation
+// Remember individuals for tree-sequence recording
 s10 late() {
-  log_output("saving tree-sequence data");
+  events = filter(SAMPLING, "time", sim.generation);
+  for (i in iter(events)) {
+    event = events.getRowValues(i);
+    pop = event.getValue("pop");
+    n = event.getValue("n");
 
-  if (TS_RECORDING) {
-     filename = paste0(OUTPUT_PREFIX, "_tree_seq.trees");
-     sim.treeSeqOutput(filename);
+    log_output("remembering " + n + " individuals of " +
+               pop + "(p" + get_pop(pop).id + ")");
+
+    all_inds = get_pop(pop).individuals;
+    if (n > length(all_inds)) {
+      catn("(population has " + length(all_inds) + " but remembering of " + n +
+           " was requested - capping at " + length(all_inds) + ")");
+      n = length(all_inds);
+    }
+
+    inds = sample(all_inds, n);
+    sim.treeSeqRememberIndividuals(inds, permanent = F);
+
+
   }
 }
 
@@ -350,11 +358,18 @@ s11 late() {
   }
 }
 
+// End of simulation
 s12 late() {
+  log_output("saving the tree-sequence file");
+
+  if (TS_RECORDING) {
+     filename = paste0(OUTPUT_PREFIX, "_tree_seq.trees");
+     sim.treeSeqOutput(filename);
+  }
+
   log_output("simulation finished");
   sim.simulationFinished();
 }
-
 
 //////////////////////////////////////////////////////////////////////
 // Interaction and fitness callbacks
@@ -648,7 +663,7 @@ function (void) print_table(object<Dictionary> d) {
 function (ifsl) convert_type(s$ column_name, s string_values) {
   // vectors of all possible column names in tables defined by slendr `compile()`
 	string = c("pop", "parent", "how", "path", "from", "to", "how");
-	integer = c("pop_id", "parent_id", "from_id", "to_id", "N", "prev_N",
+	integer = c("pop_id", "parent_id", "from_id", "to_id", "N", "prev_N", "n",
 	            "time_orig", "time_gen", "tmap_orig", "tmap_gen",
 	            "tsplit_orig", "tsplit_gen", "tdispersal_orig", "tdispersal_gen",
 	            "tremove_orig", "tremove_gen", "tstart_orig", "tstart_gen",

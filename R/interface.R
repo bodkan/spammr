@@ -975,3 +975,57 @@ seconds, but if you don't want to wait, you can set `snapshots = N` manually.")
 
   result
 }
+
+#' Define sampling events at specified times for a given set of populations
+#'
+#' @param times Integer vector of times (in model time units) at which to schedule remembering of individuals in the tree-sequence
+#' @param ... Lists of two elements <\code{slendr_pop} population object>-<number of individuals to sample>, representing from which populations should how many individuals be remembered at times given by \code{times}
+#'
+sampling <- function(times, ..., strict = FALSE) {
+  samples <- list(...)
+  sample_pops <- purrr::map(samples, 1)
+  sample_counts <- purrr::map(samples, 2)
+
+  if (length(sample_pops) != length(sample_counts))
+    stop("Samples must be represented by pairs of <slendr_pop>-<n>", call. = FALSE)
+
+  if (!all(purrr::map_lgl(sample_pops, ~ inherits(.x, "slendr_pop"))))
+    stop("Objects to sample from must be of the class 'slendr_pop'", call. = FALSE)
+
+  if (!all(purrr::map_lgl(sample_counts, ~ .x == round(.x))))
+    stop("Sample counts must be integer numbers", call. = FALSE)
+
+  sampling_schedule <- purrr::map_dfr(times, function(t) {
+    purrr::map_dfr(samples, function(s) {
+      pop <- s[[1]]
+      n <- s[[2]]
+      tryCatch(
+        {
+          t <- as.integer(t)
+          check_removal_time(t, pop)
+          check_present_time(t, pop)
+          dplyr::tibble(time = t, pop = pop$pop, n = as.integer(n))
+        },
+        error = function(cond) {
+          if (!strict)
+            return(NULL)
+          else
+            stop("Cannot schedule sampling for '", pop$pop, "' at time ", t,
+                 " because the population will not be present in the simulation",
+                 " at that point. Consider running this function with `strict = FALSE`",
+                 " which will automatically retain only keep valid sampling events.",
+                 call. = FALSE)
+        })
+    })
+  })
+
+  if (is.null(sampling_schedule))
+    stop("No sampling events have been generated", call. = FALSE)
+
+  if (!nrow(sampling_schedule)) {
+    warning("No valid sampling events were retained", call. = FALSE)
+    return(NULL)
+  }
+
+  sampling_schedule
+}

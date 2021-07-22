@@ -68,7 +68,7 @@ p2 <- dispersal(p2, time = 200, competition_dist = 130)
 p3 <- dispersal(p3, time = 300, competition_dist = 170)
 p4 <- dispersal(p4, time = 400, competition_dist = 220)
 p5 <- dispersal(p5, time = 500, competition_dist = 300)
-p6 <- dispersal(p6, time = 600, competition_dist = 350)
+p6 <- dispersal(p6, time = 600, competition_dist = 380)
 ```
 
 Having defined the spatial dynamics, we will compile this model and execute the simulation. Note that because we are working with a forward time model, we need to specify the total length of the simulation to know when to terminate it.
@@ -86,7 +86,7 @@ In order to let the populations reach an equilibrium of the spatial spread at th
 
 ```{r}
 slim(model, seq_length = 1, recomb_rate = 0, save_locations = TRUE,
-     burnin = 100, method = "batch", verbose = TRUE, seed = 314159265)
+     burnin = 100, method = "batch", verbose = TRUE, seed = 314159)
 ```
 
 Now that the simulation finished running, lets re-capitulate the spatial population dynamics simulated by the SLiM backend script bundled with our package as an animated GIF:

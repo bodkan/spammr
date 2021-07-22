@@ -12,6 +12,7 @@ slim(
   track_ancestry = FALSE,
   keep_pedigrees = FALSE,
   ts_recording = FALSE,
+  sampling = NULL,
   method,
   verbose = FALSE,
   include = NULL,
@@ -56,6 +57,12 @@ combined with the backend SLiM code}
 \item{seed}{Random seed (if missing, SLiM's own seed will be used)}
 
 \item{slim_path}{Optional way to specify path to an appropriate SLiM binary}
+
+\item{samples}{A data frame of times at which a given number of individuals
+should be remembered in the tree-sequence (see \code{sampling} for a function
+that can generate the sampling schedule in the correct format). If missing,
+only individuals present at the end of the simulation will be recorded in
+the tree-sequence output file.}
 }
 \description{
 Generates a SLiM script from a built-in slendr template, substituting all

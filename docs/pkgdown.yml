@@ -6,7 +6,8 @@ articles:
   vignette-02-grid-model: vignette-02-grid-model.html
   vignette-03-interactions: vignette-03-interactions.html
   vignette-04-nonspatial-models: vignette-04-nonspatial-models.html
-last_built: 2021-07-20T09:43Z
+  vignette-05-tree-sequences: vignette-05-tree-sequences.html
+last_built: 2021-07-22T00:18Z
 urls:
   reference: https://bodkan.net/slendr/reference
   article: https://bodkan.net/slendr/articles

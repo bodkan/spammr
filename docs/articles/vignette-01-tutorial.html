@@ -80,6 +80,9 @@
     <li>
       <a href="../articles/vignette-04-nonspatial-models.html">Traditional non-spatial models</a>
     </li>
+    <li>
+      <a href="../articles/vignette-05-tree-sequences.html">Processing of tree-sequence data</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -128,27 +131,27 @@
 
     
     
-<div id="introduction" class="section level2">
-<h2 class="hasAnchor">
-<a href="#introduction" class="anchor"></a>Introduction</h2>
-</div>
 <div id="motivation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#motivation" class="anchor"></a>Motivation</h2>
-<p><strong>What we want to do is simulate this kind of population history (splits and geneflow events):</strong></p>
+<p>Our motivation for starting this project was to create a programmable simulation framework which would add an explicit spatial dimension to population genetics models. Specifically, the original idea was was to be able to take models such as the one here—</p>
 <p><img src="figures/geneflow_graph.png" style="width:80.0%"></p>
-<p><strong>in the context of this:</strong></p>
+<p>representing a very simplified view of the history of anatomically modern humans (AMH) in West Eurasia over the last ~50 thousand years ago (a comprehensive overview can be found in a review by <a href="asd">Such and such et al.</a>)—and design a tool which will make it possible to simulate such models in an explicit geographical context to capture processes similar to those in the following figure (taken from a study by <a href="asd">Haak et al. 2015</a>):</p>
 <p><img src="figures/haak_map.png" style="width:80.0%"></p>
-<p>This is possible to do in <a href="https://messerlab.org/slim/">SLiM</a> using its <code>defineSpatialMap()</code> functionality. However, there is currently no way to define spatial maps programmatically, let alone build spatio-temporal models which include population splits, geneflow, migration, and expansion. The package <code>slendr</code> is designed to do exactly this, and feed the generated spatial maps into a dedicated back-end SLiM script.</p>
+<p>The reason for doing this is probably clear. A lot of what we do in studying the history of humans and other species is focused on reconstructing population movements, expansions and geneflow events, all of which happen in a geographical context. In fact, this geographic component is often what we are most interested in (i.e., “Where did the ancestors of some population come from?”, “By which route and how fast did they migrate?”, etc.). However, this goes beyond just simulating demographic history. For instance, selection pressure driving adaptation can often be spatially heterogeneous: members of a population occupying one part of the continent could be exposed to a different environmental pressure than individuals elsewhere, and allele frequency distribution shaped by the adaptation process would reflect this spatial heterogeneity accordingly. Having a way to simulate explicitly spatial genomic data in such situations would allow us to build more realistic models and test more specific hypotheses than are simply not possible by non-spatial simulation methods.</p>
+<p>The R package <em>slendr</em> introduced in this vignette presents such a framework. Internally, the package has two independent but tightly interconnected units:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>R interface</strong> which provides a set of functional primitives (a “mini-language” of sorts) for encoding various features of spatiotemporal models: population migrations, expansions and geneflow, all happening on a real geographic landscape defined freely available cartographic data. Populations are represented as simple R objects, their boundaries can be easily visualized, making it possible to build very complex models interactively from a set of small and simple building blocks.</p></li>
+<li><p><strong>SLiM simulation backend</strong> represented by a built-in generic SLiM script designed to read all the spatiotemporal parameters and objects established by the R interface, and program the simulation run tailored to the user-defined model.</p></li>
+</ol>
+<p>The most important design objective was to make both parts 1. and 2. appear completely seamless. Even for extremely complex models, the model building and execution (i.e. simulation) can be performed without leaving the convenience of an R interface such as RStudio. All the simulation complexities happen automatically under the hood and knowledge of SLiM is not required. In fact, the motto of the <em>slendr</em> package is “Write complex spatiotemporal population genetics models as a simple R script.”</p>
 </div>
-<div id="philosophy" class="section level2">
+<div id="geospatial-data" class="section level2">
 <h2 class="hasAnchor">
-<a href="#philosophy" class="anchor"></a>Philosophy</h2>
-<p>Geospatial analysis is a deep and complex topic, with dozens of libraries and programs designed to deal with the annoying fact that the Earth is a sphere but we often have to plot things (and simulate things in our case!) on a two-dimensional plane.</p>
-<p>Luckily, most of the technical issues with <a href="https://en.wikipedia.org/wiki/Spatial_reference_system">Coordinate Reference Systems</a>, transformations between them and manipulation of geometric objects are pretty much solved now. Unfortunately, dealing with these issues in practice is quite challenging and requires non-trivial amount of domain expertise. Programming even a simple task in this context also requires a lot of code and there are no tools dedicated to programming population complex spatial population genetic simulations.</p>
-<p>This R package is designed to provide a collection of primitives (a <a href="https://en.wikipedia.org/wiki/Domain-specific_language">Domain Specific Language</a> of sorts) for programming population dynamics (splits, movement, geneflow, and expansion of spatial boundaries) across space and time <em>without having to explicitly deal with many of the challenges inherent to geospatial analyses</em>.</p>
-<p>Another goal is to make these spatio-temporal models fully reproducible, easy to write and debug by inspecting each step of the configuration visually, and finally to allow automated feeding of defined spatial maps into the <a href="https://messerlab.org/slim/">SLiM</a> population genetics simulation framework.</p>
-<p><img src="vignette-01-tutorial_files/figure-html/world-map-1.png" width="480"></p>
+<a href="#geospatial-data" class="anchor"></a>Geospatial data</h2>
+<p>Geospatial analysis is a deep and complex topic, with dozens of libraries and programs designed to deal with the fact that the Earth is a three-dimensional object but we are forced to plot geographical objects (and, in our case, simulate data) on a two-dimensional plane.</p>
+<p>Luckily, most of the technical issues with <a href="https://en.wikipedia.org/wiki/Spatial_reference_system">Coordinate Reference Systems</a>, transformations between them and manipulation of geometric objects (shifting of population boundaries, expansions, etc.) are pretty much solved now. Unfortunately, dealing with these issues in practice is quite challenging and requires a non-trivial degree of domain expertise. Programming even a very simple tasks in geospatial data analysis also often requires a lot of code.</p>
+<p>This R package is designed to provide a collection of primitives (a <a href="https://en.wikipedia.org/wiki/Domain-specific_language">“mini-language”</a> of sorts) for programming population dynamics (splits, movement, geneflow, and expansion of spatial boundaries) across space and time <em>without having to explicitly deal with any of the challenges inherent to geospatial analyses</em>.</p>
 </div>
 <div id="installation-and-setup" class="section level2">
 <h2 class="hasAnchor">
@@ -158,34 +161,35 @@
 <ol style="list-style-type: decimal">
 <li>Install non-R software dependencies</li>
 </ol>
-<p>Some of the R libraries that <em>slendr</em> uses internally rely on non-R software that needs to be installed before doing anything else. At the very least, you should make sure to install <code>udunits</code> and <code>gdal</code> on your system (if you’re on a Mac, I recommend <a href="https://brew.sh/">homebrew</a>). In my experience, some early users had those already installed without even knowing it (perhaps because they already used tools or R packages which depend on them).</p>
+<p>Some of the R libraries that <em>slendr</em> uses internally rely on non-R software that needs to be installed before doing anything else. At the very least, you should make sure to install <code>udunits</code> and <code>gdal</code> on your system (if you’re on a Mac, I recommend <a href="https://brew.sh/">homebrew</a>).</p>
+<p>There is one simple test to make sure that you will be able to install and use <em>slendr</em>. A lot of the geospatial heavy lifting is being done by the <a href="http://r-spatial.github.io/sf/"><em>sf</em></a>package. This is an R package we use to manipulate geometrical objects in space and time (all of which is considered an internal low-level thing, so you are never exposed to it). <strong>My suggestion is to first make sure that you can first successfully install <em>sf</em> by running <code>install.packages("sf").</code></strong> After that, installing <em>slendr</em> is trivial.</p>
 <ol start="2" style="list-style-type: decimal">
-<li>Install the <code>devtools</code> package:</li>
+<li>Install the <em>devtools</em> package:</li>
 </ol>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></code></pre></div>
-<p>On some systems, <code>devtools</code> installation fails because of missing libgit dependency. If that happens, please install <code>libgit2</code> first (on a Mac, you can use homebrew again).</p>
+<p>On some systems, <em>devtools</em> installation fails because of a missing <code>libgit</code> dependency. If that happens, please install <code>libgit2</code> first (on a Mac, you can use <a href="https://brew.sh/">homebrew</a> again).</p>
 <ol start="3" style="list-style-type: decimal">
 <li>Install <em>slendr</em>:</li>
 </ol>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"bodkan/slendr"</span><span class="op">)</span></code></pre></div>
+<p>This is necessary because <em>slendr</em> is not on <a href="http://cran.r-project.org">CRAN</a> yet. After we submit it, it will be possible to install it by simply running <code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("slendr")</a></code> in your R console.</p>
 <ol start="4" style="list-style-type: decimal">
 <li>That’s it! You can now load the package with the usual:</li>
 </ol>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bodkan/slendr">slendr</a></span><span class="op">)</span></code></pre></div>
-<p>Note that the package relies on several R packages for geospatial analyses which, in turn, depend on other software. In case the installation procedure in step #3 fails, inspect the error logs and install the software dependencies manually (on a Mac, use a tool such as <code>homebrew</code>). If that happens, I’d appreciate if you could submit an issue on <a href="https://github.com/bodkan/slendr/issues">Github</a>. Thank you!</p>
-<p>Finally, because the package is actively being worked on, improvements and bug fixes are being added every couple of hours. Make sure to install the development version each time you’re about to test some things (such as the examples in this vignette).</p>
+<p>Finally, because the package is actively being worked on, improvements and bug fixes are being added every couple of hours. <strong>Make sure to install the latest development version (step 3. above) each time you’re about to test some things (such as the examples in this vignette).</strong> You can track changes between development releases in the <a href="https://github.com/bodkan/slendr/blob/main/NEWS.md">changelog</a>.</p>
 </div>
 <div id="defining-the-overall-world-map" class="section level2">
 <h2 class="hasAnchor">
 <a href="#defining-the-overall-world-map" class="anchor"></a>Defining the overall world map</h2>
 <p>Before we do anything else, we need to define a section of the map of the world which will provide context for all downstream spatio-temporal manipulation of population ranges.</p>
-<p>In principle, any source of geospatial data which can be manipulated using the <a href="https://r-spatial.github.io/sf/">simple features (sf)</a> infrastructure could be used. For now the <code>slendr</code> package implicitly uses the <a href="https://www.naturalearthdata.com/">Natural Earth</a> project data (in it’s vectorized form!), which it internally loads using the <a href="https://cran.r-project.org/web/packages/rnaturalearth/README.html">rnaturalearth</a> interface.</p>
+<p>In principle, any source of geospatial data which can be manipulated using the <a href="https://r-spatial.github.io/sf/">simple features (sf)</a> infrastructure could be used. For now the <em>slendr</em> package implicitly uses the <a href="https://www.naturalearthdata.com/">Natural Earth</a> project data (in it’s vectorized form!), which it internally loads using the <a href="https://cran.r-project.org/web/packages/rnaturalearth/README.html">rnaturalearth</a> interface.</p>
 <p>The first function we will look at is <code>map()</code>. This function will load the map of the entire world in a vectorized format and zoom in to a specified section of the world.</p>
-<p>Note that in the call below, we specify the coordinates of the zoom in a geographical Coordinate Reference System (CRS), i.e. longitude/latitude), but we also specified that we want to perform all the downstream manipulation of the spatial population maps in a projected CRS (<a href="https://epsg.io/3035">Lambert Azimuthal Equal-Area projection</a>). This is more appropriate for representing a wider European continent used in this tutorial. Of course, different CRS projection could be used based on which part of the world we want to simulate.</p>
-<p>This is the current approach of <code>slendr</code>: let the user specify everything in an easy to understand longitude/latitude geographical CRS, but the internal data structures and the final exported spatial maps are internally handled in a projected CRS which is better for ensuring undistorted distances and proportions.</p>
+<p>Note that in the call below, we specify the coordinates of the zoom in a geographical Coordinate Reference System (CRS), i.e. longitude/latitude), but we also specified that we want to perform all the downstream manipulation of the spatial population maps in a projected CRS (<a href="https://epsg.io/3035">Lambert Azimuthal Equal-Area projection</a>) which is more appropriate for representing a wider European continent used in this tutorial. Of course, different CRS projection could be used based on which part of the world we want to simulate. Describing the intricacies of coordinate reference systems is beyond the scope of this tutorial but if you’re interested in learning more I encourage you to read a couple of paragraphs in <a href="https://keen-swartz-3146c4.netlify.app/intro.html#coordinate-reference-systems">this section</a> of a freely available textbook dedicated to this topic (written by the author of the <em>sf</em> package himself!).</p>
+<p>This is the approach of <em>slendr</em>: let the user specify everything in an easy to understand longitude/latitude geographical CRS (which can be read from any map, making it very easy to define spatial boundaries and trajectories of movement), but the internal data structures and the final exported spatial maps are internally handled in a projected CRS which is important to make sure that distances and proportions are not distorted.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">map</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/world.html">world</a></span><span class="op">(</span>
   xrange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">15</span>, <span class="fl">60</span><span class="op">)</span>, <span class="co"># min-max longitude</span>
@@ -193,7 +197,7 @@
   crs <span class="op">=</span> <span class="st">"EPSG:3035"</span>    <span class="co"># real projected CRS used internally</span>
 <span class="op">)</span>
 <span class="co">#&gt; OGR data source with driver: ESRI Shapefile </span>
-<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc", layer: "ne_110m_land"</span>
+<span class="co">#&gt; Source: "/private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpasv2lK", layer: "ne_110m_land"</span>
 <span class="co">#&gt; with 127 features</span>
 <span class="co">#&gt; It has 3 fields</span></code></pre></div>
 <p>Internally, the <code>map</code> object is a normal <code>sf</code> class object without additional components. This is unlike other <code>slendr</code> object described below, which are also <code>sf</code> objects but which carry additional internal components.</p>
@@ -210,7 +214,7 @@
 <div id="plotting-geographical-features-and-population-ranges" class="section level2">
 <h2 class="hasAnchor">
 <a href="#plotting-geographical-features-and-population-ranges" class="anchor"></a>Plotting geographical features and population ranges</h2>
-<p>The <code>slendr</code> package implements its own plotting function called <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>.</p>
+<p>The <em>slendr</em> package implements its own plotting function called <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>.</p>
 <p>We do this in order to make it easier and more convenient to iteratively build more complex models. The function can smartly decide (based on given input arguments) what is the right way to present the data for the user which helps to define models more quickly without relying on the lower-level mechanisms of the <code>sf</code> package.</p>
 <p>More on that below, but here we will just plot the world context we just created:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -248,7 +252,7 @@
 <span class="co">#&gt; name: Anatolia </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; map: internal coordinate reference system: EPSG 3035</span></code></pre></div>
-<p>However, the object also carries additional class annotations for the purpose of internal <code>slendr</code> machinery:</p>
+<p>However, the object also carries additional class annotations for the purpose of internal <em>slendr</em> machinery:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="va">anatolia</span><span class="op">)</span>
 <span class="co">#&gt; [1] "slendr"        "slendr_region" "sf"            "data.frame"</span></code></pre></div>
@@ -257,7 +261,7 @@
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">africa</span>, <span class="va">europe</span>, <span class="va">anatolia</span>, title <span class="op">=</span> <span class="st">"Geographic regions"</span><span class="op">)</span></code></pre></div>
 <p><img src="vignette-01-tutorial_files/figure-html/plot_europe_anatolia-1.png" width="480"></p>
-<p>Note that the <code>map</code> object is no longer explicitly specified. It is not needed, because each other class of objects provided to the <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function must carry it as a “map” attribute. In fact, each such object must carry the same map context - <code>slendr</code> complains whenever this is not the case.</p>
+<p>Note that the <code>map</code> object is no longer explicitly specified. It is not needed, because each other class of objects provided to the <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function must carry it as a “map” attribute. In fact, each such object must carry the same map context - <em>slendr</em> complains whenever this is not the case.</p>
 <p>We can check that the component is really there, although hidden, using the built-in <code>attr</code> function and verify that it is the same as the map object we created at the beginning:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/all.html">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html">attr</a></span><span class="op">(</span><span class="va">europe</span>, <span class="st">"map"</span><span class="op">)</span> <span class="op">==</span> <span class="va">map</span><span class="op">)</span>
@@ -431,7 +435,7 @@
 </div>
 <div id="plotting-multiple-slendr-objects" class="section level2">
 <h2 class="hasAnchor">
-<a href="#plotting-multiple-slendr-objects" class="anchor"></a>Plotting multiple <code>slendr</code> objects</h2>
+<a href="#plotting-multiple-slendr-objects" class="anchor"></a>Plotting multiple <em>slendr</em> objects</h2>
 <p>In addition to plotting individual population ranges, the generic function <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> can handle a combination of population ranges, and can also partition them in individual facets. This is useful for visual inspection of the specified model and for looking for potential issues before the export of individual spatio-temporal maps. Obviously, this is a lot of multi-dimensional information:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">afr</span>, <span class="va">ooa</span>, <span class="va">ehg</span>, <span class="va">eur</span>, <span class="va">ana</span>, <span class="va">yam</span><span class="op">)</span>
@@ -445,9 +449,9 @@
 <div id="define-geneflow-events" class="section level2">
 <h2 class="hasAnchor">
 <a href="#define-geneflow-events" class="anchor"></a>Define geneflow events</h2>
-<p>The way <code>slendr</code> implements geneflow events is by calling the <code><a href="../reference/geneflow.html">geneflow()</a></code> function. This function has a very straightforward interface which you should be able to understand from the examples below.</p>
+<p>The way <em>slendr</em> implements geneflow events is by calling the <code><a href="../reference/geneflow.html">geneflow()</a></code> function. This function has a very straightforward interface which you should be able to understand from the examples below.</p>
 <p>One thing to note is that the <code>from</code> and <code>to</code> populations must have overlapping spatial ranges in order to simulate geneflow. This is probably rather obvious, as populations can’t mix in space-time if they don’t overlap at a given point in space-time.</p>
-<p>For example, if you look at the spatial boundaries plotted above, you’ll see that the European and African populations don’t have any overlap in population ranges. If we try to instruct <code>slendr</code> to simulate geneflow between them, we will get an error:</p>
+<p>For example, if you look at the spatial boundaries plotted above, you’ll see that the European and African populations don’t have any overlap in population ranges. If we try to instruct <em>slendr</em> to simulate geneflow between them, we will get an error:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">geneflows</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geneflow.html">geneflow</a></span><span class="op">(</span>from <span class="op">=</span> <span class="va">eur</span>, to <span class="op">=</span> <span class="va">afr</span>, rate <span class="op">=</span> <span class="fl">0.1</span>, start <span class="op">=</span> <span class="fl">20000</span>, end <span class="op">=</span> <span class="fl">15000</span><span class="op">)</span></code></pre></div>
 <pre><code>Not a sufficient overlap between population ranges of EUR and AFR
@@ -459,7 +463,7 @@ Please check the spatial maps of both populations by running
 this makes sense for your model, you can add `overlap = F` which
 will instruct slendr to simulate geneflow without spatial overlap
 between populations.</code></pre>
-<p>The error message instructs us to visually verify that this is the case, which can be done by <code>slendr</code>’s <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function and the optional parameter <code>pop_facets = F</code> (which is set to <code>TRUE</code> by default):</p>
+<p>The error message instructs us to visually verify that this is the case, which can be done by <em>slendr</em>’s <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code> function and the optional parameter <code>pop_facets = F</code> (which is set to <code>TRUE</code> by default):</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">eur</span>, <span class="va">afr</span><span class="op">)</span>
 <span class="co">#&gt; Warning: Attempting to plot population ranges at multiple time points on</span>
@@ -492,7 +496,7 @@ between populations.</code></pre>
 <div id="compile-the-whole-model-and-load-it-in-slim" class="section level2">
 <h2 class="hasAnchor">
 <a href="#compile-the-whole-model-and-load-it-in-slim" class="anchor"></a>Compile the whole model and load it in SLiM</h2>
-<p>The most crucial function of <code>slendr</code> is <code><a href="../reference/compile.html">compile()</a></code>. It takes all population ranges defined across space and time together with list of geneflow events (this is optional, of course, as some models won’t include geneflow), and then proceeds by converting all vectorized spatial ranges to a raster bitmap form. Furthermore, it compiles all information about split times, <span class="math inline">\(N_e\)</span> values, geneflow directions, times and rates, to a series of tables. All of that will be saved automatically in a dedicated directory in a format that is understood by the backend SLiM script provided by <code>slendr</code> (more on that below).</p>
+<p>The most crucial function of <em>slendr</em> is <code><a href="../reference/compile.html">compile()</a></code>. It takes all population ranges defined across space and time together with list of geneflow events (this is optional, of course, as some models won’t include geneflow), and then proceeds by converting all vectorized spatial ranges to a raster bitmap form. Furthermore, it compiles all information about split times, <span class="math inline">\(N_e\)</span> values, geneflow directions, times and rates, to a series of tables. All of that will be saved automatically in a dedicated directory in a format that is understood by the backend SLiM script provided by <em>slendr</em> (more on that below).</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compile.html">compile</a></span><span class="op">(</span>
   populations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">afr</span>, <span class="va">ooa</span>, <span class="va">ehg</span>, <span class="va">eur</span>, <span class="va">ana</span>, <span class="va">yam</span><span class="op">)</span>, <span class="co"># populations defined above</span>
@@ -503,7 +507,7 @@ between populations.</code></pre>
   dispersal_dist <span class="op">=</span> <span class="fl">70e3</span>, <span class="co"># how far will offspring end up from their parents</span>
   dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"tutorial-model"</span><span class="op">)</span>,  overwrite <span class="op">=</span> <span class="cn">TRUE</span>
 <span class="op">)</span></code></pre></div>
-<p>What do the files in the model directory look like? In an ideal case, you as a user should never worry about these things. In fact, the whole purpose of <code>slendr</code> is to let you work on much higher level of abstraction without worrying about these low-level details. That said, you might find it useful to see how things are stored in the background…</p>
+<p>What do the files in the model directory look like? In an ideal case, you as a user should never worry about these things. In fact, the whole purpose of <em>slendr</em> is to let you work on much higher level of abstraction without worrying about these low-level details. That said, you might find it useful to see how things are stored in the background…</p>
 <p>First of all, we can inspect the contents of the directory and see that it does, indeed, contain all defined spatial maps (now PNG files, which is what SLiM requires).</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"tutorial-model"</span><span class="op">)</span>, pattern <span class="op">=</span> <span class="st">"*.png"</span><span class="op">)</span>
@@ -557,12 +561,12 @@ between populations.</code></pre>
 <span class="co">#&gt; 5 OOA      1  49230.77       93</span>
 <span class="co">#&gt; 6 OOA      1  48846.15      106</span>
 <span class="co">#&gt;                                                                               path</span>
-<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/1.png</span>
-<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/2.png</span>
-<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/3.png</span>
-<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/4.png</span>
-<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/5.png</span>
-<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpuNUebc/tutorial-model/6.png</span></code></pre></div>
+<span class="co">#&gt; 1 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpasv2lK/tutorial-model/1.png</span>
+<span class="co">#&gt; 2 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpasv2lK/tutorial-model/2.png</span>
+<span class="co">#&gt; 3 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpasv2lK/tutorial-model/3.png</span>
+<span class="co">#&gt; 4 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpasv2lK/tutorial-model/4.png</span>
+<span class="co">#&gt; 5 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpasv2lK/tutorial-model/5.png</span>
+<span class="co">#&gt; 6 /var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpasv2lK/tutorial-model/6.png</span></code></pre></div>
 <p>The object returned by the <code><a href="../reference/compile.html">compile()</a></code> function (called <code>model</code> here) binds all of this information together. In fact, for easier debugging and sanity checks, it carries the locations of these tables (as well as other important information) in it as elements of a list <code>model$splits</code>, <code>model$geneflows</code>, etc.</p>
 <p>In case you’d want to separate model specification and running into different scripts, <em>slendr</em> includes a function <code><a href="../reference/read.html">read()</a></code> just for this purpose:</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
@@ -601,13 +605,13 @@ between populations.</code></pre>
   save_locations <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># save the location of everyone who ever lived</span>
   track_ancestry <span class="op">=</span> <span class="fl">1</span>,
   method <span class="op">=</span> <span class="st">"batch"</span>, <span class="co"># change to "gui" to execute the model in SLiMgui</span>
-  seed <span class="op">=</span> <span class="fl">314159265</span>
+  seed <span class="op">=</span> <span class="fl">314159</span>
 <span class="op">)</span></code></pre></div>
 </div>
 <div id="post-simulation-diagnostics" class="section level2">
 <h2 class="hasAnchor">
 <a href="#post-simulation-diagnostics" class="anchor"></a>Post-simulation diagnostics</h2>
-<p>In case we instructed <code>slendr</code> to track ancestry proportions, we can visualize them after the simulation is over using the built-in <code>diagnostics()</code> function. This is quite bare-bones for now and the way diagnostics are generated is subject to change…</p>
+<p>In case we instructed <em>slendr</em> to track ancestry proportions, we can visualize them after the simulation is over using the built-in <code>diagnostics()</code> function. This is quite bare-bones for now and the way diagnostics are generated is subject to change…</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/ancestries.html">ancestries</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></code></pre></div>
 <p><img src="vignette-01-tutorial_files/figure-html/plot_ancestries-1.png" width="480"></p>
@@ -616,6 +620,17 @@ between populations.</code></pre>
 <code class="sourceCode R"><span class="fu"><a href="../reference/animate.html">animate</a></span><span class="op">(</span><span class="va">model</span>, steps <span class="op">=</span> <span class="fl">100</span>, width <span class="op">=</span> <span class="fl">500</span>, height <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></code></pre></div>
 <p><img src="vignette-01-tutorial_files/figure-html/plot_gif-1.gif"><!-- --></p>
 <p>In case an argument <code>gif = ...</code> was provided, the function will save the animation to the specified location as a GIF file. Note that unless your simulation is very short and/or involves only a small population, rendering of the animation can take several minutes.</p>
+</div>
+<div id="more-information" class="section level2">
+<h2 class="hasAnchor">
+<a href="#more-information" class="anchor"></a>More information</h2>
+<p>This vignette described only the most basic features of the <em>slendr</em> package but it is already quite long. There is much more to <em>slendr</em> than what we demonstrated here. For instance:</p>
+<ul>
+<li><p>You can tweak parameters influencing dispersal dynamics (how “clumpy” populations are, how far can offspring migrate from their parents, etc.) and change how they evolve over time. See <a href="http://bodkan.net/slendr/articles/vignette-03-interactions.html">this vignette</a> for more information.</p></li>
+<li><p>You can use <em>slendr</em> to program non-spatial models, which means that any concievable demographic model can be simulated with only a few lines of R code and, for instance, plugged into an <a href="https://en.m.wikipedia.org/wiki/Approximate_Bayesian_computation">Approximate Bayesian Computation</a> pipeline or other analyses leveraging readily available R packages. You can find more in <a href="http://bodkan.net/slendr/articles/vignette-04-nonspatial-models.html">this vignette</a>.</p></li>
+<li><p>You can build complex spatial models which are still abstract (not assuming any real geographic location), including traditional simulations of demes in a lattice structure. A complete example is shown <a href="http://bodkan.net/slendr/articles/vignette-02-grid-model.html">in this vignette</a>.</p></li>
+<li><p>Because SLiM saves data in a tree-sequence file format, thanks to the R package <a href="https://rstudio.github.io/reticulate/index.html"><em>reticulate</em></a>for interfacing with Python codeyou have the incredible power of <a href="https://tskit.dev/tskit/docs/stable/"><em>tskit</em></a>and <a href="https://pyslim.readthedocs.io"><em>pyslim</em></a>to process simulated data at a massive scale right at your fingertips, all within the convenient environment of R.</p></li>
+</ul>
 </div>
   </div>
 

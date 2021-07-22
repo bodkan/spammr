@@ -129,6 +129,9 @@ the generated SLiM script to a given location for later use." />
     <li>
       <a href="../articles/vignette-04-nonspatial-models.html">Traditional non-spatial models</a>
     </li>
+    <li>
+      <a href="../articles/vignette-05-tree-sequences.html">Processing of tree-sequence data</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -187,6 +190,7 @@ the generated SLiM script to a given location for later use.</p>
   track_ancestry <span class='op'>=</span> <span class='cn'>FALSE</span>,
   keep_pedigrees <span class='op'>=</span> <span class='cn'>FALSE</span>,
   ts_recording <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  sampling <span class='op'>=</span> <span class='cn'>NULL</span>,
   <span class='va'>method</span>,
   verbose <span class='op'>=</span> <span class='cn'>FALSE</span>,
   include <span class='op'>=</span> <span class='cn'>NULL</span>,
@@ -259,6 +263,14 @@ combined with the backend SLiM code</p></td>
     <tr>
       <th>slim_path</th>
       <td><p>Optional way to specify path to an appropriate SLiM binary</p></td>
+    </tr>
+    <tr>
+      <th>samples</th>
+      <td><p>A data frame of times at which a given number of individuals
+should be remembered in the tree-sequence (see <code>sampling</code> for a function
+that can generate the sampling schedule in the correct format). If missing,
+only individuals present at the end of the simulation will be recorded in
+the tree-sequence output file.</p></td>
     </tr>
     </table>
 

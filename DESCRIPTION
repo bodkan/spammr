@@ -41,7 +41,9 @@ Imports:
     data.table,
     tidygraph,
     dplyr,
-    purrr
+    purrr,
+    readr,
+    stringr
 Suggests: 
     testthat (>= 3.0.0),
     knitr,

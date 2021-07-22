@@ -24,7 +24,7 @@ animate <- function(model, steps, gif = NULL, width = 800, height = 560) {
     levels = sort(unique(locs$pop)),
     labels = pop_names[sort(unique(locs$pop)) + 1]
   )
-  locs$time <- as.integer(locs$t * model$generation_time)
+  locs$time <- as.integer(locs$time)
   locs <- locs[time %in% sort(unique(
     c(min(time),
       time[seq(1, length(time), length.out = steps)],
@@ -302,9 +302,9 @@ get_nodes <- function(edges) {
 
   nodes <- as.data.table(nodes)
   nodes[, label := fcase(
-    type == "split", sprintf("%s split at %s", pop, time),
+    type == "split", sprintf("%s split\nat %s", pop, time),
     type == "ancestral", paste(pop, "(ancestor)"),
-    type == "geneflow", sprintf("geneflow at %s", time),
+    type == "geneflow", sprintf("geneflow\nat %s", time),
     type == "intermediate", sprintf("from %s", pop)
   )]
   nodes

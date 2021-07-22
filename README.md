@@ -252,7 +252,7 @@ model
 #>   - number of spatial maps: 60 
 #>   - resolution: 10000 distance units per pixel
 #> 
-#> configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/RtmpvOgk52/readme-model 
+#> configuration files in: /private/var/folders/hr/_t1b0f5n7c76yrfsg8yk9l100000gn/T/Rtmpj1uH5w/readme-model 
 #> 
 #> A detailed model specification can be found in `$splits`, `$geneflows`,
 #> `$maps`, `$populations`, and other components of the model object (for
@@ -298,7 +298,7 @@ slim(
   seq_length = 1, recomb_rate = 0, # simulate only a single locus
   save_locations = TRUE, # save the location of everyone who ever lived
   method = "batch", # change to "gui" to execute the model in SLiMgui
-  seed = 314159265
+  seed = 314159
 )
 ```
 
